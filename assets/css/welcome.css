@@ -1,0 +1,78 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #eef2f7;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 30px 10px;
+    box-sizing: border-box;
+}
+.container {
+    background: #ffffff;
+    padding: 35px 40px;
+    border-radius: 14px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 900px;
+}
+.logo {
+    max-width: 120px;
+    margin-bottom: 10px;
+}
+h1 {
+    margin: 0 0 5px;
+    color: #1a1a2e;
+    font-size: 2rem;
+}
+.subtitulo {
+    color: #555;
+    margin-bottom: 30px;
+}
+.modulos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+.modulo-card {
+    background: #f8f9fc;
+    border: 1px solid #dde3ee;
+    border-radius: 10px;
+    padding: 20px;
+    width: 240px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.modulo-destaque {
+    background: #eaf4ff;
+    border-color: #007bff;
+}
+.modulo-card h3 {
+    margin: 0 0 15px;
+    color: #1a1a2e;
+    font-size: 1rem;
+}
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.btn {
+    padding: 9px 14px;
+    font-size: 0.88rem;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.25s ease;
+    display: block;
+}
+.btn-registrar  { background-color: #28a745; color: white; }
+.btn-registrar:hover  { background-color: #218838; }
+.btn-consultar  { background-color: #007bff; color: white; }
+.btn-consultar:hover  { background-color: #0056b3; }
+.btn-gestionar  { background-color: #6f42c1; color: white; }
+.btn-gestionar:hover  { background-color: #563d7c; }
