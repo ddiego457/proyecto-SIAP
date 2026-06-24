@@ -10,6 +10,19 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="assets/css/siap.css">
     <link rel="stylesheet" href="assets\js\DataTables\datatables.min.css">
+    <style>
+        .input-corto {
+        width: 55px; /* Ajusta este valor a tus necesidades */
+        padding: 8px 5px;
+        font-size: 14px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.2s ease;
+}
+    </style>
 </head>
 <body>
 <div class="app-layout">

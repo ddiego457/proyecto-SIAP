@@ -58,7 +58,7 @@ if (isset($_GET['type'])) {
                 echo json_decode("NULL");
                 return;
             }
-            echo json_encode($reporte);
+            echo json_encode(["data" => $reporte]);
             die();
         }
         //if (isset($_POST['deleteItem'])) {

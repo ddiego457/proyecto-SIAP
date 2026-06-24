@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
     
-    const tabla = $('#tabla-consulta').DataTable({
+    const tabla = $('#tablaMain').DataTable({
         ajax:{
             url: "?url=requerimiento&type=main",
             method: 'POST',
@@ -15,24 +15,112 @@ $(document).ready(function() {
             {data:'Ene',
             render: function(data,type,row){
                 return `<input type="number" 
-                                   class="form-control" 
+                                   class="input-corto" 
                                    min="0" 
                                    value="${data}" 
                                    data-id="${row.id}"
                                    onchange="actualizarValor(this)"></input>`;
             }
             },
-            {data: 'Feb'},
-            {data: 'Mar'},
-            {data: 'Abr'},
-            {data: 'May'},
-            {data: 'Jun'},
-            {data: 'Jul'},
-            {data: 'Ago'},
-            {data: 'Sep'},
-            {data: 'Oct'},
-            {data: 'Nov'},
-            {data: 'Dic'},
+            {data: 'Feb' ,
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Mar',
+        render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Abr',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'May',
+        render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Jun',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Jul',
+        render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Ago',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Sep',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Oct',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Nov',
+        render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
+            {data: 'Dic',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="input-corto" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }},
             {data: 'Total_Cantidad'},
             {data: 'precio_unit_usd'},
             {data: 'total_usd'},

@@ -35,7 +35,7 @@ private function executeGetAll(){
     SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
     SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
     SUM(dr.cant_mes) AS Total_Cantidad,
-    i.precio AS precio_unit_usd,
+    SUM(i.precio) AS precio_unit_usd,
     (SUM(dr.cant_mes) * i.precio) AS total_usd,
     SUM(dr.cant_mes * i.precio * tb.tasa_bcv_usd) AS total_bs
     FROM requerimientos r
@@ -45,7 +45,7 @@ private function executeGetAll(){
     JOIN partidas p ON i.id_partida = p.id_partida
     JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
     -- WHERE r.estado = 'enviado'
-    GROUP BY d.id_dep, p.cod_partida, i.id_item, i.nom_item, i.precio
+    GROUP BY d.nom_dep, p.cod_partida, i.id_item, i.nom_item, i.precio
     ORDER BY p.cod_partida, d.nom_dep;";
     $stmt = $this->conex->prepare($query);
     $stmt->execute();
@@ -53,6 +53,4 @@ private function executeGetAll(){
 }
 
 }
-
-
 ?>

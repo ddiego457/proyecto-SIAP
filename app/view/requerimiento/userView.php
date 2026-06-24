@@ -12,26 +12,42 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
-<div class="container-fluid mt-4">
-    <h2 class="mb-4">Requerimientos Consolidados</h2>
-    
-    <div class="table-responsive">
-        <table id="tabla-consulta" class="table table-bordered table-striped w-100">
-            <thead class="table-dark">
-                <tr>
-                    <th>dependencias</th>
-                    <th>Partida</th>
-                    <th>Producto</th>
-                    <th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th>
-                    <th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th>
-                    <th class="bg-primary">Total Físico</th>
-                    <th class="bg-success">Total USD</th>
-                    <th class="bg-info">Total BS</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
+<div class="page-body">
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Requerimientos Consolidados</span>
+        </div>
+        <div class="card-body">
+            <div class="table-wrap">
+                <table id="tablaMain" class="siap-table" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>dependencias</th>
+                            <th>Partida</th>
+                            <th>Producto</th>
+                            <th>Ene</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Abr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th>Jul</th>
+                            <th>Ago</th>
+                            <th>Sep</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dic</th>
+                            <th class="bg-primary">Total Físico</th>
+                            <th class="bg-success">SubTotal Usd</th>
+                            <th class="bg-success">Total Usd</th>
+                            <th class="bg-info">Total BS</th>
+                        </tr>
+                    </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+            </div>
+        </div>
     </div>
 </div>
 
