@@ -13,12 +13,13 @@ include_once 'app/view/layout/head.php';
 </div>
 
 <div class="container-fluid mt-4">
-    <h2 class="mb-4">Sábana General de Requerimientos Consolidados</h2>
+    <h2 class="mb-4">Requerimientos Consolidados</h2>
     
     <div class="table-responsive">
         <table id="tabla-consulta" class="table table-bordered table-striped w-100">
             <thead class="table-dark">
                 <tr>
+                    <th>dependencias</th>
                     <th>Partida</th>
                     <th>Producto</th>
                     <th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th>

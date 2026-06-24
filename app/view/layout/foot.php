@@ -1,7 +1,7 @@
     </div><!-- /main-content -->
 </div><!-- /app-layout -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+<script src="assets\js\DataTables\jquery.js"></script>
+<script src="assets\js\DataTables\datatables.min.js"></script>
 <?php if(isset($jsFile)): ?>
 <script src="assets/js/<?php echo $jsFile; ?>?v=<?php echo file_exists("assets/js/{$jsFile}") ? filemtime("assets/js/{$jsFile}") : time(); ?>"></script>
 <?php endif; ?>

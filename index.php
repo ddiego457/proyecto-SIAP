@@ -2,7 +2,7 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-use App\PracticaCrud\Controller\FrontController as FrontController;
+use EquipoSiap\Siap\controller\FrontController as FrontController;
 
 $front = new FrontController();
 ?>

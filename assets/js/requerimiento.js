@@ -1,42 +1,47 @@
 
 $(document).ready(function() {
     
-    $('#tabla-consulta').DataTable({
-        "processing": true,
-        "ajax": {
-            "url": "index.php?controlador=Reportes&accion=obtenerSabanaGeneral",
-            "type": "GET" // Como es solo lectura, usamos GET
+    const tabla = $('#tabla-consulta').DataTable({
+        ajax:{
+            url: "?url=requerimiento&type=main",
+            method: 'POST',
+            data: {getAll: true},
+            datasrc: ''
         },
-        // Las propiedades de 'data' deben coincidir EXACTAMENTE con los AS que pusiste en tu consulta SQL
-        "columns": [
-            { "data": "partida", "className": "fw-bold" },
-            { "data": "producto" },
-            { "data": "Ene" }, { "data": "Feb" }, { "data": "Mar" }, { "data": "Abr" },
-            { "data": "May" }, { "data": "Jun" }, { "data": "Jul" }, { "data": "Ago" },
-            { "data": "Sep" }, { "data": "Oct" }, { "data": "Nov" }, { "data": "Dic" },
-            { 
-                "data": "Total_Cantidad",
-                "className": "text-center fw-bold text-primary" 
-            },
-            { 
-                "data": "total_usd",
-                "render": $.fn.dataTable.render.number(',', '.', 2, '$'),
-                "className": "text-end text-success fw-bold"
-            },
-            { 
-                "data": "total_bs",
-                "render": $.fn.dataTable.render.number(',', '.', 2, 'Bs. '),
-                "className": "text-end text-info fw-bold"
+        columns: [
+            {data: 'dependencia'},
+            {data: 'partida'},
+            {data: 'producto'},
+            {data:'Ene',
+            render: function(data,type,row){
+                return `<input type="number" 
+                                   class="form-control" 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
             }
+            },
+            {data: 'Feb'},
+            {data: 'Mar'},
+            {data: 'Abr'},
+            {data: 'May'},
+            {data: 'Jun'},
+            {data: 'Jul'},
+            {data: 'Ago'},
+            {data: 'Sep'},
+            {data: 'Oct'},
+            {data: 'Nov'},
+            {data: 'Dic'},
+            {data: 'Total_Cantidad'},
+            {data: 'precio_unit_usd'},
+            {data: 'total_usd'},
+            {data: 'total_bs'}
         ],
-        "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-        },
-        // Agrupar filas automáticamente por Partida (opcional pero muy útil)
-        "rowGroup": {
-            dataSrc: 'partida'
-        },
-        "pageLength": 25
+        autowidth: false,
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+        }
     });
 
     $(document).ready(function() {
@@ -123,3 +128,13 @@ $(document).ready(function() {
         });
     });
 });
+
+function actualizarValor(elemento) {
+    var table = $('#miTabla').DataTable();
+    var valorActual = $(elemento).val();
+    
+    // Encuentra la fila del input y actualiza el valor interno de DataTables
+    var celda = $(elemento).closest('td');
+    table.cell(celda).data(valorActual).draw(false);
+    
+    console.log("Nuevo valor guardado:", valorActual);}

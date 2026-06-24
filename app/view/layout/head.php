@@ -9,7 +9,7 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
     <title><?php echo $pageTitle; ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="assets/css/siap.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="assets\js\DataTables\datatables.min.css">
 </head>
 <body>
 <div class="app-layout">

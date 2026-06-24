@@ -7,11 +7,7 @@ $object = new requerimientoModel();
 
 if (isset($_GET['type'])) {
 
-    if ($_GET['type'] == 'list') {
-        $result = $object->getAll();
-        include 'app/view/requerimiento/userView.php';
-
-    } elseif ($_GET['type'] == 'register') {
+    if ($_GET['type'] == 'register') {
 
        // Capturar datos enviados por POST
        $id_req  = isset($_POST['id_req']) ? intval($_POST['id_req']) : 0;
@@ -23,9 +19,9 @@ if (isset($_GET['type'])) {
        }
 
        // Llamar al modelo para traer los ítems cruzados con lo que ya esté guardado en borrador
-       $items = $object->getAll($id_req, $partida);
+       $items = $object->getAll();
 
-       $id_req         = isset($_POST['id_req']) ? intval($_POST['id_req']) : 0;
+        $id_req         = isset($_POST['id_req']) ? intval($_POST['id_req']) : 0;
         $partida_actual = isset($_POST['partida']) ? $_POST['partida'] : '';
         $cantidades     = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
 
@@ -62,7 +58,7 @@ if (isset($_GET['type'])) {
                 echo json_decode("NULL");
                 return;
             }
-            echo json_encode(['data' => $reporte]);
+            echo json_encode($reporte);
             die();
         }
         //if (isset($_POST['deleteItem'])) {

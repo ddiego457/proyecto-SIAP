@@ -14,11 +14,8 @@ public function __construct()
 
 public function getAll(){
     
-    $resulr = $this->executeGetAll();
-    return $resulr; 
-    //quien pidio cada cosa y cuanto ordenado por dependencias , aunque las dependencias deben estar a parte como
-    //tablas de informacion por dependencias y un join que meuestre todos los productos puede ser un left o rigth join
-    //Otra consulta especifica para los meses y las cantidades detalladas
+    $result = $this->executeGetAll();
+    return $result; 
 }
 
 private function executeGetAll(){
