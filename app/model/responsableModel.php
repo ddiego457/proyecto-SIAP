@@ -1,8 +1,8 @@
 <?php
 
-namespace App\PracticaCrud\Model;
+namespace EquipoSiap\Siap\model;
 
-use App\PracticaCrud\Config\Connect\ConnectDB;
+use EquipoSiap\Siap\config\Connect\ConnectDB;
 
 class responsableModel extends ConnectDB
 {

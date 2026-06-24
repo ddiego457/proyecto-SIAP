@@ -1,6 +1,6 @@
 <?php
 
-    use App\PracticaCrud\Model\proveedorModel;
+    use EquipoSiap\Siap\Model\proveedorModel;
     $object = new proveedorModel();
 
     if (isset($_GET['type'])) {

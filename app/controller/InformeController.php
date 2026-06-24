@@ -1,7 +1,6 @@
 <?php
-namespace App\PracticaCrud\Controller;
 
-use App\PracticaCrud\Model\InformeModel;
+use EquipoSiap\Siap\model\InformeModel;
 
 function sendExcelDownload(string $fileName, array $headers, array $rows): void
 {

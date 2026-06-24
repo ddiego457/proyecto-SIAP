@@ -1,6 +1,6 @@
 <?php
 
-    namespace App\PracticaCrud\Config\Connect;
+    namespace EquipoSiap\Siap\config\Connect;
 
     use PDO;
     use PDOException;

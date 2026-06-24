@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-use App\PracticaCrud\Model\LoginDesingModel as loginModel;
+use EquipoSiap\Siap\model\LoginDesingModel as loginModel;
 
 $object = new loginModel();
 

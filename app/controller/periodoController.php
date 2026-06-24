@@ -1,7 +1,7 @@
 <?php
 
 
-use App\PracticaCrud\Model\periodomodel;
+use EquipoSiap\Siap\model\periodoModel;
 
 $object = new periodomodel();
 

@@ -1,7 +1,7 @@
 <?php
 
-use App\PracticaCrud\Model\productosServiciosModel;
-use App\PracticaCrud\Model\proveedorModel;
+use EquipoSiap\Siap\model\productosServiciosModel;
+use EquipoSiap\Siap\model\proveedorModel;
 
 $object = new productosServiciosModel();
 $proveedorModel = new proveedorModel();

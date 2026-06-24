@@ -1,8 +1,7 @@
 <?php
 
-namespace App\PracticaCrud\Controller;
 
-use App\PracticaCrud\Model\anioFiscalModel;
+use EquipoSiap\Siap\model\anioFiscalModel;
 
 $object = new anioFiscalModel();
 

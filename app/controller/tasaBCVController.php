@@ -1,5 +1,5 @@
 <?php
-    use App\PracticaCrud\Model\tasaBCVModel;
+    use EquipoSiap\Siap\model\tasaBCVModel;
     $object = new tasaBCVModel();
 
     if (isset($_GET['type'])) {

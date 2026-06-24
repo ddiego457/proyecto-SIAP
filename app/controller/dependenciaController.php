@@ -1,6 +1,6 @@
 <?php
 
-    use App\PracticaCrud\Model\dependenciaModel;
+    use EquipoSiap\Siap\model\dependenciaModel;
     $object = new dependenciaModel();
 
 

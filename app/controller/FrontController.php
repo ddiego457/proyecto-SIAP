@@ -1,6 +1,6 @@
 <?php
 
-namespace App\PracticaCrud\Controller;
+namespace EquipoSiap\Siap\controller;
 
 class FrontController
 {

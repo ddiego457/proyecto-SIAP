@@ -1,6 +1,6 @@
 <?php
 
-    use App\PracticaCrud\Model\responsableModel;
+    use EquipoSiap\Siap\model\responsableModel;
     $object = new responsableModel();
 
     if (isset($_GET['type'])) {

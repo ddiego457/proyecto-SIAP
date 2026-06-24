@@ -1,6 +1,6 @@
 <?php
-namespace App\PracticaCrud\Model;
-use App\PracticaCrud\Config\Connect\ConnectDB;
+namespace EquipoSiap\Siap\model;
+use EquipoSiap\Siap\config\Connect\ConnectDB;
 
 class periodoModel extends ConnectDB
 {
@@ -185,6 +185,13 @@ class periodoModel extends ConnectDB
         } catch (\PDOException $e) {
             return false;
         }
+    }
+
+    private function executeDelete($id){
+        $stmt = $this->conex->prepare("UPDATE periodos_entrega SET activo = 0
+                WHERE id_periodo = ?");
+        $stmt->bindValue(1, $id);
+        $stmt->execute();
     }
 
     public function inactivate($id) {

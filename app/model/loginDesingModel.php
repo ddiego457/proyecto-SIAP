@@ -1,8 +1,8 @@
 <?php
 // Archivo: app/model/LoginDesingModel.php
-namespace App\PracticaCrud\Model;   // <--- Namespace de Modelo
+namespace EquipoSiap\Siap\model;   // <--- Namespace de Modelo
 
-use App\PracticaCrud\Config\Connect\ConnectDB;
+use EquipoSiap\Siap\config\Connect\ConnectDB;
 use Exception;
 use PDO;
 

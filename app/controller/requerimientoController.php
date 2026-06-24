@@ -1,7 +1,7 @@
 <?php
 
 
-use App\PracticaCrud\Model\requerimientoModel;
+use EquipoSiap\Siap\model\requerimientoModel;
 
 $object = new requerimientoModel();
 
