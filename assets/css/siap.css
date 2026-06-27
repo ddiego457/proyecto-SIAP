@@ -906,3 +906,9 @@ table.siap-table {
   background: var(--bg) !important;
   color: var(--text-dark) !important;
 }
+
+
+/* Oculta cualquier elemento de la interfaz de forma definitiva */
+.d-none {
+  display: none !important;
+}

@@ -14,29 +14,18 @@ include_once 'app/view/layout/head.php';
 
 <div class="page-body">
 
-    <!-- Alerta de fecha límite -->
-    <div class="alert-banner alert-warning">
-        <div class="alert-banner-left">
-            <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo date('d \d\e F \d\e Y'); ?></div>
-            <div class="alert-banner-sub">Complete todas las partidas de su dependencia antes del cierre</div>
-        </div>
-        <div class="alert-banner-badge">12 <span>días</span></div>
-    </div>
-
     <!-- Step wizard -->
-    <div class="container-fluid mt-4">
     <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Carga de Requerimientos - Partida <span id="titulo-partida">401</span></h4>
-            <span class="badge bg-warning text-dark">Modo Borrador</span>
         </div>
         <div class="card-body">
             <form id="form-registro">
                 <input type="hidden" id="id_req" name="id_req" value="<?php echo $id_req; ?>">
                 <input type="hidden" id="partida_actual" name="partida_actual" value="401">
 
-                <div class="table-responsive">
-                    <table id="tabla-registro" class="table table-striped table-hover table-bordered w-100">
+                <div class="table-wrap">
+                    <table id="tabla-registro" class="siap-table">
                         <thead class="table-dark">
                             <tr>
                                 <th>Producto</th>
@@ -53,24 +42,16 @@ include_once 'app/view/layout/head.php';
                     <button type="button" id="btn-guardar" class="btn btn-primary">
                         Guardar y Avanzar a Siguiente Partida
                     </button>
-                    <button type="button" id="btn-enviar-final" class="btn btn-success d-none">
-                        Enviar Definitivo a Coordinación
-                    </button>
                 </div>
             </form>
+            <div class="flex gap-10" style="margin-top:8px;justify-content:flex-end;">
+                <a href="?url=requerimiento&type=main" class="btn btn-outline">Cancelar</a>
+            </div>
         </div>
     </div>
 </div>
-                <div class="flex gap-10" style="margin-top:8px;justify-content:flex-end;">
-                    <a href="?url=requerimiento&type=main" class="btn btn-outline">Cancelar</a>
-                    <button type="button" class="btn btn-outline">&#128190; Guardar borrador</button>
-                    <button type="submit" class="btn btn-blue">&#10148; Vista previa y enviar</button>
-                </div>
-            </div>
-        </div>
 
-    </form>
-</div>
+</form>
 
 <?php include_once 'app/view/layout/foot.php'; ?>
 
