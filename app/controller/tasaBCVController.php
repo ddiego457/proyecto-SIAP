@@ -1,6 +1,7 @@
 <?php
     use EquipoSiap\Siap\model\tasaBCVModel;
     $object = new tasaBCVModel();
+    require_once "app/config/session.php";
 
     if (isset($_GET['type'])) {
 

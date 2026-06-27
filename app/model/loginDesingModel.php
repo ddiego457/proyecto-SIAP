@@ -19,9 +19,13 @@ class LoginDesingModel extends ConnectDB
 {
     try {
         // 1. Consulta solo por nombre de usuario (o email)
-        $stmt = $this->conex->prepare("SELECT id_responsable, nom_rep, id_rol, password 
-                                       FROM responsables 
-                                       WHERE nom_rep = ?");
+        $stmt = $this->conex->prepare("SELECT d.nom_dep as dependencia,r.id_responsable, 
+        r.nom_rep as responsable, r.id_rol , rl.descripcion as rol, password, d.id_dep as id_dep
+        FROM responsables as r
+        JOIN cargo_responsable as cr ON cr.id_responsable = r.id_responsable
+        JOIN dependencias as d ON d.id_dep = cr.id_dep
+        JOIN roles as rl on rl.id_rol = r.id_rol
+        WHERE r.nom_rep = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

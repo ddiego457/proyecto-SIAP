@@ -2,6 +2,8 @@
 
 use EquipoSiap\Siap\model\productosServiciosModel;
 use EquipoSiap\Siap\model\proveedorModel;
+require_once "app/config/session.php";
+
 
 $object = new productosServiciosModel();
 $proveedorModel = new proveedorModel();

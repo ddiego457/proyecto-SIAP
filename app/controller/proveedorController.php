@@ -2,6 +2,7 @@
 
     use EquipoSiap\Siap\Model\proveedorModel;
     $object = new proveedorModel();
+    require_once "app/config/session.php";
 
     if (isset($_GET['type'])) {
 

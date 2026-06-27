@@ -2,6 +2,7 @@
 
     use EquipoSiap\Siap\model\responsableModel;
     $object = new responsableModel();
+    require_once "app/config/session.php";
 
     if (isset($_GET['type'])) {
 

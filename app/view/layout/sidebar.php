@@ -20,15 +20,18 @@ if (!function_exists('sidebarLink')) {
 
     <nav class="sidebar-nav">
         <div class="sidebar-section-title">Mòdulos</div>
+        <?php if($_SESSION['rol'] !== 'Administrador'){                          ?>
+        <?php sidebarLink('requerimiento',       '&#128203;', 'Requerimientos',              $urlActual); ?>
+        <?php               }else{            ?>
+        <?php sidebarLink('requerimiento',       '&#128203;', 'Requerimientos',              $urlActual); ?>
         <?php sidebarLink('anioFiscal',         '&#128197;', 'A&ntilde;o Fiscal',           $urlActual); ?>
         <?php sidebarLink('dependencia',         '&#127970;', 'Dependencias',               $urlActual); ?>
         <?php sidebarLink('responsable',        '&#128100;', 'Responsables',               $urlActual); ?>
         <?php sidebarLink('proveedor',           '&#128230;', 'Proveedores',                $urlActual); ?>
         <?php sidebarLink('tasaBCV',             '&#128178;', 'Tasa BCV',                    $urlActual); ?>
-        <?php sidebarLink('requerimiento',       '&#128203;', 'Requerimientos',              $urlActual); ?>
         <?php sidebarLink('productosServicios', '&#128230;', 'Productos y Servicios',       $urlActual); ?>
         <?php sidebarLink('periodo',             '&#128197;', 'Periodo',                    $urlActual); ?>
-
+        <?php }?>
         <!-- Botón Salir: destruye sesión y redirige al login -->
         <a href="?url=logout" class="sidebar-link">
             <span class="icon">&#10162;</span> Salir
@@ -42,14 +45,14 @@ if (!function_exists('sidebarLink')) {
 
     <div class="sidebar-user">
         <?php
-            $rol = isset($_SESSION['auth']['rol']) ? (string)$_SESSION['auth']['rol'] : 'usuario';
-            $dependenciaId = isset($_SESSION['auth']['dependencia_id']) ? $_SESSION['auth']['dependencia_id'] : null;
-            $usuario = isset($_SESSION['auth']['usuario']) ? (string)$_SESSION['auth']['usuario'] : '';
+            $rol = isset($_SESSION['rol']) ? (string)$_SESSION['rol'] : 'usuario';
+            $dependenciaId = isset($_SESSION['dependencia']) ? $_SESSION['dependencia'] : null;
+            $usuario = isset($_SESSION['usuario']) ? (string)$_SESSION['usuario'] : '';
         ?>
-        <div class="sidebar-avatar">U</div>
+        <div class="sidebar-avatar"><?php echo $rol === 'Administrador' ? 'A' : 'U';?></div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name"><?php echo $usuario !== '' ? htmlspecialchars($usuario) : ($rol === 'admin' || $rol === 'administrador' ? 'Administrador' : 'Usuario'); ?></div>
-
+            <div class="sidebar-user-name"><?php echo $rol === 'Administrador' ? (string)$rol : 'Usuario';?></div>
         </div>
     </div>
 </aside>

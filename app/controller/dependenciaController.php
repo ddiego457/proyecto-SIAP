@@ -1,6 +1,7 @@
 <?php
 
     use EquipoSiap\Siap\model\dependenciaModel;
+require_once "app/config/session.php";
     $object = new dependenciaModel();
 
 

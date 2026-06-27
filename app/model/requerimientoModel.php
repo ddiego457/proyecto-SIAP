@@ -2,7 +2,6 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
-
 class requerimientoModel extends ConnectDB{
 private $conex;
 
@@ -18,7 +17,15 @@ public function getAll(){
     return $result; 
 }
 
+private function validUser($id , $rol){
+    $res = "";
+    if($rol === 'Administrador') return;
+    $res = "WHERE d.id_dep = " . $id;
+    return $res;
+}
+
 private function executeGetAll(){
+    $com = $this->validUser($_SESSION['id_dep'], $_SESSION['rol']);
     $query = "SELECT d.nom_dep as dependencia,
     p.cod_partida AS partida,
     i.nom_item AS producto,
@@ -45,11 +52,26 @@ private function executeGetAll(){
     JOIN partidas p ON i.id_partida = p.id_partida
     JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
     -- WHERE r.estado = 'enviado'
+    "
+    . $com .
+    "
     GROUP BY d.nom_dep, p.cod_partida, i.id_item, i.nom_item, i.precio
     ORDER BY p.cod_partida, d.nom_dep;";
     $stmt = $this->conex->prepare($query);
     $stmt->execute();
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+}
+
+public function getProductos(){
+    return $this->executeGetProductos();
+}
+
+private function executeGetProductos(){
+    $query = "SELECT nom_item
+            FROM items_partida";
+    $result = $this->conex->prepare($query);
+    $result->execute();
+    return $result->fetchAll();
 }
 
 }

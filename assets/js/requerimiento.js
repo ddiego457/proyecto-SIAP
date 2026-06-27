@@ -13,114 +13,29 @@ $(document).ready(function() {
             {data: 'partida'},
             {data: 'producto'},
             {data:'Ene',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }
-            },
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Feb' ,
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Mar',
-        render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Abr',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'May',
-        render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Jun',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Jul',
-        render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Ago',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Sep',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Oct',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Nov',
-        render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Dic',
-            render: function(data,type,row){
-                return `<input type="number" 
-                                   class="input-corto" 
-                                   min="0" 
-                                   value="${data}" 
-                                   data-id="${row.id}"
-                                   onchange="actualizarValor(this)"></input>`;
-            }},
+            render: function(data,type,row){return loadData(data, row)}},
             {data: 'Total_Cantidad'},
             {data: 'precio_unit_usd'},
             {data: 'total_usd'},
@@ -128,45 +43,60 @@ $(document).ready(function() {
         ],
         autowidth: false,
         language: {
-            url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            // url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
         }
     });
+    function loadData(data,row){
+                return `<input id="info" type="number" 
+                                   style='
+                                    width: 55px;
+                                    padding: 8px 5px;
+                                    font-size: 14px;
+                                    text-align: center;
+                                    border: 1px solid #ccc;
+                                    border-radius: 6px;
+                                    box-sizing: border-box;
+                                    outline: none;
+                                    transition: border-color 0.2s ease;
+                                    ' 
+                                   min="0" 
+                                   value="${data}" 
+                                   data-id="${row.id}"
+                                   onchange="actualizarValor(this)"></input>`;
+            }
 
     $(document).ready(function() {
-        const currentURL = window.location.pathname + window.location.search;
+        const currentURL = "?url=requerimiento&type=register";
         // 1. Inicializar DataTables
-        var tablaRegistro = $('#tabla-registro').DataTable({
-            "processing": true,
-            "serverSide": false, // Procesamos la paginación en el cliente
-            "ajax": {
-                "url": "index.php?controlador=Requerimiento&accion=obtenerItemsPartida",
-                "type": "POST",
+        const tablaRegistro = $('#tabla-registro').DataTable({
+            getProductos: true,
+            serverSide: false, // Procesamos la paginación en el cliente
+            ajax: {
+                url: currentURL,
+                type: "POST",
                 // Enviamos el id_req y la partida actual cada vez que la tabla pide datos
-                "data": function(d) {
-                    d.id_req = $('#id_req').val();
-                    d.partida = $('#partida_actual').val();
-                }
+                data: {getProductos: true}
             },
-            "columns": [
-                { "data": "nom_item" }, // Nombre del producto
+            columns: [
+                { data: 'nom_item' }, // Nombre del producto
                 // Columnas de los 12 meses. Usamos render para crear los inputs.
-                { "data": "ene", "render": function(data, type, row) { return crearInput(row.id_item, 1, data); }},
-                { "data": "feb", "render": function(data, type, row) { return crearInput(row.id_item, 2, data); }},
-                { "data": "mar", "render": function(data, type, row) { return crearInput(row.id_item, 3, data); }},
-                { "data": "abr", "render": function(data, type, row) { return crearInput(row.id_item, 4, data); }},
-                { "data": "may", "render": function(data, type, row) { return crearInput(row.id_item, 5, data); }},
-                { "data": "jun", "render": function(data, type, row) { return crearInput(row.id_item, 6, data); }},
-                { "data": "jul", "render": function(data, type, row) { return crearInput(row.id_item, 7, data); }},
-                { "data": "ago", "render": function(data, type, row) { return crearInput(row.id_item, 8, data); }},
-                { "data": "sep", "render": function(data, type, row) { return crearInput(row.id_item, 9, data); }},
-                { "data": "oct", "render": function(data, type, row) { return crearInput(row.id_item, 10, data); }},
-                { "data": "nov", "render": function(data, type, row) { return crearInput(row.id_item, 11, data); }},
-                { "data": "dic", "render": function(data, type, row) { return crearInput(row.id_item, 12, data); }}
+                { data: "ene", render: function(data, type, row) { return crearInput(row.id_item, 1, data); }},
+                { data: "feb", render: function(data, type, row) { return crearInput(row.id_item, 2, data); }},
+                { data: "mar", render: function(data, type, row) { return crearInput(row.id_item, 3, data); }},
+                { data: "abr", render: function(data, type, row) { return crearInput(row.id_item, 4, data); }},
+                { data: "may", render: function(data, type, row) { return crearInput(row.id_item, 5, data); }},
+                { data: "jun", render: function(data, type, row) { return crearInput(row.id_item, 6, data); }},
+                { data: "jul", render: function(data, type, row) { return crearInput(row.id_item, 7, data); }},
+                { data: "ago", render: function(data, type, row) { return crearInput(row.id_item, 8, data); }},
+                { data: "sep", render: function(data, type, row) { return crearInput(row.id_item, 9, data); }},
+                { data: "oct", render: function(data, type, row) { return crearInput(row.id_item, 10, data); }},
+                { data: "nov", render: function(data, type, row) { return crearInput(row.id_item, 11, data); }},
+                { data: "dic", render: function(data, type, row) { return crearInput(row.id_item, 12, data); }}
             ],
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            language: {
+                // url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
             },
-            "ordering": false // Desactivado para no desordenar los inputs al hacer clic
+            ordering: false // Desactivado para no desordenar los inputs al hacer clic
         });
     
         // Función auxiliar para imprimir el HTML del input multidimensional
@@ -192,7 +122,7 @@ $(document).ready(function() {
             $.ajax({
                 url: currentURL,
                 type: 'POST',
-                data: datosFinales,
+                data: {datosFinales: true},
                 dataType: 'json',
                 success: function(respuesta) {
                     if(respuesta.status === 'success') {
@@ -217,12 +147,3 @@ $(document).ready(function() {
     });
 });
 
-function actualizarValor(elemento) {
-    var table = $('#miTabla').DataTable();
-    var valorActual = $(elemento).val();
-    
-    // Encuentra la fila del input y actualiza el valor interno de DataTables
-    var celda = $(elemento).closest('td');
-    table.cell(celda).data(valorActual).draw(false);
-    
-    console.log("Nuevo valor guardado:", valorActual);}

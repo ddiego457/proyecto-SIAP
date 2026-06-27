@@ -1,6 +1,8 @@
 <?php
 
 use EquipoSiap\Siap\model\InformeModel;
+require_once "app/config/session.php";
+
 
 function sendExcelDownload(string $fileName, array $headers, array $rows): void
 {

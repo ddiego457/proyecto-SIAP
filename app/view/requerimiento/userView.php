@@ -8,7 +8,9 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">&#128203; Requerimientos POA</div>
     <div class="topbar-actions">
-        <a href="?url=requerimiento&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+        <?php if($_SESSION['rol'] !== "Administrador"){?>
+        <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">&#43; Registrar</a>
+        <?php }?>
     </div>
 </div>
 
