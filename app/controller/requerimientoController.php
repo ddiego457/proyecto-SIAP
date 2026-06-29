@@ -48,10 +48,17 @@ if (isset($_GET['type'])) {
         include 'app/view/requerimiento/registerView.php';
     }
     elseif ($_GET['type'] == 'main') {
-        $tl = $object->timeleft();
-        $d = date('D, d M Y H:i:s');
-        $dias = strtotime($d) - $tl['per_fin'];
-        $rek = true;
+        $time = $object->verifyPer();
+        $tl = $time[1];
+        $dias = $time[0];
+
+        $id_dep = $_SESSION['id_dep'];
+        
+        $rek = $object->verifyYear($id_dep) !== false ? false : true;
+        // falta implementar la verificacion directamente dentro de uno de los metos del modelo
+        //especificamente en el de registro para que una vez hecho el primer registro no pueda
+        //volver a hacerse uno
+        
         if (isset($_POST['getAll'])) {
             $reporte = $object->getAll();
             if(!$reporte){
@@ -60,10 +67,6 @@ if (isset($_GET['type'])) {
             }
             echo json_encode(["data" => $reporte]);
             die();
-        }
-        $id_dep = $_SESSION['id_dep'];
-        if ($object->verifyYear($id_dep)) {
-            $rek = false;
         }
 
         include 'app/view/requerimiento/userView.php';

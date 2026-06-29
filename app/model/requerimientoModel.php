@@ -2,6 +2,7 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use DateTime;
 class requerimientoModel extends ConnectDB{
 private $conex;
 
@@ -96,6 +97,8 @@ public function executeSaveReq($id_req, $partida, $cantidades) {
         $this->conex->beginTransaction();
 
         // 1. Si no existe un id_req (es la primera partida), creamos el requerimiento maestro
+        //Siempre va a a ser cero la primera vez, por lo que aqui podria ser un buen lugar para aplicar el comprobante de
+        //registro previo
         if (empty($id_req) || $id_req == 0) {
             // Buscamos una tasa activa de la tabla tasa_bcv
             $qTasa = "SELECT id_tasa FROM tasa_bcv WHERE estado = 1 LIMIT 1";
@@ -183,8 +186,7 @@ public function verifyPer(){
 
 private function verificarRegistroPrevio($id_dep) {
     $query = "SELECT COUNT(*) as total 
-              FROM detalle_req dr
-              JOIN requerimientos r ON r.id_req = dr.id_req
+              FROM  requerimientos r
               JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
               WHERE r.id_dep = :id_dep AND af.activo = 1";
               
@@ -213,16 +215,19 @@ private function verificarPeriodoValido() {
         return false; // No hay un período configurado o activo
     }
     
-    $fechaActual = date('Y-m-d');
     $inicio = $periodo['per_inicio'];
-    $fin = $periodo['per_fin'];
+    $fechaActual = new DateTime(date('Y-m-d'));
+    $fin = new DateTime($periodo['per_fin']);
+    $fechaRestante[] = date_diff($fechaActual, $fin)->days;
+    $fechaRestante[] = $fin->format('d/m/Y');
     
     // Si la fecha actual es mayor que la fecha de fin, el periodo expiró.
     if ($fechaActual >= $inicio && $fechaActual <= $fin) {
-        return true; // Está a tiempo
+        $fechaRestante[] = true; // Está a tiempo
+        return $fechaRestante;
     }
-    
-    return false; // Fuera de rango o extemporáneo
+    $fechaRestante[] = false;
+    return $fechaRestante; // Fuera de rango o extemporáneo
 }
 
 public function timeleft(){

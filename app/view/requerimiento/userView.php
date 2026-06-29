@@ -14,13 +14,14 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
+<!-- acomodar para que se vea mejor -->
 <div class="alert-banner alert-warning">
         <div class="alert-banner-left">
-            <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo (string)$tl; ?></div>
+            <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo $tl; ?></div>
             <div class="alert-banner-sub">Complete todas las partidas de su dependencia antes del cierre</div>
         </div>
-        <div class="alert-banner-badge">  $dias <span>días</span></div>
-    </div>
+        <div class="alert-banner-badge">  <?php echo $dias ?> <span>días</span></div>
+</div>
 
 <div class="page-body">
     <div class="card">
