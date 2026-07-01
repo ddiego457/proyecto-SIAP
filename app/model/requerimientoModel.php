@@ -27,37 +27,58 @@ private function validUser($id , $rol){
 
 private function executeGetAll(){
     $com = $this->validUser($_SESSION['id_dep'], $_SESSION['rol']);
-    $query = "SELECT d.nom_dep as dependencia,
+    $query = "SELECT 
+    req_data.id_req,
+    COALESCE(req_data.nom_dep, 'Sin solicitar') AS dependencia,
     p.cod_partida AS partida,
     i.nom_item AS producto,
-    SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes ELSE 0 END) AS Ene,
-    SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes ELSE 0 END) AS Feb,
-    SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes ELSE 0 END) AS Mar,
-    SUM(CASE WHEN dr.mes = 4 THEN dr.cant_mes ELSE 0 END) AS Abr,
-    SUM(CASE WHEN dr.mes = 5 THEN dr.cant_mes ELSE 0 END) AS May,
-    SUM(CASE WHEN dr.mes = 6 THEN dr.cant_mes ELSE 0 END) AS Jun,
-    SUM(CASE WHEN dr.mes = 7 THEN dr.cant_mes ELSE 0 END) AS Jul,
-    SUM(CASE WHEN dr.mes = 8 THEN dr.cant_mes ELSE 0 END) AS Ago,
-    SUM(CASE WHEN dr.mes = 9 THEN dr.cant_mes ELSE 0 END) AS Sep,
-    SUM(CASE WHEN dr.mes = 10 THEN dr.cant_mes ELSE 0 END) AS Oct,
-    SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
-    SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
-    SUM(dr.cant_mes) AS Total_Cantidad,
-    SUM(i.precio) AS precio_unit_usd,
-    (SUM(dr.cant_mes) * i.precio) AS total_usd,
-    SUM(dr.cant_mes * i.precio * tb.tasa_bcv_usd) AS total_bs
-    FROM requerimientos r
-    JOIN detalle_req dr ON r.id_req = dr.id_req
-    JOIN dependencias d ON d.id_dep = r.id_dep
-    JOIN items_partida i ON dr.id_item = i.id_item
-    JOIN partidas p ON i.id_partida = p.id_partida
+    COALESCE(req_data.Ene, 0) AS Ene,
+    COALESCE(req_data.Feb, 0) AS Feb,
+    COALESCE(req_data.Mar, 0) AS Mar,
+    COALESCE(req_data.Abr, 0) AS Abr,
+    COALESCE(req_data.May, 0) AS May,
+    COALESCE(req_data.Jun, 0) AS Jun,
+    COALESCE(req_data.Jul, 0) AS Jul,
+    COALESCE(req_data.Ago, 0) AS Ago,
+    COALESCE(req_data.Sep, 0) AS Sep,
+    COALESCE(req_data.Oct, 0) AS Oct,
+    COALESCE(req_data.Nov, 0) AS Nov,
+    COALESCE(req_data.Dic, 0) AS Dic,
+    COALESCE(req_data.Total_Cantidad, 0) AS Total_Cantidad,
+    i.precio AS precio_unit_usd,
+    (COALESCE(req_data.Total_Cantidad, 0) * i.precio) AS total_usd,
+    (COALESCE(req_data.Total_Cantidad, 0) * i.precio * COALESCE(req_data.tasa, 0)) AS total_bs
+FROM items_partida i
+JOIN partidas p ON i.id_partida = p.id_partida
+LEFT JOIN (
+    -- Esta subconsulta calcula los meses solo para los items que tienen registro en detalle_req
+    SELECT 
+        dr.id_item,
+        r.id_req,
+        d.nom_dep,
+        tb.tasa_bcv_usd AS tasa,
+        SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes END) AS Ene,
+        SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes END) AS Feb,
+        SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes END) AS Mar,
+        SUM(CASE WHEN dr.mes = 4 THEN dr.cant_mes END) AS Abr,
+        SUM(CASE WHEN dr.mes = 5 THEN dr.cant_mes END) AS May,
+        SUM(CASE WHEN dr.mes = 6 THEN dr.cant_mes END) AS Jun,
+        SUM(CASE WHEN dr.mes = 7 THEN dr.cant_mes END) AS Jul,
+        SUM(CASE WHEN dr.mes = 8 THEN dr.cant_mes END) AS Ago,
+        SUM(CASE WHEN dr.mes = 9 THEN dr.cant_mes END) AS Sep,
+        SUM(CASE WHEN dr.mes = 10 THEN dr.cant_mes END) AS Oct,
+        SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes END) AS Nov,
+        SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes END) AS Dic,
+        SUM(dr.cant_mes) AS Total_Cantidad
+    FROM detalle_req dr
+    JOIN requerimientos r ON dr.id_req = r.id_req
+    JOIN dependencias d ON r.id_dep = d.id_dep
     JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
-    -- WHERE r.estado = 'enviado'
-    "
-    . $com .
-    "
-    GROUP BY d.nom_dep, p.cod_partida, i.id_item, i.nom_item, i.precio
-    ORDER BY p.cod_partida, d.nom_dep;";
+    " . $com . "
+    GROUP BY dr.id_item, r.id_req, d.nom_dep, tb.tasa_bcv_usd
+) AS req_data ON i.id_item = req_data.id_item
+WHERE i.estado = 1
+ORDER BY p.cod_partida, i.nom_item;";
     $stmt = $this->conex->prepare($query);
     $stmt->execute();
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -86,43 +107,45 @@ private function executeGetProductos(){
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 }
 
-public function saveReq($id, $part, $cant){
-    $result = $this->executeSaveReq($id,$part,$cant);
+public function saveReq($id, $part, $cant,$id_dep){
+    $result = $this->executeSaveReq($id,$part,$cant,$id_dep);
     return $result;
 }
 
 // AGREGAR este nuevo método al final de la clase antes del último '}'
-public function executeSaveReq($id_req, $partida, $cantidades) {
+private function executeSaveReq($id_req, $partida, $cantidades, $id_dep) {
     try {
         $this->conex->beginTransaction();
-
         // 1. Si no existe un id_req (es la primera partida), creamos el requerimiento maestro
         //Siempre va a a ser cero la primera vez, por lo que aqui podria ser un buen lugar para aplicar el comprobante de
         //registro previo
         if (empty($id_req) || $id_req == 0) {
-            // Buscamos una tasa activa de la tabla tasa_bcv
-            $qTasa = "SELECT id_tasa FROM tasa_bcv WHERE estado = 1 LIMIT 1";
-            $sTasa = $this->conex->prepare($qTasa);
-            $sTasa->execute();
-            $tasa = $sTasa->fetch(\PDO::FETCH_ASSOC);
-            $id_tasa = $tasa ? $tasa['id_tasa'] : 1; // Respaldo por si no hay tasas registradas
+            $previusReq = $this->executeVerifyPreviusReq($id_dep);
+            if(!$previusReq){
+                // Buscamos una tasa activa de la tabla tasa_bcv
+                $qTasa = "SELECT id_tasa FROM tasa_bcv WHERE estado = 1 LIMIT 1";
+                $sTasa = $this->conex->prepare($qTasa);
+                $sTasa->execute();
+                $tasa = $sTasa->fetch(\PDO::FETCH_ASSOC);
+                $id_tasa = $tasa ? $tasa['id_tasa'] : 1; // Respaldo por si no hay tasas registradas
 
-            // Buscamos el año fiscal activo
-            $qAnio = "SELECT id_aniof FROM anio_fiscal WHERE activo = 1 LIMIT 1";
-            $sAnio = $this->conex->prepare($qAnio);
-            $sAnio->execute();
-            $anio = $sAnio->fetch(\PDO::FETCH_ASSOC);
-            $id_aniof = $anio ? $anio['id_aniof'] : 1;
+                // Buscamos el año fiscal activo
+                $qAnio = "SELECT id_aniof FROM anio_fiscal WHERE activo = 1 LIMIT 1";
+                $sAnio = $this->conex->prepare($qAnio);
+                $sAnio->execute();
+                $anio = $sAnio->fetch(\PDO::FETCH_ASSOC);
+                $id_aniof = $anio ? $anio['id_aniof'] : 1;
 
-            $qReq = "INSERT INTO requerimientos (id_dep, id_tasa, id_aniof, estado_envio, fecha_env, estado) 
-                     VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 1)";
-            $sReq = $this->conex->prepare($qReq);
-            $sReq->bindValue(':id_dep', $_SESSION['id_dep'], \PDO::PARAM_INT);
-            $sReq->bindValue(':id_tasa', $id_tasa, \PDO::PARAM_INT);
-            $sReq->bindValue(':id_aniof', $id_aniof, \PDO::PARAM_INT);
-            $sReq->execute();
-            
-            $id_req = $this->conex->lastInsertId();
+                $qReq = "INSERT INTO requerimientos (id_dep, id_tasa, id_aniof, estado_envio, fecha_env, estado) 
+                        VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 1)";
+                $sReq = $this->conex->prepare($qReq);
+                $sReq->bindValue(':id_dep', $_SESSION['id_dep'], \PDO::PARAM_INT);
+                $sReq->bindValue(':id_tasa', $id_tasa, \PDO::PARAM_INT);
+                $sReq->bindValue(':id_aniof', $id_aniof, \PDO::PARAM_INT);
+                $sReq->execute();
+                
+                $id_req = $this->conex->lastInsertId();
+            }
         }
 
         // 2. Procesar las cantidades enviadas por la partida
@@ -155,12 +178,11 @@ public function executeSaveReq($id_req, $partida, $cantidades) {
 
         // Lógica de navegación de partidas (puedes adaptarla a tus códigos de partida reales)
         $siguiente_partida = $partida;
-        if ($partida == '401') $siguiente_partida = '402';
-        elseif ($partida == '402') $siguiente_partida = '403';
-        elseif ($partida == '403') $siguiente_partida = '404';
-        elseif ($partida == '404') $siguiente_partida = '407';
-        elseif ($partida == '407') $siguiente_partida = 'FINAL'; // Bandera para activar el botón definitivo
-
+            if ($partida == '401') $siguiente_partida = '402';
+            elseif ($partida == '402') $siguiente_partida = '403';
+            elseif ($partida == '403') $siguiente_partida = '404';
+            elseif ($partida == '404') $siguiente_partida = '407';
+            elseif ($partida == '407') $siguiente_partida = 'FINAL'; // Bandera para activar el botón definitivo
         $this->conex->commit();
         return [
             "status" => "success", 
@@ -174,17 +196,17 @@ public function executeSaveReq($id_req, $partida, $cantidades) {
     }
 }
 
-public function verifyYear($id_dep){
-    $result = $this->verificarRegistroPrevio($id_dep);
+public function verifyPreviusReq($id_dep){
+    $result = $this->executeVerifyPreviusReq($id_dep);
     return $result;
 }
 
-public function verifyPer(){
-    $result = $this->verificarPeriodoValido();
+public function verifyPeriod(){
+    $result = $this->executeVerifyPeriod();
     return $result;
 }
 
-private function verificarRegistroPrevio($id_dep) {
+private function executeVerifyPreviusReq($id_dep) {
     $query = "SELECT COUNT(*) as total 
               FROM  requerimientos r
               JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
@@ -199,7 +221,7 @@ private function verificarRegistroPrevio($id_dep) {
 }
 
 
-private function verificarPeriodoValido() {
+private function executeVerifyPeriod() {
     // Buscamos el período activo relacionado al año fiscal activo
     $query = "SELECT per_inicio, per_fin 
               FROM periodos_entrega pe

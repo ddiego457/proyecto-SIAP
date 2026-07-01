@@ -12,7 +12,7 @@ if (isset($_GET['type'])) {
     if ($_GET['type'] == 'register') {
     
     // VALIDACIÓN 1: Verificar si el período de entrega sigue vigente
-    if (!$object->verifyPer()) {
+    if (!$object->verifyPeriod()) {
         // Opción A: Si es una petición AJAX, respondemos con error JSON
         if (isset($_POST['guardarPartida'])) {
             echo json_encode(["status" => "error", "message" => "El período de carga de requerimientos ha vencido o no está activo."]);
@@ -37,8 +37,9 @@ if (isset($_GET['type'])) {
             $id_req = isset($_POST['id_req']) ? $_POST['id_req'] : null;
             $partida = isset($_POST['partida_actual']) ? $_POST['partida_actual'] : '401';
             $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
+            $id_dep = $_SESSION['id_dep'];
             
-            $respuesta = $object->saveReq($id_req, $partida, $cantidades);
+            $respuesta = $object->saveReq($id_req, $partida, $cantidades,$id_dep);
             echo json_encode($respuesta);
             die();
         }
@@ -48,13 +49,13 @@ if (isset($_GET['type'])) {
         include 'app/view/requerimiento/registerView.php';
     }
     elseif ($_GET['type'] == 'main') {
-        $time = $object->verifyPer();
+        $time = $object->verifyPeriod();
         $tl = $time[1];
         $dias = $time[0];
 
         $id_dep = $_SESSION['id_dep'];
         
-        $rek = $object->verifyYear($id_dep) !== false ? false : true;
+        $rek = $object->verifyPreviusReq($id_dep) !== false ? false : true;
         // falta implementar la verificacion directamente dentro de uno de los metos del modelo
         //especificamente en el de registro para que una vez hecho el primer registro no pueda
         //volver a hacerse uno

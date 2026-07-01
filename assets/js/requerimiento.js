@@ -65,6 +65,9 @@ $(document).ready(function() {
                                    onchange="actualizarValor(this)"></input>`;
             }
 
+$('#btn-enviar-final').on('submit', function(e){
+    
+})
 $(document).ready(function() {
 const currentURL = "?url=requerimiento&type=register";
 
@@ -124,7 +127,6 @@ $('#btn-guardar').click(function() {
             if(respuesta.status === 'success') {
                 // Actualizamos el id_req maestro con el generado o existente
                 $('#id_req').val(respuesta.id_req);
-                
                 if(respuesta.siguiente_partida === 'FINAL') {
                     // Si ya no hay más partidas, ocultamos el botón de avanzar y mostramos el de envío definitivo
                     $('#btn-guardar').addClass('d-none');
@@ -139,7 +141,8 @@ $('#btn-guardar').click(function() {
                     tablaRegistro.ajax.reload(null, false);
                 }
             } else {
-                alert("Error en el servidor: " + respuesta.message);
+                console.log("Error en el servidor: " + respuesta.message);
+                window.location.href = "?url=requerimiento&type=main";
             }
         },
         error: function(xhr, status, error) {

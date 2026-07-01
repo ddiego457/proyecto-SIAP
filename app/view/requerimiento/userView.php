@@ -58,8 +58,8 @@ include_once 'app/view/layout/head.php';
                         </tbody>
                     </table>
             </div>
-            <button type="button" id="btn-enviar-final" class="btn btn-success d-none">
-                Enviar Definitivo a Coordinación
+            <button type="button" id="btn-enviar-final" class="btn btn-success">
+                Enviar Definitivo
             </button>
         </div>
     </div>
