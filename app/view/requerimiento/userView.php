@@ -6,7 +6,7 @@ include_once 'app/view/layout/head.php';
 
 <!-- TOPBAR -->
 <div class="topbar">
-    <div class="topbar-title">&#128203; Requerimientos POA</div>
+    <div class="topbar-title">&#128203; Requerimientos</div>
     <div class="topbar-actions">
         <?php if($_SESSION['rol'] !== "Administrador" && $rek){?>
         <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">&#43; Registrar</a>
@@ -30,6 +30,8 @@ include_once 'app/view/layout/head.php';
         </div>
         <div class="card-body">
             <div class="table-wrap">
+            <input type="hidden" id="id_req" name="id_req" value="<?php echo $id_req; ?>">
+
                 <table id="tablaMain" class="siap-table" style="width:100%">
                     <thead>
                         <tr>
@@ -57,13 +59,21 @@ include_once 'app/view/layout/head.php';
                         <tbody>
                         </tbody>
                     </table>
+                    <div id='contenedor-acciones'>
+                        <button  id="btn-enviar-final" class="btn btn-success">
+                            Modificar
+                        </button>
+                        <button  id="btn-cambiar-estado" class="btn">
+                            Enviar Definitivo
+                        </button>
+                    </div>
             </div>
-            <button type="button" id="btn-enviar-final" class="btn btn-success">
-                Enviar Definitivo
-            </button>
         </div>
     </div>
 </div>
+<script>
+    const esAdmin = '<?php echo $_SESSION["rol"]; ?>' == 'Administrador';
+</script>
 
 
 <?php include_once 'app/view/layout/foot.php'; ?>

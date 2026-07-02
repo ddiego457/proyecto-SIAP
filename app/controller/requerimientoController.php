@@ -54,6 +54,8 @@ if (isset($_GET['type'])) {
         $dias = $time[0];
 
         $id_dep = $_SESSION['id_dep'];
+
+        $id_req = 0; 
         
         $rek = $object->verifyPreviusReq($id_dep) !== false ? false : true;
         // falta implementar la verificacion directamente dentro de uno de los metos del modelo
@@ -62,13 +64,44 @@ if (isset($_GET['type'])) {
         
         if (isset($_POST['getAll'])) {
             $reporte = $object->getAll();
-            if(!$reporte){
-                echo json_decode("NULL");
-                return;
-            }
-            echo json_encode(["data" => $reporte]);
+            
+            // Si $reporte es false o vacío, enviamos un array vacío dentro de 'data'
+            // Esto evita el error de DataTables
+            echo json_encode(["data" => $reporte ? $reporte : []]);
             die();
         }
+
+// ... (Código anterior)
+
+// Nuevo bloque para recibir la actualización completa de la matriz
+if (isset($_POST['actualizarMatriz'])) {
+    $id_req = isset($_POST['id_req']) ? $_POST['id_req'] : 0;
+    $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
+    
+    if ($id_req > 0) {
+        $respuesta = $object->actualizarMatriz($id_req, $cantidades);
+        echo json_encode($respuesta);
+    } else {
+        echo json_encode(["status" => "error", "message" => "ID de requerimiento no válido."]);
+    }
+    die();
+}
+
+if (isset($_POST['cambiarEstado'])) {
+    $id_req = $_POST['id_req'];
+    
+    // Llamada a tu modelo
+    $resultado = $object->cambiarEstadoRequerimiento($id_req, 1); 
+    
+    if ($resultado) {
+        echo json_encode(['status' => 'success']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo actualizar el estado.']);
+    }
+    exit; // Importante para que no devuelva HTML adicional
+}
+
+// ... (Resto del código)
 
         include 'app/view/requerimiento/userView.php';
 

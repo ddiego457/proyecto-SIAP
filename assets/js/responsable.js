@@ -38,7 +38,7 @@ $(document).ready(function() {
             }}
         ],
         autoWidth: false,
-        language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" }
+        language: { url: "assets/js/DataTables/spanish.json" }
     });
 
     $('#formRegistro').on('submit', function(e) {

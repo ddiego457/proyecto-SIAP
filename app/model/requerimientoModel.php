@@ -19,19 +19,33 @@ public function getAll(){
 }
 
 private function validUser($id , $rol){
-    $res = "";
-    if($rol === 'Administrador') return;
-    $res = "WHERE d.id_dep = " . $id;
-    return $res;
+    if($rol === 'Administrador'){
+        return " AND r.estado_envio = 1 ";
+    }
+    else{ 
+    return " AND d.id_dep = " . $id . " AND r.estado_envio = 0 AND r.estado = 1";
+    }
 }
 
 private function executeGetAll(){
+
+    $checkReq = $this->conex->prepare("SELECT id_req FROM requerimientos WHERE id_dep = ? AND estado = 1 AND estado_envio = 0");
+    $checkReq->execute([$_SESSION['id_dep']]);
+    $reqExistente = $checkReq->fetch();
+
+    // 2. Si NO hay requerimiento activo, devolvemos un array vacío inmediatamente
+    // Esto hará que la tabla no muestre nada (o muestre el mensaje de "No data")
+    if (!$reqExistente) {
+        return []; 
+    }
+
     $com = $this->validUser($_SESSION['id_dep'], $_SESSION['rol']);
     $query = "SELECT 
-    req_data.id_req,
+    req_data.id_req as id_req,
     COALESCE(req_data.nom_dep, 'Sin solicitar') AS dependencia,
     p.cod_partida AS partida,
     i.nom_item AS producto,
+    i.id_item as id_item,
     COALESCE(req_data.Ene, 0) AS Ene,
     COALESCE(req_data.Feb, 0) AS Feb,
     COALESCE(req_data.Mar, 0) AS Mar,
@@ -74,14 +88,15 @@ LEFT JOIN (
     JOIN requerimientos r ON dr.id_req = r.id_req
     JOIN dependencias d ON r.id_dep = d.id_dep
     JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
-    " . $com . "
+    WHERE 1=1 " . $com . "
     GROUP BY dr.id_item, r.id_req, d.nom_dep, tb.tasa_bcv_usd
 ) AS req_data ON i.id_item = req_data.id_item
 WHERE i.estado = 1
 ORDER BY p.cod_partida, i.nom_item;";
     $stmt = $this->conex->prepare($query);
     $stmt->execute();
-    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $resultados = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    return ($resultados) ? $resultados : [];
 }
 
 public function getProductos(){
@@ -265,7 +280,58 @@ private function executeTimeLeft(){
     return $res->fetchall();
 }
 
+public function actualizarMatriz($id_req, $cantidades) {
+    try {
+        $this->conex->beginTransaction();
+
+        // 1. Eliminamos todo lo que existe actualmente para este requerimiento
+        $del = "DELETE FROM detalle_req WHERE id_req = :id_req";
+        $stmtDel = $this->conex->prepare($del);
+        $stmtDel->bindValue(':id_req', $id_req, \PDO::PARAM_INT);
+        $stmtDel->execute();
+
+        // 2. Insertamos la nueva matriz de datos
+        // $cantidades viene estructurado como: [id_item][mes] = valor
+        $ins = "INSERT INTO detalle_req (id_item, id_req, mes, cant_mes, estado) 
+                VALUES (:id_item, :id_req, :mes, :cant_mes, 1)";
+        $stmtIns = $this->conex->prepare($ins);
+
+        foreach ($cantidades as $id_item => $meses) {
+            foreach ($meses as $mes => $cantidad) {
+                $cant = intval($cantidad);
+                
+                // Solo insertamos si la cantidad es mayor a 0
+                if ($cant > 0) {
+                    $stmtIns->bindValue(':id_item', $id_item, \PDO::PARAM_INT);
+                    $stmtIns->bindValue(':id_req', $id_req, \PDO::PARAM_INT);
+                    $stmtIns->bindValue(':mes', $mes, \PDO::PARAM_INT);
+                    $stmtIns->bindValue(':cant_mes', $cant, \PDO::PARAM_INT);
+                    $stmtIns->execute();
+                }
+            }
+        }
+
+        $this->conex->commit();
+        return ["status" => "success", "message" => "Datos actualizados correctamente."];
+
+    } catch (\PDOException $e) {
+        $this->conex->rollBack();
+        return ["status" => "error", "message" => "Error al actualizar: " . $e->getMessage()];
+    }
 }
+
+public function cambiarEstadoRequerimiento($id_req, $nuevo_estado) {
+    // Ejemplo usando PDO, ajusta según tu base de datos
+    $sql = "UPDATE requerimientos SET estado_envio = :estado WHERE id_req = :id";
+    $stmt = $this->conex->prepare($sql);
+    return $stmt->execute([
+        ':estado' => $nuevo_estado,
+        ':id' => $id_req
+    ]);
+}
+
+}
+
 
 
 ?>
