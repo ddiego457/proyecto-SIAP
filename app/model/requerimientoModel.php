@@ -24,16 +24,19 @@ public function getAll(){
 }
 
 private function validUser($id , $rol){
-    if($rol === 'Administrador'){
+    if( $rol === 'Administrador' && $id === 'todos'){
+        return " AND r.estado_envio = 1";
+    }
+    elseif($rol === 'Administrador'){
         return " AND r.estado_envio = 1  AND d.id_dep = " . $id ;
     }
     else{ 
-    return " AND d.id_dep = " . $id . " AND r.estado_envio = 0 AND r.estado = 1";
+        return " AND d.id_dep = " . $id . " AND r.estado_envio = 0 AND r.estado = 1";
     }
 }
 
 private function executeGetAll(){
-
+    $todos = ' LEFT JOIN ';
     $checkReq = $this->conex->prepare("SELECT id_req FROM requerimientos WHERE id_dep = ? AND estado = 1 AND estado_envio = 0");
     $checkReq->execute([$_SESSION['id_dep']]);
     $reqExistente = $checkReq->fetch();
@@ -58,6 +61,7 @@ private function executeGetAll(){
     if ($rol === 'Administrador' && !$id_dep_a_filtrar) {
         return [];
     }
+    if ($id_dep_a_filtrar === 'todos') $todos = ' INNER JOIN '; 
 
     // Ahora llamamos a validUser pasándole el ID decidido
     $com = $this->validUser($id_dep_a_filtrar, $rol);
@@ -85,7 +89,7 @@ private function executeGetAll(){
     (COALESCE(req_data.Total_Cantidad, 0) * i.precio * COALESCE(req_data.tasa, 0)) AS total_bs
 FROM items_partida i
 JOIN partidas p ON i.id_partida = p.id_partida
-LEFT JOIN (
+" . $todos . " (
     -- Esta subconsulta calcula los meses solo para los items que tienen registro en detalle_req
     SELECT 
         dr.id_item,

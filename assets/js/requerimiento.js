@@ -28,7 +28,7 @@ $(document).ready(function() {
                         }
                 
                         // Mostrar botón de Modificar (siempre visible si hay datos)
-                        $('btn-enviar-final').show();
+                        $('#btn-enviar-final').show();
                 
                         // Lógica para Enviar Definitivo
                         if (esAdmin) {
@@ -38,7 +38,7 @@ $(document).ready(function() {
                         }
                     } else {
                         // Si no hay datos, ocultamos ambos botones
-                        $('btn-enviar-final').hide();
+                        $('#btn-enviar-final').hide();
                         $('#btn-cambiar-estado').hide();
                     }
                     
@@ -62,17 +62,51 @@ $(document).ready(function() {
                 { data: 'Nov', render: function(data, type, row) { return loadData(data, row, 11); }},
                 { data: 'Dic', render: function(data, type, row) { return loadData(data, row, 12); }},
                 { data: 'Total_Cantidad'},
-                { data: 'precio_unit_usd', visible: esAdmin  },
-                { data: 'total_usd', visible: esAdmin  },
-                { data: 'total_bs', visible: esAdmin  }
-            
+                { data: 'precio_unit_usd', visible: esAdmin ,render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                { data: 'total_usd', visible: esAdmin, render: $.fn.dataTable.render.number(',', '.', 2, '$')  },
+                { data: 'total_bs', visible: esAdmin , render: $.fn.dataTable.render.number(',', '.', 2, 'Bs ') }
+                
             ],
+            
             order: [[15, 'desc']],
             autowidth: false,
             language: {
                 url: "assets/js/DataTables/spanish.json"
+            },
+            footerCallback: function (row, data, start, end, display) {
+                var api = this.api();
+        
+                // Función auxiliar para convertir a número limpio
+                var intVal = function (i) {
+                    return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                };
+        
+                // Asumiendo que Total USD es la penúltima columna visible y Total BS la última
+                // Ajusta los índices (ej. 19 y 20) según la posición exacta de tus columnas
+                var colUsd = 17; 
+                var colBs = 18;
+        
+                if (esAdmin) {
+                    // Sumamos el Total de USD
+                    var totalUsd = api.column(colUsd).data().reduce(function (a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+        
+                    // Sumamos el Total de Bs
+                    var totalBs = api.column(colBs).data().reduce(function (a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+        // Opciones para asegurar que siempre haya 2 decimales
+            var formatoMoneda = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
+            // Aplicamos el formato con comas a los resultados
+            $(api.column(colUsd).footer()).html('$' + totalUsd.toLocaleString('en-US', formatoMoneda));
+            $(api.column(colBs).footer()).html('Bs ' + totalBs.toLocaleString('en-US', formatoMoneda));
+                }
             }
+            
         });
+        
 
         $('#select-dependencia').on('change', function() {
             if($(this).val() !== "") {

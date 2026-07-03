@@ -33,6 +33,7 @@ include_once 'app/view/layout/head.php';
                 <label>Seleccionar Dependencia:</label>
                 <select id="select-dependencia" class="form-control">
                     <option value="">-- Seleccione una dependencia --</option>
+                    <option value="todos">TODOS LOS REQUERIMIENTOS (Consolidado)</option>
                     <?php foreach($dependencias as $dep): ?>
                         <option value="<?php echo $dep['id_dep']; ?>"><?php echo $dep['nom_dep']; ?></option>
                     <?php endforeach; ?>
@@ -44,8 +45,8 @@ include_once 'app/view/layout/head.php';
         <div class="card-body">
             <div class="table-wrap">
             <input type="hidden" id="id_req" name="id_req" value="<?php echo $id_req; ?>">
-
-                <table id="tablaMain" class="siap-table" style="width:100%">
+            <!-- class="siap-table" esta clase que va dentro de la tabla oculta los datos totales del footer. hay que acomodarlo-->
+                <table id="tablaMain" >
                     <thead>
                         <tr>
                             <th>dependencias</th>
@@ -71,6 +72,16 @@ include_once 'app/view/layout/head.php';
                     </thead>
                         <tbody>
                         </tbody>
+                        <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'Administrador'): ?>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="16" style="text-align:right">Gran Total:</th>
+                                    <th></th> <!-- Total USD -->
+                                    <th></th> <!-- Total BS -->
+                                    <th></th> <!-- Acciones -->
+                                </tr>
+                            </tfoot>
+                        <?php endif; ?>
                     </table>
                     <div id='contenedor-acciones'>
                         <button  id="btn-enviar-final" class="btn btn-success">
