@@ -10,20 +10,38 @@ $(document).ready(function() {
             ajax: {
                 url: "?url=requerimiento&type=main",
                 method: 'POST',
-                data: { getAll: true },
+                data: function(d) {
+                    d.getAll = true;
+                    d.id_dep_filtro = $('#select-dependencia').val(); // Enviamos la dependencia seleccionada
+                },
                 // Extraemos el id_req de forma dinámica cuando llegan los datos del servidor
                 dataSrc: function(json) {
-                    if (json.data && json.data.length > 0) {
+                    var hayDatos = (json.data && json.data.length > 0);
+                
+                    if (hayDatos) {
+                        // Lógica de ID (la que ya tenías)
                         for (var i = 0; i < json.data.length; i++) {
                             if (json.data[i].id_req && json.data[i].id_req > 0) {
                                 $('#id_req').val(json.data[i].id_req);
                                 break; 
                             }
                         }
+                
+                        // Mostrar botón de Modificar (siempre visible si hay datos)
+                        $('btn-enviar-final').show();
+                
+                        // Lógica para Enviar Definitivo
+                        if (esAdmin) {
+                            $('#btn-cambiar-estado').hide(); // El admin NUNCA ve el botón de enviar
+                        } else {
+                            $('#btn-cambiar-estado').show(); // El usuario normal SÍ lo ve
+                        }
+                    } else {
+                        // Si no hay datos, ocultamos ambos botones
+                        $('btn-enviar-final').hide();
+                        $('#btn-cambiar-estado').hide();
                     }
-                    else{
-                        $('#contenedor-acciones').hide();
-                    }
+                    
                     return json.data;
                 }
             },
@@ -55,6 +73,15 @@ $(document).ready(function() {
                 url: "assets/js/DataTables/spanish.json"
             }
         });
+
+        $('#select-dependencia').on('change', function() {
+            if($(this).val() !== "") {
+                tabla.ajax.reload();
+            } else {
+                // Si no hay nada seleccionado, limpiamos la tabla
+                tabla.clear().draw();
+            }
+        })
 
         function loadData(data, row, mes) {
             return `<input type="number" 

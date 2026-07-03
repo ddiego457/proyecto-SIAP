@@ -12,6 +12,11 @@ public function __construct()
     $this->conex = $this->getConnection();
 }
 
+public function obtenerTodasLasDependencias() {
+    $stmt = $this->conex->query("SELECT id_dep, nom_dep FROM dependencias");
+    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+}
+
 public function getAll(){
     
     $result = $this->executeGetAll();
@@ -20,7 +25,7 @@ public function getAll(){
 
 private function validUser($id , $rol){
     if($rol === 'Administrador'){
-        return " AND r.estado_envio = 1 ";
+        return " AND r.estado_envio = 1  AND d.id_dep = " . $id ;
     }
     else{ 
     return " AND d.id_dep = " . $id . " AND r.estado_envio = 0 AND r.estado = 1";
@@ -38,8 +43,24 @@ private function executeGetAll(){
     if (!$reqExistente) {
         return []; 
     }
+    $rol = $_SESSION['rol'];
+    
+    // DECISIÓN: ¿Quién solicita los datos?
+    if ($rol === 'Administrador') {
+        // Si es Admin, el ID viene del POST (el select)
+        $id_dep_a_filtrar = isset($_POST['id_dep_filtro']) ? $_POST['id_dep_filtro'] : null;
+    } else {
+        // Si es usuario normal, siempre usamos su propia sesión
+        $id_dep_a_filtrar = $_SESSION['id_dep'];
+    }
 
-    $com = $this->validUser($_SESSION['id_dep'], $_SESSION['rol']);
+    // Si es admin y no ha seleccionado nada todavía, devolvemos vacío
+    if ($rol === 'Administrador' && !$id_dep_a_filtrar) {
+        return [];
+    }
+
+    // Ahora llamamos a validUser pasándole el ID decidido
+    $com = $this->validUser($id_dep_a_filtrar, $rol);
     $query = "SELECT 
     req_data.id_req as id_req,
     COALESCE(req_data.nom_dep, 'Sin solicitar') AS dependencia,
@@ -91,7 +112,7 @@ LEFT JOIN (
     WHERE 1=1 " . $com . "
     GROUP BY dr.id_item, r.id_req, d.nom_dep, tb.tasa_bcv_usd
 ) AS req_data ON i.id_item = req_data.id_item
-WHERE i.estado = 1
+WHERE i.estado = 1 
 ORDER BY p.cod_partida, i.nom_item;";
     $stmt = $this->conex->prepare($query);
     $stmt->execute();

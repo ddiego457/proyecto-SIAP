@@ -102,6 +102,7 @@ if (isset($_POST['cambiarEstado'])) {
 }
 
 // ... (Resto del código)
+$dependencias = $object->obtenerTodasLasDependencias();
 
         include 'app/view/requerimiento/userView.php';
 

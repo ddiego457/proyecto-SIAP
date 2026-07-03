@@ -27,6 +27,19 @@ include_once 'app/view/layout/head.php';
     <div class="card">
         <div class="card-header">
             <span class="card-title">Requerimientos Consolidados</span>
+        <div class="row mb-3"> <!-- Cambiar estas clases porque no dan estilos al contenido --->
+        <?php if($_SESSION['rol'] == "Administrador"){?>
+            <div class="col-md-4">
+                <label>Seleccionar Dependencia:</label>
+                <select id="select-dependencia" class="form-control">
+                    <option value="">-- Seleccione una dependencia --</option>
+                    <?php foreach($dependencias as $dep): ?>
+                        <option value="<?php echo $dep['id_dep']; ?>"><?php echo $dep['nom_dep']; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        <?php } ?>
+        </div>
         </div>
         <div class="card-body">
             <div class="table-wrap">
