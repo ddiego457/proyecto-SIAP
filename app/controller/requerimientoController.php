@@ -34,33 +34,31 @@ if (isset($_GET['type'])) {
         
         // 2. NUEVO: Petición AJAX para guardar los detalles de la partida actual
         if(isset($_POST['guardarPartida'])){
-            $id_req = isset($_POST['id_req']) ? $_POST['id_req'] : null;
+            $idReq = isset($_POST['id_req']) ? $_POST['id_req'] : null;
             $partida = isset($_POST['partida_actual']) ? $_POST['partida_actual'] : '401';
             $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
-            $id_dep = $_SESSION['id_dep'];
+            $idDep = $_SESSION['id_dep'];
             
-            $respuesta = $object->saveReq($id_req, $partida, $cantidades,$id_dep);
+            $respuesta = $object->saveReq($idReq, $partida, $cantidades,$idDep);
             echo json_encode($respuesta);
             die();
         }
     
         // Inicializamos la variable por si la vista la requiere vacía al principio
-        $id_req = 0; 
+        $idReq = 0; 
         include 'app/view/requerimiento/registerView.php';
     }
     elseif ($_GET['type'] == 'main') {
         $time = $object->verifyPeriod();
-        $tl = $time[1];
+        $timeLeft = $time[1];
         $dias = $time[0];
 
-        $id_dep = $_SESSION['id_dep'];
+        $idDep = $_SESSION['id_dep'];
 
-        $id_req = 0; 
+        $idReq = 0; 
         
-        $rek = $object->verifyPreviusReq($id_dep) !== false ? false : true;
-        // falta implementar la verificacion directamente dentro de uno de los metos del modelo
-        //especificamente en el de registro para que una vez hecho el primer registro no pueda
-        //volver a hacerse uno
+        $prevReq = $object->verifyPreviusReq($idDep) !== false ? false : true;
+
         
         if (isset($_POST['getAll'])) {
             $reporte = $object->getAll();
@@ -75,11 +73,11 @@ if (isset($_GET['type'])) {
 
 // Nuevo bloque para recibir la actualización completa de la matriz
 if (isset($_POST['actualizarMatriz'])) {
-    $id_req = isset($_POST['id_req']) ? $_POST['id_req'] : 0;
+    $idReq = isset($_POST['id_req']) ? $_POST['id_req'] : 0;
     $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
     
-    if ($id_req > 0) {
-        $respuesta = $object->actualizarMatriz($id_req, $cantidades);
+    if ($idReq > 0) {
+        $respuesta = $object->actualizarMatriz($idReq, $cantidades);
         echo json_encode($respuesta);
     } else {
         echo json_encode(["status" => "error", "message" => "ID de requerimiento no válido."]);
@@ -88,10 +86,10 @@ if (isset($_POST['actualizarMatriz'])) {
 }
 
 if (isset($_POST['cambiarEstado'])) {
-    $id_req = $_POST['id_req'];
+    $idReq = $_POST['id_req'];
     
     // Llamada a tu modelo
-    $resultado = $object->cambiarEstadoRequerimiento($id_req, 1); 
+    $resultado = $object->cambiarEstadoRequerimiento($idReq, 1); 
     
     if ($resultado) {
         echo json_encode(['status' => 'success']);
@@ -102,7 +100,7 @@ if (isset($_POST['cambiarEstado'])) {
 }
 
 // ... (Resto del código)
-$dependencias = $object->obtenerTodasLasDependencias();
+$dependencias = $object->getAllDep();
 
         include 'app/view/requerimiento/userView.php';
 
@@ -112,7 +110,7 @@ $dependencias = $object->obtenerTodasLasDependencias();
 
 } 
 else {
-    include 'app/view/welcomeView.php';
+    include 'app/view/requerimiento/userView.php';
 }
 
 ?>

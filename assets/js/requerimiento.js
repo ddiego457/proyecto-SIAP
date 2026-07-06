@@ -16,6 +16,7 @@ $(document).ready(function() {
                 },
                 // Extraemos el id_req de forma dinámica cuando llegan los datos del servidor
                 dataSrc: function(json) {
+                    $('#id_req').val(0);
                     var hayDatos = (json.data && json.data.length > 0);
                 
                     if (hayDatos) {
@@ -25,11 +26,13 @@ $(document).ready(function() {
                                 $('#id_req').val(json.data[i].id_req);
                                 break; 
                             }
+
                         }
                 
                         // Mostrar botón de Modificar (siempre visible si hay datos)
+                        if($('#select-dependencia').val() !== 'todos'){
                         $('#btn-enviar-final').show();
-                
+                        }
                         // Lógica para Enviar Definitivo
                         if (esAdmin) {
                             $('#btn-cambiar-estado').hide(); // El admin NUNCA ve el botón de enviar
@@ -70,6 +73,7 @@ $(document).ready(function() {
             
             order: [[15, 'desc']],
             autowidth: false,
+            pageLength: 50,
             language: {
                 url: "assets/js/DataTables/spanish.json"
             },
@@ -166,7 +170,7 @@ $(document).ready(function() {
                         // Volvemos a deshabilitar el botón hasta que haya un nuevo cambio
                         $('#btn-enviar-final').prop('disabled', true);
                     } else {
-                        alert("Error en el servidor: " + respuesta.message);
+                        alert("Error en el servidor: " + respuesta.message + idReq);
                         btn.prop('disabled', false).text(textoOriginal);
                     }
                 },

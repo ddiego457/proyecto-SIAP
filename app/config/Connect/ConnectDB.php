@@ -5,7 +5,7 @@
     use PDO;
     use PDOException;
 
-    class ConnectDB {
+    abstract class ConnectDB {
 
         private $host   = 'localhost';
         private $dbname = 'siap_db';
