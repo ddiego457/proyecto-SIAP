@@ -35,7 +35,7 @@ class responsableModel extends ConnectDB
                          COALESCE(d.nom_dep, 'Sin asignar') AS dependencia_actual
                   FROM responsables r
                   LEFT JOIN roles ro ON r.id_rol = ro.id_rol
-                  LEFT JOIN cargo_responsable cr ON r.id_responsable = cr.id_responsable AND cr.estado = 1
+                  LEFT JOIN cargo cr ON r.id_responsable = cr.id_responsable AND cr.estado = 1
                   LEFT JOIN dependencias d ON cr.id_dep = d.id_dep
                   ORDER BY r.nom_rep ASC";
         $stmt = $this->conex->prepare($query);
@@ -80,7 +80,7 @@ class responsableModel extends ConnectDB
              WHERE d.estado = 1
                AND NOT EXISTS (
                    SELECT 1
-                   FROM cargo_responsable cr
+                   FROM cargo cr
                    WHERE cr.id_dep = d.id_dep
                      AND cr.estado = 1
                )
@@ -111,7 +111,7 @@ class responsableModel extends ConnectDB
             $idResponsable = (int)$this->conex->lastInsertId();
             $fechaInicio = date('Y-m-d');
 
-            $stmt2 = $this->conex->prepare("INSERT INTO cargo_responsable (id_responsable, id_dep, fecha_inicio, estado) VALUES (?, ?, ?, 1)");
+            $stmt2 = $this->conex->prepare("INSERT INTO cargo (id_responsable, id_dep, fecha_inicio, estado) VALUES (?, ?, ?, 1)");
             $stmt2->bindValue(1, $idResponsable, \PDO::PARAM_INT);
             $stmt2->bindValue(2, $idDep, \PDO::PARAM_INT);
             $stmt2->bindValue(3, $fechaInicio);
@@ -184,13 +184,13 @@ class responsableModel extends ConnectDB
             $this->conex->beginTransaction();
 
             // Cerrar cargo actual activo para la dependencia
-            $stmt = $this->conex->prepare("UPDATE cargo_responsable SET estado = 0, fecha_fin = ? WHERE id_dep = ? AND estado = 1");
+            $stmt = $this->conex->prepare("UPDATE cargo SET estado = 0, fecha_fin = ? WHERE id_dep = ? AND estado = 1");
             $stmt->bindValue(1, $fechaInicio);
             $stmt->bindValue(2, $idDep, \PDO::PARAM_INT);
             $stmt->execute();
 
             // Insertar nuevo cargo
-            $stmt2 = $this->conex->prepare("INSERT INTO cargo_responsable (id_responsable, id_dep, fecha_inicio, estado) VALUES (?, ?, ?, 1)");
+            $stmt2 = $this->conex->prepare("INSERT INTO cargo (id_responsable, id_dep, fecha_inicio, estado) VALUES (?, ?, ?, 1)");
             $stmt2->bindValue(1, $idResponsable, \PDO::PARAM_INT);
             $stmt2->bindValue(2, $idDep, \PDO::PARAM_INT);
             $stmt2->bindValue(3, $fechaInicio);
@@ -214,7 +214,7 @@ class responsableModel extends ConnectDB
     private function executeGetCargosByDependencia(int $idDep)
     {
         try {
-            $stmt = $this->conex->prepare("SELECT cr.id_cargo, cr.id_responsable, r.nom_rep, cr.fecha_inicio, cr.fecha_fin, cr.estado FROM cargo_responsable cr LEFT JOIN responsables r ON cr.id_responsable = r.id_responsable WHERE cr.id_dep = ? ORDER BY cr.fecha_inicio DESC");
+            $stmt = $this->conex->prepare("SELECT cr.id_cargo, cr.id_responsable, r.nom_rep, cr.fecha_inicio, cr.fecha_fin, cr.estado FROM cargo cr LEFT JOIN responsables r ON cr.id_responsable = r.id_responsable WHERE cr.id_dep = ? ORDER BY cr.fecha_inicio DESC");
             $stmt->execute([$idDep]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {

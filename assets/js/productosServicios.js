@@ -21,10 +21,10 @@ $(document).ready(function() {
       }
     },
     columns: [
-      { data: 'id_item' },
+      { data: 'id_prod' },
       { data: 'cod_partida' },
       { data: 'proveedor' },
-      { data: 'nom_item' },
+      { data: 'nom_prod' },
       { data: 'precio' },
       { data: null, render: (d) => {
           return (d.estado == 1)
@@ -34,8 +34,8 @@ $(document).ready(function() {
       },
       { data: null, render: (d) => {
           return `
-            <button value="${d.id_item}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;">✏️</button>
-            <button value="${d.id_item}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Inhabilitar">🗑️</button>
+            <button value="${d.id_prod}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;">✏️</button>
+            <button value="${d.id_prod}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Inhabilitar">🗑️</button>
           `;
         }
       }
@@ -86,10 +86,10 @@ $(document).ready(function() {
 
   $(document).on('click', '.btn-modificar', function() {
     const data = tabla.row($(this).closest('tr')).data();
-    $('#edit_idItem').val(data.id_item);
+    $('#edit_idItem').val(data.id_prod);
     $('#edit_partida_id').val(data.id_partida);
     $('#edit_proveedor_id').val(data.id_proveedor);
-    $('#edit_nom_item').val(data.nom_item);
+    $('#edit_nom_prod').val(data.nom_prod);
     $('#edit_precio').val(data.precio);
     $('#modalEditar').show();
   });

@@ -10,7 +10,7 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">&#128203; Requerimientos</div>
     <div class="topbar-actions">
-        <?php if($_SESSION['rol'] !== "Administrador" && $prevReq){?>
+        <?php if($_SESSION['rol'] !== "Administrador" && $prevReq && $perAct){?>
         <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">&#43; Registrar</a>
         <?php }?>
     </div>
@@ -70,7 +70,7 @@ include_once 'app/view/layout/head.php';
                             <th>Nov</th>
                             <th>Dic</th>
                             <th class="bg-primary">Total Físico</th>
-                            <th class="bg-success">SubTotal Usd</th>
+                            <th class="bg-success">Precio del Producto</th>
                             <th class="bg-success">Total Usd</th>
                             <th class="bg-info">Total BS</th>
                         </tr>
@@ -91,7 +91,8 @@ include_once 'app/view/layout/head.php';
                         <?php endif; ?>
                     </table>
                     <div id='contenedor-acciones'>
-                        <button  id="btn-enviar-final" class="btn btn-success" style="display: none;">
+                        <!-- seria bueno implementar un estilo para cuando este desabilitado -->
+                        <button  id="btn-modificar" class="btn btn-success" style="display: none;">
                             Modificar
                         </button>
                         <button  id="btn-cambiar-estado" class="btn" style="display: none;">

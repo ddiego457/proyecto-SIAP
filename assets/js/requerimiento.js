@@ -31,7 +31,7 @@ $(document).ready(function() {
                 
                         // Mostrar botón de Modificar (siempre visible si hay datos)
                         if($('#select-dependencia').val() !== 'todos'){
-                        $('#btn-enviar-final').show();
+                        $('#btn-modificar').show();
                         }
                         // Lógica para Enviar Definitivo
                         if (esAdmin) {
@@ -41,7 +41,7 @@ $(document).ready(function() {
                         }
                     } else {
                         // Si no hay datos, ocultamos ambos botones
-                        $('#btn-enviar-final').hide();
+                        $('#btn-modificar').hide();
                         $('#btn-cambiar-estado').hide();
                     }
                     
@@ -124,28 +124,27 @@ $(document).ready(function() {
         function loadData(data, row, mes) {
             return `<input type="number" 
                            style="width: 55px; padding: 8px 5px; font-size: 14px; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; outline: none; transition: border-color 0.2s ease;" 
-                           name="cantidades[${row.id_item}][${mes}]"
+                           name="cantidades[${row.id_prod}][${mes}]"
                            min="0" 
                            value="${data}">`;
         }
-        console.log(esAdmin);
-        console.log();
-        $('#btn-enviar-final').prop('disabled', true);
+        // console.log(esAdmin);
+        $('#btn-modificar').prop('disabled', true);
 
         // Detectar cualquier cambio en los inputs para habilitar el botón de envío
         $('#tablaMain').on('input', 'input[type="number"]', function() {
-            $('#btn-enviar-final').prop('disabled', false);
+            $('#btn-modificar').prop('disabled', false);
         });
 
         // Forzar actualización del id_req si el usuario hace clic directo en "Modificar"
         $('#tablaMain').on('click', '.btn-modificar', function() {
             var idClick = $(this).data('id');
             $('#id_req').val(idClick);
-            $('#btn-enviar-final').prop('disabled', false);
+            $('#btn-modificar').prop('disabled', false);
         });
 
         // Enviar actualización matriz a la base de datos
-        $('#btn-enviar-final').on('click', function(e) {
+        $('#btn-modificar').on('click', function(e) {
             e.preventDefault(); 
 
             var btn = $(this);
@@ -168,7 +167,8 @@ $(document).ready(function() {
                         tabla.ajax.reload(null, false); 
                         
                         // Volvemos a deshabilitar el botón hasta que haya un nuevo cambio
-                        $('#btn-enviar-final').prop('disabled', true);
+                        $('#btn-modificar').prop('disabled', true);
+                        $('#btn-modificar').text(textoOriginal);
                     } else {
                         alert("Error en el servidor: " + respuesta.message + idReq);
                         btn.prop('disabled', false).text(textoOriginal);
@@ -240,25 +240,25 @@ $(document).ready(function() {
                 }
             },
             columns: [
-                { data: 'nom_item' },
-                { data: "ene", render: function(data, type, row) { return crearInput(row.id_item, 1, data); }},
-                { data: "feb", render: function(data, type, row) { return crearInput(row.id_item, 2, data); }},
-                { data: "mar", render: function(data, type, row) { return crearInput(row.id_item, 3, data); }},
-                { data: "abr", render: function(data, type, row) { return crearInput(row.id_item, 4, data); }},
-                { data: "may", render: function(data, type, row) { return crearInput(row.id_item, 5, data); }},
-                { data: "jun", render: function(data, type, row) { return crearInput(row.id_item, 6, data); }},
-                { data: "jul", render: function(data, type, row) { return crearInput(row.id_item, 7, data); }},
-                { data: "ago", render: function(data, type, row) { return crearInput(row.id_item, 8, data); }},
-                { data: "sep", render: function(data, type, row) { return crearInput(row.id_item, 9, data); }},
-                { data: "oct", render: function(data, type, row) { return crearInput(row.id_item, 10, data); }},
-                { data: "nov", render: function(data, type, row) { return crearInput(row.id_item, 11, data); }},
-                { data: "dic", render: function(data, type, row) { return crearInput(row.id_item, 12, data); }}
+                { data: 'nom_prod' },
+                { data: "ene", render: function(data, type, row) { return crearInput(row.id_prod, 1, data); }},
+                { data: "feb", render: function(data, type, row) { return crearInput(row.id_prod, 2, data); }},
+                { data: "mar", render: function(data, type, row) { return crearInput(row.id_prod, 3, data); }},
+                { data: "abr", render: function(data, type, row) { return crearInput(row.id_prod, 4, data); }},
+                { data: "may", render: function(data, type, row) { return crearInput(row.id_prod, 5, data); }},
+                { data: "jun", render: function(data, type, row) { return crearInput(row.id_prod, 6, data); }},
+                { data: "jul", render: function(data, type, row) { return crearInput(row.id_prod, 7, data); }},
+                { data: "ago", render: function(data, type, row) { return crearInput(row.id_prod, 8, data); }},
+                { data: "sep", render: function(data, type, row) { return crearInput(row.id_prod, 9, data); }},
+                { data: "oct", render: function(data, type, row) { return crearInput(row.id_prod, 10, data); }},
+                { data: "nov", render: function(data, type, row) { return crearInput(row.id_prod, 11, data); }},
+                { data: "dic", render: function(data, type, row) { return crearInput(row.id_prod, 12, data); }}
             ],
             ordering: false
         });
 
-        function crearInput(id_item, mes, valor_actual) {
-            return '<input type="number" name="cantidades['+id_item+']['+mes+']" value="'+valor_actual+'" min="0" class="form-control form-control-sm text-center" style="width: 60px;">';
+        function crearInput(id_prod, mes, valor_actual) {
+            return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0" class="form-control form-control-sm text-center" style="width: 60px;">';
         }
 
         // Guardar la partida y avanzar

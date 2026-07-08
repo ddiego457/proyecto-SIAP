@@ -103,12 +103,12 @@ class requerimientoModel extends ConnectDB {
     private function executeGetProductos() {
         $partida = isset($_POST['partida']) ? $_POST['partida'] : '401';
         //cada numero es pintado con un mes para la selecion de la cantidad en la tabla
-        $query = "SELECT i.id_item, i.nom_item, 
+        $query = "SELECT pro.id_prod, pro.nom_prod, 
                   0 as ene, 0 as feb, 0 as mar, 0 as abr, 0 as may, 0 as jun,
                   0 as jul, 0 as ago, 0 as sep, 0 as oct, 0 as nov, 0 as dic
-                  FROM items_partida i
-                  JOIN partidas p ON i.id_partida = p.id_partida
-                  WHERE p.cod_partida = ? AND i.estado = 1";
+                  FROM productos pro
+                  JOIN partidas p ON pro.id_partida = p.id_partida
+                  WHERE p.cod_partida = ? AND pro.estado = 1";
                   
         $stmt = $this->conex->prepare($query);
         //cada consulta a los productos se divide por partidad presupuestaria
@@ -163,7 +163,7 @@ class requerimientoModel extends ConnectDB {
     }
 
     private function executeVerifyPeriod() {
-        $periodo = $this->getActivePeriodFromDB();
+        $periodo = $this->getActivePeriod();
         
         if (!$periodo) {
             return false;
@@ -228,7 +228,10 @@ class requerimientoModel extends ConnectDB {
 
         $estadoEnv = ($rol === 'Administrador') ? 1 : 0;
 
-        $stmtCheck = $this->conex->prepare("SELECT id_req FROM requerimientos WHERE id_dep = ? AND estado = 1  AND estado_envio = ?");
+        $stmtCheck = $this->conex->prepare("SELECT r.id_req 
+              FROM requerimientos r
+              JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
+              WHERE r.id_dep = ? AND r.estado = 1 AND r.estado_envio = ? AND af.activo = 1");
         $stmtCheck->execute([(int)$idDepFiltrar,(int)$estadoEnv]);
         $reqExistente = $stmtCheck->fetch(\PDO::FETCH_ASSOC);
         
@@ -250,8 +253,8 @@ class requerimientoModel extends ConnectDB {
             " . $idReqActivo . " as id_req,
             COALESCE(req_data.nom_dep, 'Sin solicitar') AS dependencia,
             p.cod_partida AS partida,
-            i.nom_item AS producto,
-            i.id_item as id_item,
+            pro.nom_prod AS producto,
+            pro.id_prod as id_prod,
             COALESCE(req_data.Ene, 0) AS Ene, COALESCE(req_data.Feb, 0) AS Feb,
             COALESCE(req_data.Mar, 0) AS Mar, COALESCE(req_data.Abr, 0) AS Abr,
             COALESCE(req_data.May, 0) AS May, COALESCE(req_data.Jun, 0) AS Jun,
@@ -259,14 +262,14 @@ class requerimientoModel extends ConnectDB {
             COALESCE(req_data.Sep, 0) AS Sep, COALESCE(req_data.Oct, 0) AS Oct,
             COALESCE(req_data.Nov, 0) AS Nov, COALESCE(req_data.Dic, 0) AS Dic,
             COALESCE(req_data.Total_Cantidad, 0) AS Total_Cantidad,
-            i.precio AS precio_unit_usd,
-            (COALESCE(req_data.Total_Cantidad, 0) * i.precio) AS total_usd,
-            (COALESCE(req_data.Total_Cantidad, 0) * i.precio * COALESCE(req_data.tasa, 0)) AS total_bs
-        FROM items_partida i
-        JOIN partidas p ON i.id_partida = p.id_partida
+            pro.precio AS precio_unit_usd,
+            (COALESCE(req_data.Total_Cantidad, 0) * pro.precio) AS total_usd,
+            (COALESCE(req_data.Total_Cantidad, 0) * pro.precio * COALESCE(req_data.tasa, 0)) AS total_bs
+        FROM productos pro
+        JOIN partidas p ON pro.id_partida = p.id_partida
         " . $joinType . " (
             SELECT 
-                dr.id_item, r.id_req, d.nom_dep, tb.tasa_bcv_usd AS tasa,
+                dr.id_prod, r.id_req, d.nom_dep, tb.tasa_bcv_usd AS tasa,
                 SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes END) AS Ene,
                 SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes END) AS Feb,
                 SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes END) AS Mar,
@@ -284,11 +287,12 @@ class requerimientoModel extends ConnectDB {
             JOIN requerimientos r ON dr.id_req = r.id_req
             JOIN dependencias d ON r.id_dep = d.id_dep
             JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
-            WHERE 1=1 " . $filtrosSQL . "
-            GROUP BY dr.id_item, r.id_req, d.nom_dep, tb.tasa_bcv_usd
-        ) AS req_data ON i.id_item = req_data.id_item
-        WHERE i.estado = 1 
-        ORDER BY p.cod_partida, i.nom_item;";
+            JOIN anio_fiscal af ON r.id_aniof = af.id_aniof 
+            WHERE af.activo = 1 " . $filtrosSQL . "         
+            GROUP BY dr.id_prod, r.id_req, d.nom_dep, tb.tasa_bcv_usd
+        ) AS req_data ON pro.id_prod = req_data.id_prod
+        WHERE pro.estado = 1 
+        ORDER BY p.cod_partida, pro.nom_prod;";
 
         $stmt = $this->conex->prepare($query);
         $stmt->execute();
@@ -317,21 +321,21 @@ class requerimientoModel extends ConnectDB {
     }
 
     private function saveRequirementDetails($idReq, $cantidades) {
-        $qDel = "DELETE FROM detalle_req WHERE id_req = :id_req AND id_item = :id_item";
+        $qDel = "DELETE FROM detalle_req WHERE id_req = :id_req AND id_prod = :id_prod";
         $sDel = $this->conex->prepare($qDel);
 
-        $qIns = "INSERT INTO detalle_req (id_item, id_req, mes, cant_mes, estado) 
-                 VALUES (:id_item, :id_req, :mes, :cant_mes, 1)";
+        $qIns = "INSERT INTO detalle_req (id_prod, id_req, mes, cant_mes, estado) 
+                 VALUES (:id_prod, :id_req, :mes, :cant_mes, 1)";
         $sIns = $this->conex->prepare($qIns);
 
-        foreach ($cantidades as $id_item => $meses) {
-            $sDel->execute([':id_req' => $idReq, ':id_item' => $id_item]);
+        foreach ($cantidades as $idProd => $meses) {
+            $sDel->execute([':id_req' => $idReq, ':id_prod' => $idProd]);
 
             foreach ($meses as $mes => $cantidad) {
                 $cantidadInt = intval($cantidad);
                 if ($cantidadInt > 0) {
                     $sIns->execute([
-                        ':id_item' => $id_item,
+                        ':id_prod' => $idProd,
                         ':id_req' => $idReq,
                         ':mes' => $mes,
                         ':cant_mes' => $cantidadInt
@@ -366,7 +370,7 @@ class requerimientoModel extends ConnectDB {
         return $anio ? $anio['id_aniof'] : 1;
     }
 
-    private function getActivePeriodFromDB() {
+    private function getActivePeriod() {
         $query = "SELECT per_inicio, per_fin 
                   FROM periodos_entrega pe
                   JOIN anio_fiscal af ON pe.id_aniof = af.id_aniof
@@ -380,9 +384,10 @@ class requerimientoModel extends ConnectDB {
         $inicio = $fechaInicio;
         $fechaActual = new DateTime(date('Y-m-d'));
         $fin = new DateTime($fechaFin);
+        $intervalo = date_diff($fechaActual, $fin);
         
         $resultado = [
-            date_diff($fechaActual, $fin)->days,
+            $intervalo->format('%r%a'),
             $fin->format('d/m/Y')
         ];
         
@@ -402,16 +407,16 @@ class requerimientoModel extends ConnectDB {
     }
 
     private function insertDetailsMatrix($idReq, $cantidades) {
-        $ins = "INSERT INTO detalle_req (id_item, id_req, mes, cant_mes, estado) 
-                VALUES (:id_item, :id_req, :mes, :cant_mes, 1)";
+        $ins = "INSERT INTO detalle_req (id_prod, id_req, mes, cant_mes, estado) 
+                VALUES (:id_prod, :id_req, :mes, :cant_mes, 1)";
         $stmtIns = $this->conex->prepare($ins);
 
-        foreach ($cantidades as $id_item => $meses) {
+        foreach ($cantidades as $idProd => $meses) {
             foreach ($meses as $mes => $cantidad) {
                 $cant = intval($cantidad);
                 if ($cant > 0) {
                     $stmtIns->execute([
-                        ':id_item' => $id_item,
+                        ':id_prod' => $idProd,
                         ':id_req' => $idReq,
                         ':mes' => $mes,
                         ':cant_mes' => $cant

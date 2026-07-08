@@ -6,6 +6,7 @@ require_once "app/config/session.php";
 
 $object = new requerimientoModel();
 // $items = new productosServiciosModel();
+$idDep = $_SESSION['id_dep'];
 
 if (isset($_GET['type'])) {
 
@@ -20,6 +21,16 @@ if (isset($_GET['type'])) {
         }
         // Opción B: Si entra por URL normal, lo rebotamos o mostramos un mensaje estático
         echo "<h3>Error: El período de recepción de requerimientos para este año fiscal ha culminado o está cerrado.</h3>";
+        echo "<a href='?url=requerimiento&type=main'>Volver al inicio</a>";
+        die();
+    }
+    if (!$object->verifyPreviusReq($idDep)){
+        if (isset($_POST['guardarPartida'])) {
+            echo json_encode(["status" => "error", "message" => "Ya existe un requerimiento previo o no está activo."]);
+            die();
+        }
+        // Opción B: Si entra por URL normal, lo rebotamos o mostramos un mensaje estático
+        echo "<h3>Error: Ya existe un requerimiento previo o no está activo.</h3>";
         echo "<a href='?url=requerimiento&type=main'>Volver al inicio</a>";
         die();
     }
@@ -53,12 +64,12 @@ if (isset($_GET['type'])) {
         $timeLeft = $time[1];
         $dias = $time[0];
 
-        $idDep = $_SESSION['id_dep'];
+        $idDep;
 
         $idReq = 0; 
         
-        $prevReq = $object->verifyPreviusReq($idDep) !== false ? false : true;
-
+        $prevReq = !$object->verifyPreviusReq($idDep);
+        $perAct = $time[2];
         
         if (isset($_POST['getAll'])) {
             $reporte = $object->getAll();

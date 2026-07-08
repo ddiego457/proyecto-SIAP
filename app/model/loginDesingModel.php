@@ -22,7 +22,7 @@ class LoginDesingModel extends ConnectDB
         $stmt = $this->conex->prepare("SELECT d.nom_dep as dependencia,r.id_responsable, 
         r.nom_rep as responsable, r.id_rol , rl.descripcion as rol, password, d.id_dep as id_dep
         FROM responsables as r
-        JOIN cargo_responsable as cr ON cr.id_responsable = r.id_responsable
+        JOIN cargo as cr ON cr.id_responsable = r.id_responsable
         JOIN dependencias as d ON d.id_dep = cr.id_dep
         JOIN roles as rl on rl.id_rol = r.id_rol
         WHERE r.nom_rep = ?");

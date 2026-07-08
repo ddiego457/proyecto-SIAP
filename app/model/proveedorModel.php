@@ -168,7 +168,7 @@ class proveedorModel extends ConnectDB
     private function executeGetContacts(int $idProveedor)
     {
         try {
-            $stmt = $this->conex->prepare("SELECT id_telf, telefono, estado FROM contactos WHERE id_proveedor = ? ORDER BY id_telf DESC");
+            $stmt = $this->conex->prepare("SELECT id_telf, telefono, estado FROM telefonos WHERE id_proveedor = ? ORDER BY id_telf DESC");
             $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -186,7 +186,7 @@ class proveedorModel extends ConnectDB
     private function executeAddContact(int $idProveedor, string $telefono)
     {
         try {
-            $stmt = $this->conex->prepare("INSERT INTO contactos (id_proveedor, telefono, estado) VALUES (?, ?, 1)");
+            $stmt = $this->conex->prepare("INSERT INTO telefonos (id_proveedor, telefono, estado) VALUES (?, ?, 1)");
             $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
             $stmt->bindValue(2, trim($telefono));
             return $stmt->execute();
@@ -204,7 +204,7 @@ class proveedorModel extends ConnectDB
     private function executeUpdateContact(int $idContacto, string $telefono, ?int $estado)
     {
         try {
-            $query = "UPDATE contactos SET telefono = ?";
+            $query = "UPDATE telefonos SET telefono = ?";
             $params = [trim($telefono)];
 
             if ($estado !== null) {
@@ -231,7 +231,7 @@ class proveedorModel extends ConnectDB
     private function executeDeleteContact(int $idContacto)
     {
         try {
-            $stmt = $this->conex->prepare("UPDATE contactos SET estado = 0 WHERE id_telf = ?");
+            $stmt = $this->conex->prepare("UPDATE telefonos SET estado = 0 WHERE id_telf = ?");
             $stmt->bindValue(1, $idContacto, \PDO::PARAM_INT);
             return $stmt->execute();
         } catch (\PDOException $e) {
@@ -248,7 +248,7 @@ class proveedorModel extends ConnectDB
     private function executeActivateContact(int $idContacto)
     {
         try {
-            $stmt = $this->conex->prepare("UPDATE contactos SET estado = 1 WHERE id_telf = ?");
+            $stmt = $this->conex->prepare("UPDATE telefonos SET estado = 1 WHERE id_telf = ?");
             $stmt->bindValue(1, $idContacto, \PDO::PARAM_INT);
             return $stmt->execute();
         } catch (\PDOException $e) {
