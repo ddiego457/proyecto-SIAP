@@ -6,7 +6,7 @@ include_once 'app/view/layout/head.php';
 
 <!-- TOPBAR -->
 <div class="topbar">
-    <div class="topbar-title">&#128203; Registrar Requerimiento POA</div>
+    <div class="topbar-title">&#128203; Registrar Requerimiento</div>
     <div class="topbar-actions">
         <a href="?url=requerimiento&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
     </div>

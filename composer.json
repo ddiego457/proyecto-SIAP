@@ -11,5 +11,7 @@
             "name": "Diego Flores"
         }
     ],
-    "require": {}
+    "require": {
+        "mpdf/mpdf": "*"
+    }
 }
