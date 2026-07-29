@@ -324,8 +324,8 @@ class requerimientoModel extends ConnectDB {
         $qDel = "DELETE FROM detalle_req WHERE id_req = :id_req AND id_prod = :id_prod";
         $sDel = $this->conex->prepare($qDel);
 
-        $qIns = "INSERT INTO detalle_req (id_prod, id_req, mes, cant_mes, estado) 
-                 VALUES (:id_prod, :id_req, :mes, :cant_mes, 1)";
+        $qIns = "INSERT INTO detalle_req (id_prod, id_req, mes, cant_mes) 
+                 VALUES (:id_prod, :id_req, :mes, :cant_mes)";
         $sIns = $this->conex->prepare($qIns);
 
         foreach ($cantidades as $idProd => $meses) {
@@ -407,8 +407,8 @@ class requerimientoModel extends ConnectDB {
     }
 
     private function insertDetailsMatrix($idReq, $cantidades) {
-        $ins = "INSERT INTO detalle_req (id_prod, id_req, mes, cant_mes, estado) 
-                VALUES (:id_prod, :id_req, :mes, :cant_mes, 1)";
+        $ins = "INSERT INTO detalle_req (id_prod, id_req, mes, cant_mes) 
+                VALUES (:id_prod, :id_req, :mes, :cant_mes)";
         $stmtIns = $this->conex->prepare($ins);
 
         foreach ($cantidades as $idProd => $meses) {
