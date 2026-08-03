@@ -12,6 +12,12 @@
         }
     ],
     "require": {
-        "mpdf/mpdf": "*"
+        "mpdf/mpdf": "^8.3",
+        "phpoffice/phpspreadsheet": "^5.9"
+    },
+    "config":{
+	"platform":{
+	"php": "8.2.0"
+	}
     }
 }
