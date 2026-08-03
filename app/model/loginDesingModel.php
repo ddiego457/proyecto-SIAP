@@ -6,7 +6,7 @@ use EquipoSiap\Siap\config\Connect\ConnectDB;
 use Exception;
 use PDO;
 
-class LoginDesingModel extends ConnectDB
+class loginDesingModel extends ConnectDB
 {
     private $conex;
     public function __construct()

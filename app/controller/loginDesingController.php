@@ -1,9 +1,10 @@
 <?php
 
 
-use EquipoSiap\Siap\model\LoginDesingModel as loginModel;
+use EquipoSiap\Siap\model\loginDesingModel;
 
-$object = new loginModel();
+
+$object = new loginDesingModel();
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
@@ -20,7 +21,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         }
         
 }
-include 'app\view\loginDesign.php';
+include 'app/view/loginDesign.php';
 
 
 ?>

@@ -17,7 +17,7 @@ class FrontController
     private function getUrl()
     {
         try {
-            if ($this->url === '' || $this->url === 'inicio' || $this->url === 'dashboard') {
+            if ($this->url === '' || $this->url === 'inicio' || $this->url === 'dashboard' || $this->url === 'index' || $this->url === '/') {
                 include dirname(__DIR__) . '/controller/loginDesingController.php';
                 return;
             }
@@ -37,8 +37,11 @@ class FrontController
         } catch (\Throwable $e) {
             // Captura errores internos, fallos de base de datos o sintaxis en los controladores (Error 500)
             http_response_code(500);
-            $failDescript = "Error crítico durante la ejecución: " . $e->getMessage();
-            
+            $controllerFile = $this->dir . $this->url . $this->controller;
+            // Muestra el mensaje, archivo y línea real del error
+            $failDescript = "Error: " . $e->getMessage() 
+                            . " en " . $e->getFile() 
+                            . " línea " . $e->getLine();
             require_once dirname(__DIR__) . '/view/errorView.php';
         }
     }
