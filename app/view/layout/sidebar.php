@@ -38,7 +38,7 @@ if (!function_exists('sidebarLink')) {
         </a>
 
         <div class="sidebar-section-title" style="margin-top:10px;">Informaci&oacute;n</div>
-        <a href="?url=informe&type=dashboard" class="sidebar-link <?php echo ($urlActual === 'informe') ? 'active' : ''; ?>">
+        <a href="?url=reporte&type=dashboard" class="sidebar-link <?php echo ($urlActual === 'reporte') ? 'active' : ''; ?>">
             <span class="icon">&#128202;</span> Informes
         </a>
     </nav>
