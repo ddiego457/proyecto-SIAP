@@ -2,6 +2,8 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class reporteModel extends ConnectDB
 {
@@ -61,20 +63,27 @@ class reporteModel extends ConnectDB
         ];
     }
 
-    public function getAll($id, $typeReport, $cond){
-        $result = $this->executeGetAll($id, $typeReport, $cond);
-        return $result;
+    public function getReqReport($id = ''){
+        $data = $this->executeGetReqReport($id);
+        $result = $this->executeGetXlxsReqReport($data);
+        return $result;        
+    }
+    public function getProReport($cond = ''){
+        $data = $this->executeGetProReport();
     }
 
-    //executeGetAll es una funcion que obtiene el tipo de consulta a ejecutar mas una/niguna condición 
-    private function executeGetAll($id, $typeReport, $cond){ 
+    public function getExcelReport(array $report){
+        $result = $this->executeGetExcelReport();
+        return $return;
+    }
+
+    //executeGetReport es una funcion que obtiene el tipo de consulta a ejecutar mas una/niguna condición 
+    private function executeGetReqReport($id = ''){ 
     $query = "";
     
-    switch ($typeReport) {
-        case 'req':
-            // 1. LA CONSULTA BASE: Contiene los cálculos de meses, totales y los JOINs obligatorios.
-            // Exigimos af.activo = 1 (Año fiscal actual) y r.estado_envio = 1 (Solo requerimientos enviados/consolidados)
-            $baseSelect = "SELECT 
+        // consulta para una dependencia en especifico, funciona para la creacion del archivo excel actual
+        if (!empty($id)) {
+            $query = "SELECT 
                 d.nom_dep AS dependencia,
                 p.cod_partida AS partida,
                 pro.nom_prod AS producto,
@@ -98,44 +107,101 @@ class reporteModel extends ConnectDB
             FROM detalle_req dr
             JOIN requerimientos r ON dr.id_req = r.id_req
             JOIN dependencias d ON r.id_dep = d.id_dep
-            JOIN productos pro ON dr.id_item = pro.id_item
+            JOIN productos pro ON dr.id_prod = pro.id_prod
             JOIN partidas p ON pro.id_partida = p.id_partida
             JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
             JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
             WHERE r.estado = 1 
               AND r.estado_envio = 1 
-              AND af.activo = 1 ";
+              AND af.activo = 1
+              AND d.id_dep = ? 
+                     GROUP BY  d.nom_dep, p.cod_partida, pro.nom_prod, pro.precio 
+                     ORDER BY p.cod_partida ASC;";
+        }
+        $query = 'SELECT p.cod_partida as CODIGO, prod.nom_prod as DESCRIPCION,
+        SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes ELSE 0 END) AS Ene,
+        SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes ELSE 0 END) AS Feb,
+        SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes ELSE 0 END) AS Mar,
+        SUM(CASE WHEN dr.mes = 4 THEN dr.cant_mes ELSE 0 END) AS Abr,
+        SUM(CASE WHEN dr.mes = 5 THEN dr.cant_mes ELSE 0 END) AS May,
+        SUM(CASE WHEN dr.mes = 6 THEN dr.cant_mes ELSE 0 END) AS Jun,
+        SUM(CASE WHEN dr.mes = 7 THEN dr.cant_mes ELSE 0 END) AS Jul,
+        SUM(CASE WHEN dr.mes = 8 THEN dr.cant_mes ELSE 0 END) AS Ago,
+        SUM(CASE WHEN dr.mes = 9 THEN dr.cant_mes ELSE 0 END) AS Sep,
+        SUM(CASE WHEN dr.mes = 10 THEN dr.cant_mes ELSE 0 END) AS Oct,
+        SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
+        SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
+        COALESCE(SUM(dr.cant_mes),0) as cantidad_total,
+        COALESCE((SUM(dr.cant_mes) * pro.precio * tb.tasa_bcv_usd), 0) as Total_precio
+        FROM detalle_req as dr
+        JOIN requerimientos as r ON dr.id_req = r.id_req
+        JOIN productos AS prod ON dr.id_prod = prod.id_prod 
+        JOIN partidas as p ON prod.id_partida = p.id_partida
+        JOIN tasa_bcv as tb ON r.id_tasa = tb.id_tasa
+        JOIN anio_fiscal as af ON r.id_aniof = af.id_aniof
+        WHERE r.estado = 1
+        AND r.estado_envio = 1
+        AND af.activo = 1
+        GROUP BY p.cod_partida , prod.nom_prod
+        ORDER BY p.cod_partida ASC , prod.nom_prod ASC; 
+        '
 
-            if (empty($id)) {
-                // 2A. SI EL ID ESTÁ VACÍO: Traer todas las dependencias.
-                // Agrupamos también por dependencia para que no se mezclen productos iguales de distintos departamentos.
-                $query = $baseSelect . " 
-                         GROUP BY d.id_dep, d.nom_dep, p.cod_partida, pro.nom_prod, pro.precio, tb.tasa_bcv_usd 
-                         ORDER BY d.nom_dep ASC, p.cod_partida ASC;";
-            } else {
-                // 2B. SI HAY UN ID ESPECÍFICO: Filtramos por esa dependencia en particular.
-                $query = $baseSelect . " AND d.id_dep = " . (int)$id . " 
-                         GROUP BY d.id_dep, d.nom_dep, p.cod_partida, pro.nom_prod, pro.precio, tb.tasa_bcv_usd 
-                         ORDER BY p.cod_partida ASC;";
-            }
-            $stmt = $this->conex->prepare($query);
-            $stmt->execute();
-            return $stmt->fetchAll();
-            break;
-            case 'prod':
-                $query = "SELECT p.cod_partida as partidas, pro.nom_prod as producto, pro.precio as precio FROM productos as pro
-                    JOIN partidas as p ON p.id_partida = pro.id_partida";
-                if (!empty($cond) && $cond != ''){
-                    $query = $query . " WHERE p.cod_partida = " . $cond . "ORDER BY pro.precio DESC";
-                }
-                    $stmt = $this->conex->prepare($query);
-                    $stmt->execute();
-                    return $stmt->fetchAll();
-                break;
-        default:
-            # code...
-            break;
+    $stmt = $this->conex->prepare($query);
+    if (!empty($id) && $id != '') {
+        $stmt->bindValue(1, $id);
     }
-    return $query;
+    $stmt->execute();
+    return $stmt->fetchAll();
+    }
+
+
+    private function executeGetProReport($cond = ''){
+        $query = "SELECT p.cod_partida as partidas, pro.nom_prod as producto, pro.precio as precio FROM productos as pro
+                JOIN partidas as p ON p.id_partida = pro.id_partida";
+        if (!empty($cond) && $cond != ''){
+            $query = $query . " WHERE p.cod_partida = ? ORDER BY pro.precio DESC";
+        }
+        $stmt = $this->conex->prepare($query);
+        if (!empty($cond) && $cond != ''){
+            $stmt->bindValue(1, $cond);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+
+    private function executeGetXlxsReqReport(array $datos){
+        $documento = new Spreadsheet();
+        $hoja = $documento->getActiveSheet();
+        $hoja->setTitle("Reporte SIAP");
+        $hoja->setCellValue('A1','Dependencia');
+        $hoja->setCellValue('B1','Partida');
+        $hoja->setCellValue('C1','Producto');
+        $hoja->setCellValue('D1','Cantidad Total');
+        $hoja->setCellValue('E1','Total BS');
+        //Opcional colocar los encabezados en negrita para la prueba
+        $hoja->getStyle('A1:E1')->getFont()->setBold(true);
+        $filaActual = 2;
+        if(!empty($datos)){
+            foreach($datos as $filaBD){
+                $hoja->setCellValue('A'. $filaActual , $filaBD['dependencia']);
+                $hoja->setCellValue('B'. $filaActual , $filaBD['partida']);
+                $hoja->setCellValue('C'. $filaActual , $filaBD['producto']);
+                $hoja->setCellValue('D'. $filaActual , $filaBD['total_cantidad']);
+                $hoja->setCellValue('E'. $filaActual , $filaBD['total_bs']);
+                $filaActual++;
+            }
+        }else{
+            $hoja->setCellValue('A2', 'No se encontraron registros para esta consulta.');
+        }
+        foreach(range('A', 'E') as $columna){
+            $hoja->getColumnDimension($columna)->setAutoSize(true);
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Prueba_reporte.xlsx"');
+        header('Cache-Control: max-age=0');
+        $writer = new Xlsx($documento);
+        $writer->save('php://output');
+        exit;
     }
 }
