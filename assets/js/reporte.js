@@ -1,5 +1,5 @@
-$(function(){
-    const url = 'app/controller/reportController.php';
+/* $(function(){
+    const url = 'app/controller/reporteController.php';
     const $dependenciaFilter = $('#dependenciaFilter');
     const $btnClear = $('#btnClearFilter');
 
@@ -82,4 +82,32 @@ $(function(){
     $('#btnExportPdf').on('click', function(){
         submitExport('exportPdf');
     });
+});*/
+
+/* ======== ultimo script utilizado para comprobar la consulta a la base de datos ========
+
+$('#btn-requerimiento-exc').on('click' , function (e){
+    e.preventDefault();
+    $.ajax({
+        url: "?url=reporte&type=descarga",
+        method: 'POST',
+        dataType: '',
+        dataSrc: '',
+        data: {
+            requerimientoExc: true,
+        },
+        success: function(respuesta){
+            if(respuesta.status === 'success') {
+                alert("Datos obtenidos correctamente.");
+                console.log(respuesta);
+            } else {
+                alert("Error: " + respuesta.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('Error en la petición de registro. Revise la consola para más detalles.');
+            console.error('AJAX register error:', status, error, xhr.responseText);
+        }
+    });
 });
+*/

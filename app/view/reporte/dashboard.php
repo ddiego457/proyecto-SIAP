@@ -1,5 +1,6 @@
 <?php
 $pageTitle = 'Dashboard de Informes';
+$jsFile = 'reporte.js';
 $buttons = isset($buttons) ? $buttons : [];
 include_once 'app/view/layout/head.php';
 ?>
@@ -25,6 +26,16 @@ include_once 'app/view/layout/head.php';
                         </button>
                     </div>
                 <?php endforeach; ?>
+                <div class="card-body report-card-title">
+                    <form action='?url=reporte&type=descarga' method='post' id="requerimientoExc">
+                        <h3>Requerimientos</h3>
+                        <input type="hidden" name='requerimientoExc' id='requerimiento' > 
+                        
+                        <!-- cambiar el valor de "value" por un selector con el id de la dependencia. por defecto, deberia ser "req" para descargar el archivo excel consolidado-->
+                        <!-- -->
+                        <button type="submit" id="btn-requerimiento-exc">exportar</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
