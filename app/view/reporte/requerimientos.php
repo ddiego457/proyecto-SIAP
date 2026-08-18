@@ -1,4 +1,5 @@
-﻿<?php
+<?php
+//======== No se utiliza actualmente ========
 $pageTitle = 'informe de dependencia';
 include_once 'app/view/layout/head.php';
 

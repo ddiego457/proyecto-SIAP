@@ -3,7 +3,8 @@
 use EquipoSiap\Siap\model\reporteModel;
 require_once "app/config/session.php";
 $object = new reporteModel();
-
+// ======== antiguas funciones del controlador. Utilizado para crear las cartas de descargas y funciones que no se utilizaron. ========
+// ======== Recomiendo pasar el formato de las cartas a la vista y quitar las funciones que no se utilicen ========
 
 function sendExcelDownload(string $fileName, array $headers, array $rows): void
 {
@@ -113,10 +114,15 @@ if ($type === 'export') {
     return;
 }
 
-if (isset($_POST['requerimientoExc'])) {
-    $typeReport = $_POST['idDep'];
-    $result = $object->getAll("",$typeReport);
-    echo json_encode(["success" => $result ? $result : []]);
+// llamada a la función que descarga el archivo excel. actualmente no funciona por diferencias de consulta sql  
+
+if (isset($_GET['type']) && $_GET['type'] = 'descarga') {
+    if (isset($_POST['requerimientoExc'])) {
+        $result = $object->getReqReport();        
+        exit;
+    }
+    //include 'app/view/reporte/dashboard.php';
+
 }
 
 echo 'Error: Tipo de vista no válido.';

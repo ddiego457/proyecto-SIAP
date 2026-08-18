@@ -8,7 +8,6 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">Dashboard de Informes</div>
 </div>
-<input type="hidden" id='requerimiento' value="req"> 
 
 <div class="page-body">
     <div class="card" style="margin-bottom:16px;">
@@ -28,9 +27,11 @@ include_once 'app/view/layout/head.php';
                     </div>
                 <?php endforeach; ?>
                 <div class="card-body report-card-title">
-                    <form id="requerimientoExc">
+                    <form action='?url=reporte&type=descarga' method='post' id="requerimientoExc">
                         <h3>Requerimientos</h3>
-                        <!-- cambiar el valor de "value" por un selector con el id de la dependencia. por defecto, deberia ser "req" -->
+                        <input type="hidden" name='requerimientoExc' id='requerimiento' > 
+                        
+                        <!-- cambiar el valor de "value" por un selector con el id de la dependencia. por defecto, deberia ser "req" para descargar el archivo excel consolidado-->
                         <!-- -->
                         <button type="submit" id="btn-requerimiento-exc">exportar</button>
                     </form>

@@ -1,4 +1,5 @@
 <?php
+//======== No se utiliza actualmente ========
 $pageTitle = 'Informe Individual (Excel)';
 include_once 'app/view/layout/head.php';
 
