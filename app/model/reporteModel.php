@@ -2,6 +2,7 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -118,7 +119,7 @@ class reporteModel extends ConnectDB
                      GROUP BY  d.nom_dep, p.cod_partida, pro.nom_prod, pro.precio 
                      ORDER BY p.cod_partida ASC;";
         }
-        $query = 'SELECT p.cod_partida as CODIGO, prod.nom_prod as DESCRIPCION,
+        $query = 'SELECT p.cod_partida as codigo, prod.nom_prod as Descripcion,
         SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes ELSE 0 END) AS Ene,
         SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes ELSE 0 END) AS Feb,
         SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes ELSE 0 END) AS Mar,
@@ -131,8 +132,11 @@ class reporteModel extends ConnectDB
         SUM(CASE WHEN dr.mes = 10 THEN dr.cant_mes ELSE 0 END) AS Oct,
         SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
         SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
-        COALESCE(SUM(dr.cant_mes),0) as cantidad_total,
-        COALESCE((SUM(dr.cant_mes) * prod.precio * tb.tasa_bcv_usd), 0) as Total_precio
+        (prod.precio * tb.tasa_bcv_usd) as precio,
+        prod.precio as precio_dolares,
+        COALESCE(SUM(dr.cant_mes),0) as cantidad_Total,
+        COALESCE((SUM(dr.cant_mes) * prod.precio * tb.tasa_bcv_usd), 0) as Total_precio,
+        COALESCE((SUM(dr.cant_mes) * prod.precio), 0) as Total_precio_dolares
         FROM detalle_req as dr
         JOIN requerimientos as r ON dr.id_req = r.id_req
         JOIN productos AS prod ON dr.id_prod = prod.id_prod 
@@ -171,37 +175,77 @@ class reporteModel extends ConnectDB
 
 
     private function executeGetXlxsReqReport(array $datos){
-        $documento = new Spreadsheet();
-        $hoja = $documento->getActiveSheet();
-        $hoja->setTitle("Reporte SIAP");
-        $hoja->setCellValue('A1','Dependencia');
-        $hoja->setCellValue('B1','Partida');
-        $hoja->setCellValue('C1','Producto');
-        $hoja->setCellValue('D1','Cantidad Total');
-        $hoja->setCellValue('E1','Total BS');
-        //Opcional colocar los encabezados en negrita para la prueba
-        $hoja->getStyle('A1:E1')->getFont()->setBold(true);
-        $filaActual = 2;
-        if(!empty($datos)){
-            foreach($datos as $filaBD){
-                $hoja->setCellValue('A'. $filaActual , $filaBD['dependencia']);
-                $hoja->setCellValue('B'. $filaActual , $filaBD['partida']);
-                $hoja->setCellValue('C'. $filaActual , $filaBD['producto']);
-                $hoja->setCellValue('D'. $filaActual , $filaBD['total_cantidad']);
-                $hoja->setCellValue('E'. $filaActual , $filaBD['total_bs']);
-                $filaActual++;
-            }
-        }else{
-            $hoja->setCellValue('A2', 'No se encontraron registros para esta consulta.');
-        }
-        foreach(range('A', 'E') as $columna){
-            $hoja->getColumnDimension($columna)->setAutoSize(true);
-        }
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="Prueba_reporte.xlsx"');
-        header('Cache-Control: max-age=0');
-        $writer = new Xlsx($documento);
-        $writer->save('php://output');
-        exit;
+    // 2. Cargar la plantilla existente
+    $rutaPlantilla = __DIR__ . '/../template/TOTAL_Todas_las_Dependencias.xlsx';
+    if (!file_exists($rutaPlantilla)) {
+        die("Error: No se encontró la plantilla.");
     }
+    
+    $documento = IOFactory::load($rutaPlantilla);
+
+    // 3. Array para llevar el conteo de filas independientes por cada pestaña (Empiezan en la fila 21)
+    $filasHojas = [
+        '4,01' => 21,
+        '4,02' => 21,
+        '4,03' => 21,
+        '4,04' => 21,
+        '4,07' => 21
+    ];
+
+    if (!empty($datos)) {
+        foreach ($datos as $fila) {
+            // Normalizar el código de partida para que coincida con el nombre de las hojas ('4,01', '4,02', etc.)
+            $partidaFormateada = str_replace('.', ',', (string)$fila['codigo']);
+            
+            // Si en la BD la partida está como '401', la convertimos a '4,01'
+            if (strlen($partidaFormateada) === 3 && is_numeric($partidaFormateada)) {
+                $partidaFormateada = substr($partidaFormateada, 0, 1) . ',' . substr($partidaFormateada, 1);
+            }
+
+            // Verificar si la hoja existe en el Excel
+            if ($documento->sheetNameExists($partidaFormateada)) {
+                $hoja = $documento->getSheetByName($partidaFormateada);
+                $numFila = $filasHojas[$partidaFormateada];
+
+                // Inyección de Datos
+                $hoja->setCellValue('A' . $numFila, $fila['codigo']);
+                $hoja->setCellValue('B' . $numFila, $fila['Descripcion']);
+                $hoja->setCellValue('C' . $numFila, $fila['unidad_medida'] ?? 'UND'); // Ajustar si tienes este campo en BD
+                $hoja->setCellValue('D' . $numFila, $fila['precio'] ?? 0);
+
+                // Meses (Ene = Columna E, Feb = F, ..., Dic = P)
+                $hoja->setCellValue('E' . $numFila, $fila['Ene']);
+                $hoja->setCellValue('F' . $numFila, $fila['Feb']);
+                $hoja->setCellValue('G' . $numFila, $fila['Mar']);
+                $hoja->setCellValue('H' . $numFila, $fila['Abr']);
+                $hoja->setCellValue('I' . $numFila, $fila['May']);
+                $hoja->setCellValue('J' . $numFila, $fila['Jun']);
+                $hoja->setCellValue('K' . $numFila, $fila['Jul']);
+                $hoja->setCellValue('L' . $numFila, $fila['Ago']);
+                $hoja->setCellValue('M' . $numFila, $fila['Sep']);
+                $hoja->setCellValue('N' . $numFila, $fila['Oct']);
+                $hoja->setCellValue('O' . $numFila, $fila['Nov']);
+                $hoja->setCellValue('P' . $numFila, $fila['Dic']);
+
+                // Totales
+                $hoja->setCellValue('Q' . $numFila, $fila['cantidad_Total']);
+                $hoja->setCellValue('R' . $numFila, $fila['Total_precio']);
+
+                // Incrementar el contador de fila para esa pestaña en específico
+                $filasHojas[$partidaFormateada]++;
+            }
+        }
+    }
+
+    // 4. Descargar el archivo procesado
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="Consolidado_POA_' . date('Y') . '.xlsx"');
+    header('Cache-Control: max-age=0');
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($documento);
+    $writer->save('php://output');
+    exit;
 }
+    
+}
+

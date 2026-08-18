@@ -116,7 +116,8 @@ if ($type === 'export') {
 
 // llamada a la función que descarga el archivo excel. actualmente no funciona por diferencias de consulta sql  
 
-if (isset($_GET['type']) && $_GET['type'] = 'descarga') {
+if (isset($_GET['type']) && $_GET['type'] === 'descarga') {
+    
     if (isset($_POST['requerimientoExc'])) {
         $result = $object->getReqReport();        
         exit;
