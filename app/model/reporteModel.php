@@ -73,8 +73,8 @@ class reporteModel extends ConnectDB
     }
 
     public function getExcelReport(array $report){
-        $result = $this->executeGetExcelReport();
-        return $return;
+        $result = $this->executeGetXlxsReqReport($report);
+        return $result;
     }
 
     //executeGetReport es una funcion que obtiene el tipo de consulta a ejecutar mas una/niguna condición 
@@ -132,7 +132,7 @@ class reporteModel extends ConnectDB
         SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
         SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
         COALESCE(SUM(dr.cant_mes),0) as cantidad_total,
-        COALESCE((SUM(dr.cant_mes) * pro.precio * tb.tasa_bcv_usd), 0) as Total_precio
+        COALESCE((SUM(dr.cant_mes) * prod.precio * tb.tasa_bcv_usd), 0) as Total_precio
         FROM detalle_req as dr
         JOIN requerimientos as r ON dr.id_req = r.id_req
         JOIN productos AS prod ON dr.id_prod = prod.id_prod 
@@ -144,7 +144,7 @@ class reporteModel extends ConnectDB
         AND af.activo = 1
         GROUP BY p.cod_partida , prod.nom_prod
         ORDER BY p.cod_partida ASC , prod.nom_prod ASC; 
-        '
+        ';
 
     $stmt = $this->conex->prepare($query);
     if (!empty($id) && $id != '') {

@@ -71,7 +71,7 @@ if ($type === 'export') {
         case '403':
         case '404':
         case '407':
-            $items = $modelInforme->getRequerimientosPorPartida((int)$reportCode);
+            //$items = $modelInforme->getRequerimientosPorPartida((int)$reportCode);
             sendExcelDownload(
                 sprintf('Informe_Partida_%s.xls', $reportCode),
                 ['ID', 'Código', 'Descripción', 'Dependencia', 'Partida', 'Año Fiscal', 'Periodo', 'Estado', 'Fecha Envío'],
@@ -79,7 +79,7 @@ if ($type === 'export') {
             );
             break;
         case 'requerimiento_individual':
-            $items = $modelInforme->getReporteRequerimientoIndividual();
+            //$items = $modelInforme->getReporteRequerimientoIndividual();
             sendExcelDownload(
                 'Informe_Requerimiento_Individual.xls',
                 ['ID', 'Código', 'Descripción', 'Dependencia', 'Partida', 'Año Fiscal', 'Periodo', 'Estado', 'Fecha Envío'],
@@ -87,7 +87,7 @@ if ($type === 'export') {
             );
             break;
         case 'dependencia_individual':
-            $items = $modelInforme->getResumenPorDependencia();
+           // $items = $modelInforme->getResumenPorDependencia();
             sendExcelDownload(
                 'Informe_Por_Dependencia.xls',
                 ['Dependencia', 'Total Requerimientos'],
@@ -97,7 +97,7 @@ if ($type === 'export') {
             );
             break;
         case 'anteproyecto_global':
-            $items = $modelInforme->getAnteproyectoGlobal();
+            //$items = $modelInforme->getAnteproyectoGlobal();
             sendExcelDownload(
                 'Informe_Anteproyecto_Global.xls',
                 ['Partida', 'Total Requerimientos'],
