@@ -118,7 +118,7 @@ class reporteModel extends ConnectDB
               AND d.id_dep = ? 
                      GROUP BY  d.nom_dep, p.cod_partida, pro.nom_prod, pro.precio 
                      ORDER BY p.cod_partida ASC;";
-        }
+        } //Acomodar la condicion para que imprima todos los productos incluso si no se pidio ninguno
         $query = 'SELECT p.cod_partida as codigo, prod.nom_prod as Descripcion,
         SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes ELSE 0 END) AS Ene,
         SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes ELSE 0 END) AS Feb,

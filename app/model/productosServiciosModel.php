@@ -2,6 +2,7 @@
 
 namespace EquipoSiap\Siap\model;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use EquipoSiap\Siap\config\Connect\ConnectDB;
 
 class productosServiciosModel extends ConnectDB
@@ -110,6 +111,51 @@ class productosServiciosModel extends ConnectDB
             return $stmt->execute([$idItem]);
         } catch (\PDOException $e) {
             return false;
+        }
+    }
+    public function loadData(){
+        $result = $this->executeLoadData();
+    }
+    private function executeLoadData(){
+        $partidas = [
+           2 => '4,02',
+           3 => '4,03',
+           4 => '4,04',
+           5 => '4,07'
+        ];
+
+        //======== Incluir archivo para hacer la carga de datos ========
+        $rutaPlantilla = __DIR__ . '/../template/TOTAL_Todas_las_Dependencias_Formato_Requerimientos_POA_2027.xlsx';
+        $documento = IOFactory::load($rutaPlantilla);
+        $idProd = 22;
+        $codPart = 2;
+
+        $sql = "INSERT INTO productos (id_prod, id_partida, nom_prod, precio, id_proveedor) VALUES (:id_prod, :partida, :nombre, :precio, :idProveedor)";
+        $stmt = $this->conex->prepare($sql);
+
+
+        foreach($partidas as $partida){
+
+            $hoja = $documento->getSheetByName($partida)->toArray(null, true, true, true);
+            foreach($hoja as $index => $row){
+                if($index < 21){
+                    continue;
+                }
+                $nombre = $row['B'];
+                $nombre .= "(" . $row['C'] . ")";
+                $precio = intval($row['S']);
+                if(!empty($nombre) && !empty($precio)){
+                    $stmt->execute([
+                        ':id_prod' => $idProd,
+                        ':partida' => $codPart,
+                        ':nombre' => $nombre,
+                        ':precio' => $precio,
+                        'idProveedor' => 1
+                    ]);
+                    $idProd++;
+                }
+            }
+            $codPart++;
         }
     }
 }

@@ -106,4 +106,13 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
+<!-- HAY QUE OCULTAR EL BOTON PARA QUE NO SE USE POR EL ADMINISTRADOR NI DEPENDENCIA -->
+
+<div class="">
+    <form method="post" action="?url=productosServicios&type=main">
+        <input type="hidden" name="loadData">
+        <button class="btn" type="submit">Load</button>
+    </form>
+</div>
+
 <?php include_once 'app/view/layout/foot.php'; ?>
