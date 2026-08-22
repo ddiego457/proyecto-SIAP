@@ -5,6 +5,7 @@ use EquipoSiap\Siap\config\Connect\ConnectDB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Mpdf/Mpdf;
 
 class reporteModel extends ConnectDB
 {
@@ -61,6 +62,12 @@ class reporteModel extends ConnectDB
                 'description' => 'Consolidado de anteproyecto global',
             ],
         ];
+    }
+    public function getReqPDFReport($id= ''){
+        $data = $this->executeGetReqReport($id);
+        //ajustar metodo para que reciba un parametro $titulo que defina el titulo en el caso de ser
+        //un archivo consolidado un de un dendencia en especifico
+        $result = $this->executeGetPdfReqReport($data, $titulo)
     }
 
     public function getReqReport($id = '', $plantilla, $prefijo){
@@ -361,6 +368,135 @@ private function executeGetXlsxProReport(array $datos) {
     $writer->save('php://output');
     exit;
 }
+
+
+private function executeGetPdfReqReport(array $datos, string $tituloReporte = 'Consolidado POA') 
+{
+    // 1. Configuración de mPDF en formato Carta Horizontal (LETTER-L)
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'LETTER-L',
+        'margin_left' => 8,
+        'margin_right' => 8,
+        'margin_top' => 22,
+        'margin_bottom' => 12,
+        'margin_header' => 5,
+        'margin_footer' => 5,
+    ]);
+
+    // 2. Encabezado y Pie de página con numeración dinámica
+    $mpdf->SetHTMLHeader('
+        <div style="text-align: center; font-weight: bold; font-size: 10pt; font-family: sans-serif; border-bottom: 1px solid #000; padding-bottom: 4px;">
+            REPUBLICA BOLIVARIANA DE VENEZUELA<br>
+            ' . mb_strtoupper($tituloReporte, 'UTF-8') . ' - AÑO ' . date('Y') . '
+        </div>
+    ');
+
+    $mpdf->SetHTMLFooter('
+        <table width="100%" style="font-size: 7pt; font-family: sans-serif; border-top: 1px solid #ccc;">
+            <tr>
+                <td width="33%">Fecha de emisión: ' . date('d/m/Y h:i A') . '</td>
+                <td width="33%" align="center">Página {PAGENO} de {nbpg}</td>
+                <td width="33%" align="right">Sistema SIAP</td>
+            </tr>
+        </table>
+    ');
+
+    // 3. Estilos CSS para compactar el diseño de la tabla
+    $css = '
+        body { font-family: sans-serif; font-size: 7pt; }
+        .tabla-poa { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        .tabla-poa th { background-color: #1a365d; color: #ffffff; border: 0.5pt solid #000; padding: 3px 1px; font-size: 6.5pt; text-align: center; }
+        .tabla-poa td { border: 0.5pt solid #999; padding: 3px 2px; font-size: 6.5pt; text-align: center; }
+        .tabla-poa tr:nth-child(even) { background-color: #f8fafc; }
+        .text-left { text-align: left !important; }
+        .text-right { text-align: right !important; }
+        .font-bold { font-weight: bold; }
+    ';
+
+    // Helper en línea para formatear montos/cantidades omitiendo ceros
+    $fmt = function($valor, $esMonto = false) {
+        if (empty($valor) || $valor == 0) return '';
+        return $esMonto ? number_format($valor, 2, ',', '.') : number_format($valor, 0, ',', '.');
+    };
+
+    // 4. Construcción de la estructura HTML
+    $html = '
+    <table class="tabla-poa">
+        <thead>
+            <tr>
+                <th width="4%">Part.</th>
+                <th width="18%">Descripción</th>
+                <th width="4%">U.M.</th>
+                <th width="5%">P. U. ($)</th>
+                <th width="3%">Ene</th>
+                <th width="3%">Feb</th>
+                <th width="3%">Mar</th>
+                <th width="3%">Abr</th>
+                <th width="3%">May</th>
+                <th width="3%">Jun</th>
+                <th width="3%">Jul</th>
+                <th width="3%">Ago</th>
+                <th width="3%">Sep</th>
+                <th width="3%">Oct</th>
+                <th width="3%">Nov</th>
+                <th width="3%">Dic</th>
+                <th width="4%">Total Cant.</th>
+                <th width="7%">Total (Bs.)</th>
+                <th width="7%">Total ($)</th>
+            </tr>
+        </thead>
+        <tbody>';
+
+    if (!empty($datos)) {
+        foreach ($datos as $fila) {
+            // Limpieza de descripción y unidad de medida
+            $descr = $fila['Descripcion'];
+            if (strpos($descr, '|') !== false) {
+                $posicion = strpos($descr, '|') + 1;
+                $texto = substr($descr, $posicion);
+                $uMedida = substr($texto, 0, strpos($texto, '|'));
+                $descripcion = trim(str_replace('|' . $uMedida . '|', '', $descr));
+            } else {
+                $uMedida = 'UND';
+                $descripcion = $descr;
+            }
+
+            $html .= '<tr>
+                <td class="font-bold">' . htmlspecialchars($fila['codigo']) . '</td>
+                <td class="text-left">' . htmlspecialchars($descripcion) . '</td>
+                <td>' . htmlspecialchars($uMedida) . '</td>
+                <td class="text-right">' . $fmt($fila['precio'], true) . '</td>
+                <td>' . $fmt($fila['Ene']) . '</td>
+                <td>' . $fmt($fila['Feb']) . '</td>
+                <td>' . $fmt($fila['Mar']) . '</td>
+                <td>' . $fmt($fila['Abr']) . '</td>
+                <td>' . $fmt($fila['May']) . '</td>
+                <td>' . $fmt($fila['Jun']) . '</td>
+                <td>' . $fmt($fila['Jul']) . '</td>
+                <td>' . $fmt($fila['Ago']) . '</td>
+                <td>' . $fmt($fila['Sep']) . '</td>
+                <td>' . $fmt($fila['Oct']) . '</td>
+                <td>' . $fmt($fila['Nov']) . '</td>
+                <td>' . $fmt($fila['Dic']) . '</td>
+                <td class="font-bold">' . $fmt($fila['cantidad_Total']) . '</td>
+                <td class="text-right font-bold">' . $fmt($fila['Total_precio'], true) . '</td>
+                <td class="text-right font-bold">' . $fmt($fila['Total_precio_dolares'], true) . '</td>
+            </tr>';
+        }
+    } else {
+        $html .= '<tr><td colspan="19">No se encontraron registros para mostrar.</td></tr>';
+    }
+
+    $html .= '</tbody></table>';
+
+    // 5. Renderizado e Inyección en mPDF
+    $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
+    $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+
+    // Salida directa al navegador ('I' para previsualizar, 'D' para descargar)
+    $mpdf->Output('Reporte_POA_' . date('Y_m_d') . '.pdf', 'I');
+    exit;
 
     
 }
