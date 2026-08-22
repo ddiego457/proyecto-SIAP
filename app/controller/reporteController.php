@@ -119,7 +119,14 @@ if ($type === 'export') {
 if (isset($_GET['type']) && $_GET['type'] === 'descarga') {
     
     if (isset($_POST['requerimientoExc'])) {
-        $result = $object->getReqReport();        
+        //ajustar para que obtenga los datos correspondiente desde la vista con vriables post
+        //y un formulario sencillo
+        //el primer argumento representa el id_Dep, el segundo es el nombre de la plantilla
+        //el tercero es el nombre de archivo que se va a descargar
+
+        //la segunda plantilla, en el caso de ser una dependencia debe llamarse 'TOTAL_Dependencia.xlsx'
+
+        $result = $object->getReqReport('' , "TOTAL_Todas_las_Dependencias.xlsx","Consolidado_POA_");        
         exit;
     }
     //include 'app/view/reporte/dashboard.php';

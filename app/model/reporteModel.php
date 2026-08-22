@@ -9,7 +9,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class reporteModel extends ConnectDB
 {
     private $conex;
-
     public function __construct()
     {
         parent::__construct();
@@ -64,9 +63,9 @@ class reporteModel extends ConnectDB
         ];
     }
 
-    public function getReqReport($id = ''){
+    public function getReqReport($id = '', $plantilla, $prefijo){
         $data = $this->executeGetReqReport($id);
-        $result = $this->executeGetXlxsReqReport($data);
+        $result = $this->executeGetXlxsReqReport($data,$plantilla,$prefijo);
         return $result;        
     }
     public function getProReport($cond = ''){
@@ -85,70 +84,99 @@ class reporteModel extends ConnectDB
         // consulta para una dependencia en especifico, funciona para la creacion del archivo excel actual
         if (!empty($id)) {
             $query = "SELECT 
-                d.nom_dep AS dependencia,
-                p.cod_partida AS partida,
-                pro.nom_prod AS producto,
-                SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes ELSE 0 END) AS Ene,
-                SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes ELSE 0 END) AS Feb,
-                SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes ELSE 0 END) AS Mar,
-                SUM(CASE WHEN dr.mes = 4 THEN dr.cant_mes ELSE 0 END) AS Abr,
-                SUM(CASE WHEN dr.mes = 5 THEN dr.cant_mes ELSE 0 END) AS May,
-                SUM(CASE WHEN dr.mes = 6 THEN dr.cant_mes ELSE 0 END) AS Jun,
-                SUM(CASE WHEN dr.mes = 7 THEN dr.cant_mes ELSE 0 END) AS Jul,
-                SUM(CASE WHEN dr.mes = 8 THEN dr.cant_mes ELSE 0 END) AS Ago,
-                SUM(CASE WHEN dr.mes = 9 THEN dr.cant_mes ELSE 0 END) AS Sep,
-                SUM(CASE WHEN dr.mes = 10 THEN dr.cant_mes ELSE 0 END) AS Oct,
-                SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
-                SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
-                SUM(dr.cant_mes) AS total_cantidad,
-                pro.precio AS precio_unit_usd,
-                (pro.precio * tb.tasa_bcv_usd) AS precio_unit_bs,
-                (SUM(dr.cant_mes) * pro.precio) AS total_usd,
-                (SUM(dr.cant_mes) * pro.precio * tb.tasa_bcv_usd) AS total_bs
+        p.cod_partida AS codigo,
+        prod.nom_prod AS Descripcion,
+        prod.precio AS precio,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), '') AS Ene,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), '') AS Feb,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE 0 END), '') AS Mar,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 4 THEN req_valido.cant_mes ELSE 0 END), '') AS Abr,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 5 THEN req_valido.cant_mes ELSE 0 END), '') AS May,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 6 THEN req_valido.cant_mes ELSE 0 END), '') AS Jun,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 7 THEN req_valido.cant_mes ELSE 0 END), '') AS Jul,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 8 THEN req_valido.cant_mes ELSE 0 END), '') AS Ago,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 9 THEN req_valido.cant_mes ELSE 0 END), '') AS Sep,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 10 THEN req_valido.cant_mes ELSE 0 END), '') AS Oct,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE 0 END), '') AS Nov,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE 0 END), '') AS Dic,
+        COALESCE(SUM(req_valido.cant_mes), 0) AS cantidad_Total,
+        COALESCE(SUM(req_valido.cant_mes * prod.precio), 0) AS Total_precio_dolares,
+        COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
+        FROM productos prod
+        JOIN partidas p ON prod.id_partida = p.id_partida
+        LEFT JOIN (
+            SELECT 
+                dr.id_prod, 
+                dr.mes, 
+                dr.cant_mes, 
+                tb.tasa_bcv_usd
             FROM detalle_req dr
             JOIN requerimientos r ON dr.id_req = r.id_req
-            JOIN dependencias d ON r.id_dep = d.id_dep
-            JOIN productos pro ON dr.id_prod = pro.id_prod
-            JOIN partidas p ON pro.id_partida = p.id_partida
-            JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
             JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
+            JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
             WHERE r.estado = 1 
               AND r.estado_envio = 1 
               AND af.activo = 1
-              AND d.id_dep = ? 
-                     GROUP BY  d.nom_dep, p.cod_partida, pro.nom_prod, pro.precio 
-                     ORDER BY p.cod_partida ASC;";
-        } //Acomodar la condicion para que imprima todos los productos incluso si no se pidio ninguno
-        $query = 'SELECT p.cod_partida as codigo, prod.nom_prod as Descripcion,
-        SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes ELSE 0 END) AS Ene,
-        SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes ELSE 0 END) AS Feb,
-        SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes ELSE 0 END) AS Mar,
-        SUM(CASE WHEN dr.mes = 4 THEN dr.cant_mes ELSE 0 END) AS Abr,
-        SUM(CASE WHEN dr.mes = 5 THEN dr.cant_mes ELSE 0 END) AS May,
-        SUM(CASE WHEN dr.mes = 6 THEN dr.cant_mes ELSE 0 END) AS Jun,
-        SUM(CASE WHEN dr.mes = 7 THEN dr.cant_mes ELSE 0 END) AS Jul,
-        SUM(CASE WHEN dr.mes = 8 THEN dr.cant_mes ELSE 0 END) AS Ago,
-        SUM(CASE WHEN dr.mes = 9 THEN dr.cant_mes ELSE 0 END) AS Sep,
-        SUM(CASE WHEN dr.mes = 10 THEN dr.cant_mes ELSE 0 END) AS Oct,
-        SUM(CASE WHEN dr.mes = 11 THEN dr.cant_mes ELSE 0 END) AS Nov,
-        SUM(CASE WHEN dr.mes = 12 THEN dr.cant_mes ELSE 0 END) AS Dic,
-        (prod.precio * tb.tasa_bcv_usd) as precio,
+              AND r.id_dep = ?
+        ) AS req_valido ON prod.id_prod = req_valido.id_prod
+        GROUP BY 
+            p.cod_partida, 
+            prod.id_prod, 
+            prod.nom_prod, 
+            prod.precio
+        ORDER BY 
+            p.cod_partida ASC, 
+            prod.nom_prod ASC;";
+        } 
+
+
+        else{
+        //Acomodar la condicion para que imprima todos los productos incluso si no se pidio ninguno
+        $query = "SELECT 
+        p.cod_partida AS codigo,
+        prod.nom_prod AS Descripcion,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), '') AS Ene,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), '') AS Feb,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE 0 END), '') AS Mar,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 4 THEN req_valido.cant_mes ELSE 0 END), '') AS Abr,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 5 THEN req_valido.cant_mes ELSE 0 END), '') AS May,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 6 THEN req_valido.cant_mes ELSE 0 END), '') AS Jun,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 7 THEN req_valido.cant_mes ELSE 0 END), '') AS Jul,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 8 THEN req_valido.cant_mes ELSE 0 END), '') AS Ago,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 9 THEN req_valido.cant_mes ELSE 0 END), '') AS Sep,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 10 THEN req_valido.cant_mes ELSE 0 END), '') AS Oct,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE 0 END), '') AS Nov,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE 0 END), '') AS Dic,
+        (prod.precio * req_valido.tasa_bcv_usd) as precio,
         prod.precio as precio_dolares,
-        COALESCE(SUM(dr.cant_mes),0) as cantidad_Total,
-        COALESCE((SUM(dr.cant_mes) * prod.precio * tb.tasa_bcv_usd), 0) as Total_precio,
-        COALESCE((SUM(dr.cant_mes) * prod.precio), 0) as Total_precio_dolares
-        FROM detalle_req as dr
-        JOIN requerimientos as r ON dr.id_req = r.id_req
-        JOIN productos AS prod ON dr.id_prod = prod.id_prod 
-        JOIN partidas as p ON prod.id_partida = p.id_partida
-        JOIN tasa_bcv as tb ON r.id_tasa = tb.id_tasa
-        JOIN anio_fiscal as af ON r.id_aniof = af.id_aniof
-        WHERE r.estado = 1
-        AND r.estado_envio = 1
-        AND af.activo = 1
-        GROUP BY p.cod_partida , prod.nom_prod
-        ORDER BY p.cod_partida ASC , prod.nom_prod ASC; 
-        ';
+        COALESCE((SUM(req_valido.cant_mes) * prod.precio), 0) as Total_precio_dolares,
+        COALESCE(SUM(req_valido.cant_mes), 0) AS cantidad_Total,
+        COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
+    FROM productos prod
+    JOIN partidas p ON prod.id_partida = p.id_partida
+    LEFT JOIN (
+        SELECT 
+            dr.id_prod, 
+            dr.mes, 
+            dr.cant_mes, 
+            tb.tasa_bcv_usd
+        FROM detalle_req dr
+        JOIN requerimientos r ON dr.id_req = r.id_req
+        JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
+        JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
+        WHERE r.estado = 1 
+          AND r.estado_envio = 1 
+          AND af.activo = 1
+    ) AS req_valido ON prod.id_prod = req_valido.id_prod
+    GROUP BY 
+        p.cod_partida, 
+        prod.id_prod, 
+        prod.nom_prod, 
+        prod.precio
+    ORDER BY 
+        p.cod_partida ASC, 
+        prod.nom_prod ASC;"; 
+    }
 
     $stmt = $this->conex->prepare($query);
     if (!empty($id) && $id != '') {
@@ -174,9 +202,9 @@ class reporteModel extends ConnectDB
     }
 
 
-    private function executeGetXlxsReqReport(array $datos){
+    private function executeGetXlxsReqReport(array $datos,string $plantilla,string $prefijo){
     // 2. Cargar la plantilla existente
-    $rutaPlantilla = __DIR__ . '/../template/TOTAL_Todas_las_Dependencias.xlsx';
+    $rutaPlantilla = __DIR__ . '/../template/' . $plantilla;
     if (!file_exists($rutaPlantilla)) {
         die("Error: No se encontró la plantilla.");
     }
@@ -197,6 +225,20 @@ class reporteModel extends ConnectDB
             // Normalizar el código de partida para que coincida con el nombre de las hojas ('4,01', '4,02', etc.)
             $partidaFormateada = str_replace('.', ',', (string)$fila['codigo']);
             
+            $descr = $fila['Descripcion'];
+
+            if (strpos($descr, '|') !== false) {
+            $posicion = (strpos($descr, '|') + 1);
+            $texto = substr($descr, $posicion);
+            $uMedida = substr($texto, 0, -1);
+
+            $descripcion = str_replace('|' . $uMedida . '|', '', $descr);
+            }
+            else{
+                $uMedida = 'UNIDAD';
+                $descripcion = $descr;
+            }
+
             // Si en la BD la partida está como '401', la convertimos a '4,01'
             if (strlen($partidaFormateada) === 3 && is_numeric($partidaFormateada)) {
                 $partidaFormateada = substr($partidaFormateada, 0, 1) . ',' . substr($partidaFormateada, 1);
@@ -209,8 +251,8 @@ class reporteModel extends ConnectDB
 
                 // Inyección de Datos
                 $hoja->setCellValue('A' . $numFila, $fila['codigo']);
-                $hoja->setCellValue('B' . $numFila, $fila['Descripcion']);
-                $hoja->setCellValue('C' . $numFila, $fila['unidad_medida'] ?? 'UND'); // Ajustar si tienes este campo en BD
+                $hoja->setCellValue('B' . $numFila, $descripcion);
+                $hoja->setCellValue('C' . $numFila, $uMedida ?? 'UND'); // Ajustar si tienes este campo en BD
                 $hoja->setCellValue('D' . $numFila, $fila['precio'] ?? 0);
 
                 // Meses (Ene = Columna E, Feb = F, ..., Dic = P)
@@ -230,6 +272,8 @@ class reporteModel extends ConnectDB
                 // Totales
                 $hoja->setCellValue('Q' . $numFila, $fila['cantidad_Total']);
                 $hoja->setCellValue('R' . $numFila, $fila['Total_precio']);
+                $hoja->setCellValue('S' . $numFila, $fila['precio_dolares']);
+                $hoja->setCellValue('T' . $numFila, $fila['Total_precio_dolares']);
 
                 // Incrementar el contador de fila para esa pestaña en específico
                 $filasHojas[$partidaFormateada]++;
@@ -239,7 +283,7 @@ class reporteModel extends ConnectDB
 
     // 4. Descargar el archivo procesado
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="Consolidado_POA_' . date('Y') . '.xlsx"');
+    header('Content-Disposition: attachment;filename="' .$prefijo. '' . date('Y') . '.xlsx"');
     header('Cache-Control: max-age=0');
 
     $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($documento);

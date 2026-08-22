@@ -141,8 +141,12 @@ class productosServiciosModel extends ConnectDB
                 if($index < 21){
                     continue;
                 }
+                if( !(isset($row['B'])) && (trim($row['B']) != '')){
+                    $idProd++;
+                    continue;
+                }
                 $nombre = $row['B'];
-                $nombre .= "(" . $row['C'] . ")";
+                $nombre .= "|" . $row['C'] . "|";
                 $precio = intval($row['S']);
                 if(!empty($nombre) && !empty($precio)){
                     $stmt->execute([
