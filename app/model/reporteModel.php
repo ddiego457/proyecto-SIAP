@@ -68,8 +68,10 @@ class reporteModel extends ConnectDB
         $result = $this->executeGetXlxsReqReport($data,$plantilla,$prefijo);
         return $result;        
     }
-    public function getProReport($cond = ''){
+    public function getProReport(){
         $data = $this->executeGetProReport();
+        $result = $this->executeGetXlsxProReport($data);
+        return $result;
     }
 
     public function getExcelReport(array $report){
@@ -187,16 +189,19 @@ class reporteModel extends ConnectDB
     }
 
 
-    private function executeGetProReport($cond = ''){
-        $query = "SELECT p.cod_partida as partidas, pro.nom_prod as producto, pro.precio as precio FROM productos as pro
-                JOIN partidas as p ON p.id_partida = pro.id_partida";
-        if (!empty($cond) && $cond != ''){
-            $query = $query . " WHERE p.cod_partida = ? ORDER BY pro.precio DESC";
-        }
+    private function executeGetProReport(){
+        $query = "SELECT 
+    p.cod_partida AS codigo,
+    prod.nom_prod AS Descripcion,
+    prod.precio AS precio_dolares,
+    COALESCE(prod.precio * tb.tasa_bcv_usd, prod.precio) AS precio_bolivares
+FROM productos prod
+JOIN partidas p ON prod.id_partida = p.id_partida
+LEFT JOIN tasa_bcv tb ON tb.estado = 1
+ORDER BY 
+    p.cod_partida ASC, 
+    prod.nom_prod ASC;";
         $stmt = $this->conex->prepare($query);
-        if (!empty($cond) && $cond != ''){
-            $stmt->bindValue(1, $cond);
-        }
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -290,6 +295,70 @@ class reporteModel extends ConnectDB
     $writer->save('php://output');
     exit;
 }
+
+
+private function executeGetXlsxProReport(array $datos) {
+    $rutaPlantilla = __DIR__ . '/../template/TOTAL_Productos.xlsx';
+    if (!file_exists($rutaPlantilla)) {
+        die("Error: No se encontró la plantilla en: " . $rutaPlantilla);
+    }
+
+    $documento = IOFactory::load($rutaPlantilla);
+
+    // Contadores de fila por pestaña (inicio en fila 21)
+    $filasHojas = [
+        '4,01' => 21,
+        '4,02' => 21,
+        '4,03' => 21,
+        '4,04' => 21,
+        '4,07' => 21
+    ];
+
+    if (!empty($datos)) {
+        foreach ($datos as $fila) {
+            $partidaFormateada = str_replace('.', ',', (string)$fila['codigo']);
+            if (strlen($partidaFormateada) === 3 && is_numeric($partidaFormateada)) {
+                $partidaFormateada = substr($partidaFormateada, 0, 1) . ',' . substr($partidaFormateada, 1);
+            }
+
+            // Extracción de Unidad de Medida y Limpieza de Descripción
+            $descr = $fila['Descripcion'];
+            if (strpos($descr, '|') !== false) {
+                $posicion = strpos($descr, '|') + 1;
+                $texto = substr($descr, $posicion);
+                $uMedida = substr($texto, 0, strpos($texto, '|'));
+                $descripcion = trim(str_replace('|' . $uMedida . '|', '', $descr));
+            } else {
+                $uMedida = 'UNIDAD';
+                $descripcion = $descr;
+            }
+
+            if ($documento->sheetNameExists($partidaFormateada)) {
+                $hoja = $documento->getSheetByName($partidaFormateada);
+                $numFila = $filasHojas[$partidaFormateada];
+
+                // Llenado de las 5 columnas especificadas
+                $hoja->setCellValue('A' . $numFila, $fila['codigo']);
+                $hoja->setCellValue('B' . $numFila, $descripcion);
+                $hoja->setCellValue('C' . $numFila, $uMedida);
+                $hoja->setCellValue('D' . $numFila, $fila['precio_bolivares']);
+                $hoja->setCellValue('E' . $numFila, $fila['precio_dolares']);
+
+                $filasHojas[$partidaFormateada]++;
+            }
+        }
+    }
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="Productos_' . date('Y') . '.xlsx"');
+    header('Cache-Control: max-age=0');
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($documento);
+    $writer->setPreCalculateFormulas(false);
+    $writer->save('php://output');
+    exit;
+}
+
     
 }
 

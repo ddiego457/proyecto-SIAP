@@ -30,10 +30,20 @@ include_once 'app/view/layout/head.php';
                     <form action='?url=reporte&type=descarga' method='post' id="requerimientoExc">
                         <h3>Requerimientos</h3>
                         <input type="hidden" name='requerimientoExc' id='requerimiento' > 
+                        <input type="hidden" name='plantilla' value='TOTAL_Todas_las_Dependencias.xlsx'>
+                        <!-- ======== INCORPORAR UN SELECT PARA ELEGIR EL TIPO DE ARCHIVO EXCEL ======== -->
                         
-                        <!-- cambiar el valor de "value" por un selector con el id de la dependencia. por defecto, deberia ser "req" para descargar el archivo excel consolidado-->
-                        <!-- -->
+                        <!-- ====== Cambiar el valor del input plantilla para que contenga el tipo de plantilla que va a usar ====== -->
+                        <!--por defecto lo deje con la plantilla de consolidados, dependiendo de lo que elija el usuario puede ser una de las plantillas que existen en la carpeta "template" -->
+                        
+
                         <button type="submit" id="btn-requerimiento-exc">exportar</button>
+                    </form>
+                    <form action='?url=reporte&type=descarga' method='post' id="productoExc">
+                        <h3>Productos</h3>
+                        <input type="hidden" name='productoExc' id='productos' > 
+                        
+                        <button type="submit" >exportar</button>
                     </form>
                 </div>
             </div>

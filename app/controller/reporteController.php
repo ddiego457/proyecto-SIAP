@@ -124,9 +124,13 @@ if (isset($_GET['type']) && $_GET['type'] === 'descarga') {
         //el primer argumento representa el id_Dep, el segundo es el nombre de la plantilla
         //el tercero es el nombre de archivo que se va a descargar
 
-        //la segunda plantilla, en el caso de ser una dependencia debe llamarse 'TOTAL_Dependencia.xlsx'
-
-        $result = $object->getReqReport('' , "TOTAL_Todas_las_Dependencias.xlsx","Consolidado_POA_");        
+        //la segunda plantilla, en el caso de ser una dependencia debe llamarse 'TOTAL_Dependencia(Nombre de la dependencia).xlsx'
+        $plantilla = $_POST['plantilla'];
+        $result = $object->getReqReport('' , $plantilla ,"Consolidado_POA_");        
+        exit;
+    }
+    if (isset($_POST['productoExc'])) {
+        $result = $object->getProReport();
         exit;
     }
     //include 'app/view/reporte/dashboard.php';
