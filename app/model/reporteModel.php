@@ -89,21 +89,21 @@ class reporteModel extends ConnectDB
         p.cod_partida AS codigo,
         prod.nom_prod AS Descripcion,
         prod.precio AS precio,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), '') AS Ene,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), '') AS Feb,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE 0 END), '') AS Mar,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 4 THEN req_valido.cant_mes ELSE 0 END), '') AS Abr,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 5 THEN req_valido.cant_mes ELSE 0 END), '') AS May,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 6 THEN req_valido.cant_mes ELSE 0 END), '') AS Jun,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 7 THEN req_valido.cant_mes ELSE 0 END), '') AS Jul,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 8 THEN req_valido.cant_mes ELSE 0 END), '') AS Ago,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 9 THEN req_valido.cant_mes ELSE 0 END), '') AS Sep,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 10 THEN req_valido.cant_mes ELSE 0 END), '') AS Oct,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE 0 END), '') AS Nov,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE 0 END), '') AS Dic,
-        COALESCE(SUM(req_valido.cant_mes), 0) AS cantidad_Total,
-        COALESCE(SUM(req_valido.cant_mes * prod.precio), 0) AS Total_precio_dolares,
-        COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
+        COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE '' END), '') AS Ene,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE '' END), '') AS Feb,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE '' END), '') AS Mar,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 4 THEN req_valido.cant_mes ELSE '' END), '') AS Abr,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 5 THEN req_valido.cant_mes ELSE '' END), '') AS May,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 6 THEN req_valido.cant_mes ELSE '' END), '') AS Jun,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 7 THEN req_valido.cant_mes ELSE '' END), '') AS Jul,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 8 THEN req_valido.cant_mes ELSE '' END), '') AS Ago,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 9 THEN req_valido.cant_mes ELSE '' END), '') AS Sep,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 10 THEN req_valido.cant_mes ELSE '' END), '') AS Oct,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE '' END), '') AS Nov,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE '' END), '') AS Dic,
+        COALESCE(SUM(req_valido.cant_mes), '') AS cantidad_Total,
+        COALESCE(SUM(req_valido.cant_mes * prod.precio), '') AS Total_precio_dolares,
+        COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), '') AS Total_precio
         FROM productos prod
         JOIN partidas p ON prod.id_partida = p.id_partida
         LEFT JOIN (
@@ -133,27 +133,26 @@ class reporteModel extends ConnectDB
 
 
         else{
-        //Acomodar la condicion para que imprima todos los productos incluso si no se pidio ninguno
         $query = "SELECT 
         p.cod_partida AS codigo,
         prod.nom_prod AS Descripcion,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), '') AS Ene,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), '') AS Feb,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE 0 END), '') AS Mar,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 4 THEN req_valido.cant_mes ELSE 0 END), '') AS Abr,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 5 THEN req_valido.cant_mes ELSE 0 END), '') AS May,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 6 THEN req_valido.cant_mes ELSE 0 END), '') AS Jun,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 7 THEN req_valido.cant_mes ELSE 0 END), '') AS Jul,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 8 THEN req_valido.cant_mes ELSE 0 END), '') AS Ago,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 9 THEN req_valido.cant_mes ELSE 0 END), '') AS Sep,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 10 THEN req_valido.cant_mes ELSE 0 END), '') AS Oct,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE 0 END), '') AS Nov,
-        COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE 0 END), '') AS Dic,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE '' END), '') AS Ene,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE '' END), '') AS Feb,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE '' END), '') AS Mar,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 4 THEN req_valido.cant_mes ELSE '' END), '') AS Abr,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 5 THEN req_valido.cant_mes ELSE '' END), '') AS May,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 6 THEN req_valido.cant_mes ELSE '' END), '') AS Jun,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 7 THEN req_valido.cant_mes ELSE '' END), '') AS Jul,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 8 THEN req_valido.cant_mes ELSE '' END), '') AS Ago,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 9 THEN req_valido.cant_mes ELSE '' END), '') AS Sep,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 10 THEN req_valido.cant_mes ELSE '' END), '') AS Oct,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE '' END), '') AS Nov,
+        COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE '' END), '') AS Dic,
         (prod.precio * req_valido.tasa_bcv_usd) as precio,
         prod.precio as precio_dolares,
-        COALESCE((SUM(req_valido.cant_mes) * prod.precio), 0) as Total_precio_dolares,
-        COALESCE(SUM(req_valido.cant_mes), 0) AS cantidad_Total,
-        COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
+        COALESCE((SUM(req_valido.cant_mes) * prod.precio), '') as Total_precio_dolares,
+        COALESCE(SUM(req_valido.cant_mes), '') AS cantidad_Total,
+        COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), '') AS Total_precio
     FROM productos prod
     JOIN partidas p ON prod.id_partida = p.id_partida
     LEFT JOIN (
@@ -257,22 +256,26 @@ ORDER BY
                 // Inyección de Datos
                 $hoja->setCellValue('A' . $numFila, $fila['codigo']);
                 $hoja->setCellValue('B' . $numFila, $descripcion);
-                $hoja->setCellValue('C' . $numFila, $uMedida ?? 'UND'); // Ajustar si tienes este campo en BD
+                $hoja->setCellValue('C' . $numFila, $uMedida); // Ajustar si tienes este campo en BD
                 $hoja->setCellValue('D' . $numFila, $fila['precio'] ?? 0);
 
+                $val = function($valor){
+                    return (!empty($valor) && $valor > 0) ? $valor : '';
+                };
+
                 // Meses (Ene = Columna E, Feb = F, ..., Dic = P)
-                $hoja->setCellValue('E' . $numFila, $fila['Ene']);
-                $hoja->setCellValue('F' . $numFila, $fila['Feb']);
-                $hoja->setCellValue('G' . $numFila, $fila['Mar']);
-                $hoja->setCellValue('H' . $numFila, $fila['Abr']);
-                $hoja->setCellValue('I' . $numFila, $fila['May']);
-                $hoja->setCellValue('J' . $numFila, $fila['Jun']);
-                $hoja->setCellValue('K' . $numFila, $fila['Jul']);
-                $hoja->setCellValue('L' . $numFila, $fila['Ago']);
-                $hoja->setCellValue('M' . $numFila, $fila['Sep']);
-                $hoja->setCellValue('N' . $numFila, $fila['Oct']);
-                $hoja->setCellValue('O' . $numFila, $fila['Nov']);
-                $hoja->setCellValue('P' . $numFila, $fila['Dic']);
+                $hoja->setCellValue('E' . $numFila, $val($fila['Ene']));
+                $hoja->setCellValue('F' . $numFila, $val($fila['Feb']));
+                $hoja->setCellValue('G' . $numFila, $val($fila['Mar']));
+                $hoja->setCellValue('H' . $numFila, $val($fila['Abr']));
+                $hoja->setCellValue('I' . $numFila, $val($fila['May']));
+                $hoja->setCellValue('J' . $numFila, $val($fila['Jun']));
+                $hoja->setCellValue('K' . $numFila, $val($fila['Jul']));
+                $hoja->setCellValue('L' . $numFila, $val($fila['Ago']));
+                $hoja->setCellValue('M' . $numFila, $val($fila['Sep']));
+                $hoja->setCellValue('N' . $numFila, $val($fila['Oct']));
+                $hoja->setCellValue('O' . $numFila, $val($fila['Nov']));
+                $hoja->setCellValue('P' . $numFila, $val($fila['Dic']));
 
                 // Totales
                 $hoja->setCellValue('Q' . $numFila, $fila['cantidad_Total']);
