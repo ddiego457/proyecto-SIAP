@@ -58,7 +58,7 @@
                 echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable actualizado' : 'Error al actualizar']);
                 die();
             }
-            if (isset($_POST['toggleEstado'])) {
+if (isset($_POST['toggleEstado'])) {
                 $id = (int)$_POST['idItem'];
                 $newEstado = isset($_POST['newState']) ? (int)$_POST['newState'] : null;
                 $result = false;
@@ -69,6 +69,14 @@
                 echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Estado actualizado' : 'Error al cambiar estado']);
                 die();
             }
+            if (isset($_POST['deleteResponsable'])) {
+                $id = (int)$_POST['idItem'];
+                $result = $object->delete($id);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable eliminado' : 'Error al eliminar']);
+                die();
+            }
+
             if (isset($_POST['assignCargo'])) {
                 $res = $object->assignToDependencia((int)$_POST['id_responsable'], (int)$_POST['id_dep'], (string)$_POST['fecha_inicio']);
                 header('Content-Type: application/json; charset=utf-8');

@@ -20,6 +20,19 @@ include_once 'app/view/layout/head.php';
             <h4 class="mb-0">Carga de Requerimientos - Partida <span id="titulo-partida">401</span></h4>
         </div>
         <div class="card-body">
+            <?php if (isset($periodExpired) && $periodExpired): ?>
+                <div class="alert alert-danger mb-3">
+                    <strong>⚠️ Período vencido</strong><br>
+                    El período de carga de requerimientos ha finalizado. Espere a que se abra el próximo período para realizar sus solicitudes.
+                </div>
+            <?php endif; ?>
+            <?php if (isset($prevReqError) && $prevReqError): ?>
+                <div class="alert alert-danger mb-3">
+                    <strong>⚠️ Ya existe un requerimiento</strong><br>
+                    Ya tiene un requerimiento previo activo para este período.
+                </div>
+            <?php endif; ?>
+            
             <form id="form-registro">
                 <input type="hidden" id="id_req" name="id_req" value="<?php echo $id_req; ?>">
                 <input type="hidden" id="partida_actual" name="partida_actual" value="401">

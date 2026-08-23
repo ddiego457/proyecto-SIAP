@@ -73,6 +73,7 @@ $(document).ready(function() {
             
             order: [[15, 'desc']],
             autowidth: false,
+            responsive: true,
             pageLength: 50,
             language: {
                 url: "assets/js/DataTables/spanish.json"
@@ -123,10 +124,9 @@ $(document).ready(function() {
 
         function loadData(data, row, mes) {
             return `<input type="number" 
-                           style="width: 55px; padding: 8px 5px; font-size: 14px; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; outline: none; transition: border-color 0.2s ease;" 
+                           class="form-control form-control-sm text-center responsive-input"
                            name="cantidades[${row.id_prod}][${mes}]"
-                           min="0" 
-                           value="${data}">`;
+                           min="0" value="${data}">`;
         }
         // console.log(esAdmin);
         $('#btn-modificar').prop('disabled', true);

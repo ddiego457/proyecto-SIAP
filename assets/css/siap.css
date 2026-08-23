@@ -720,6 +720,13 @@ table.siap-table {
 }
 .siap-table tfoot td.num { text-align: right; }
 
+/* Class centered para centrar todas las celdas de la tabla */
+.centered thead th,
+.centered tbody td,
+.centered tfoot td {
+  text-align: center !important;
+}
+
 /* Month table variant (requerimiento) */
 .month-table { font-size: 12.5px; }
 .month-table thead th { text-align: center; padding: 9px 8px; }
@@ -727,6 +734,30 @@ table.siap-table {
 .month-table tbody td { text-align: center; padding: 9px 8px; }
 .month-table tbody td:first-child { text-align: left; font-weight: 500; }
 .month-table .total-col { font-weight: 700; color: var(--blue); }
+
+/* ─── RESPONSIVE TABLES ─────────────────────────────────────────────────── */
+.responsive-table thead th { text-align: center; min-width: 140px; }
+.responsive-table tbody td { min-width: 120px; }
+.responsive-table input { max-width: 100%; width: auto; }
+
+/* Reducir el tamaño de fuentes en pantallas pequeñas */
+@media (max-width: 768px) {
+  .responsive-table thead th,
+  .responsive-table tbody td {
+    font-size: 11px;
+    padding: 6px 4px;
+  }
+  .responsive-table input {
+    font-size: 12px;
+    padding: 4px;
+  }
+  .responsive-table .dataTables_length,
+  .responsive-table .dataTables_info,
+  .responsive-table .dataTables_paginate {
+    text-align: center;
+    font-size: 12px;
+  }
+}
 
 /* ─── BADGES ─────────────────────────────────────────────────── */
 .badge {

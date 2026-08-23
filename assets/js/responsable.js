@@ -31,6 +31,7 @@ $(document).ready(function() {
                 let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar">✏️</button>`;
                 if (Number(d.estado) === 1) {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-warning btn-sm btn-toggle-estado" data-new-state="0" aria-label="Inactivar">🚫</button>`;
+                    actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar">🗑️</button>`;
                 } else {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar">✅</button>`;
                 }
@@ -92,6 +93,30 @@ $(document).ready(function() {
                 tabla.ajax.reload();
             }
         });
+    });
+
+    $(document).on('click', '.btn-eliminar', function() {
+        const id = this.value;
+        if (confirm('¿Está seguro de eliminar este responsable? Esto cambiará el estado de su cargo a 0 y lo dará como disponible para reasignación.')) {
+            $.ajax({
+                url: currentUrl,
+                method: 'POST',
+                dataType: 'json',
+                data: { idItem: id, deleteResponsable: true },
+                success: function(res) {
+                    if (res && typeof res === 'object') {
+                        if (res.success) {
+                            alert(res.message || 'Responsable eliminado');
+                        } else {
+                            alert(res.message || 'Error al eliminar.');
+                        }
+                    } else {
+                        alert('Error al eliminar.');
+                    }
+                    tabla.ajax.reload();
+                }
+            });
+        }
     });
 
     $(document).on('click', '.btn-modificar', function() {

@@ -6,12 +6,12 @@
 -- Tiempo de generación: 29-07-2026 a las 03:48:51
 -- Versión del servidor: 10.1.38-MariaDB
 -- Versión de PHP: 7.3.2
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
-
+CREATE DATABASE IF NOT EXISTS `siap_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `siap_db`;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -27,13 +27,12 @@ SET time_zone = "+00:00";
 --
 -- Estructura de tabla para la tabla `anio_fiscal`
 --
-
-CREATE TABLE `anio_fiscal` (
-  `id_aniof` int(11) NOT NULL,
-  `anio` year(4) NOT NULL,
-  `activo` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
-
+CREATE TABLE IF NOT EXISTS `anio_fiscal` (
+  `id_aniof` int(11) NOT NULL AUTO_INCREMENT,
+  `anio` YEAR NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id_aniof`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --
 -- Volcado de datos para la tabla `anio_fiscal`
 --
@@ -44,19 +43,6 @@ INSERT INTO `anio_fiscal` (`id_aniof`, `anio`, `activo`) VALUES
 (3, 2026, 0),
 (4, 2028, 1);
 
---
--- Disparadores `anio_fiscal`
---
-DELIMITER $$
-CREATE TRIGGER `sincronizar_estado_req_con_anio` AFTER UPDATE ON `anio_fiscal` FOR EACH ROW BEGIN
-    UPDATE requerimientos
-    SET estado = NEW.activo
-    WHERE id_aniof = NEW.id_aniof;
-END
-$$
-DELIMITER ;
-
--- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `cargo`
@@ -821,6 +807,20 @@ ALTER TABLE `responsables`
 --
 ALTER TABLE `telefonos`
   ADD CONSTRAINT `telefonos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
+
+--
+-- Disparadores `anio_fiscal`
+--
+  DELIMITER $$
+CREATE TRIGGER `sincronizar_estado_req_con_anio` AFTER UPDATE ON `anio_fiscal` FOR EACH ROW BEGIN
+    UPDATE requerimientos
+    SET estado = NEW.activo
+    WHERE id_aniof = NEW.id_aniof;
+END
+$$
+DELIMITER ;
+
+SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -12,27 +12,27 @@ if (isset($_GET['type'])) {
 
     if ($_GET['type'] == 'register') {
     
+    $periodExpired = false;
+    $prevReqError = false;
+    
     // VALIDACIÓN 1: Verificar si el período de entrega sigue vigente
     if (!$object->verifyPeriod()) {
-        // Opción A: Si es una petición AJAX, respondemos con error JSON
-        if (isset($_POST['guardarPartida'])) {
-            echo json_encode(["status" => "error", "message" => "El período de carga de requerimientos ha vencido o no está activo."]);
-            die();
-        }
-        // Opción B: Si entra por URL normal, lo rebotamos o mostramos un mensaje estático
-        echo "<h3>Error: El período de recepción de requerimientos para este año fiscal ha culminado o está cerrado.</h3>";
-        echo "<a href='?url=requerimiento&type=main'>Volver al inicio</a>";
-        die();
+        $periodExpired = true;
     }
     if (!$object->verifyPreviusReq($idDep)){
+        $prevReqError = true;
+    }
+    
+    // Si hay error de período, no continuar con el registro
+    if ($periodExpired || $prevReqError) {
+        // Si es petición AJAX con guardarPartida, responder JSON
         if (isset($_POST['guardarPartida'])) {
-            echo json_encode(["status" => "error", "message" => "Ya existe un requerimiento previo o no está activo."]);
+            $msg = $periodExpired ? "El período de carga de requerimientos ha vencido o no está activo." : "Ya existe un requerimiento previo o no está activo.";
+            echo json_encode(["status" => "error", "message" => $msg]);
             die();
         }
-        // Opción B: Si entra por URL normal, lo rebotamos o mostramos un mensaje estático
-        echo "<h3>Error: Ya existe un requerimiento previo o no está activo.</h3>";
-        echo "<a href='?url=requerimiento&type=main'>Volver al inicio</a>";
-        die();
+        // Para petición normal (URL directa), continuaremos al incluir la vista
+        // que mostrará los mensajes correspondientes
     }
 
 
@@ -61,15 +61,21 @@ if (isset($_GET['type'])) {
     }
     elseif ($_GET['type'] == 'main') {
         $time = $object->verifyPeriod();
-        $timeLeft = $time[1];
-        $dias = $time[0];
+        // Validar que verifyPeriod retornó un array antes de acceder a sus índices
+        if ($time && is_array($time)) {
+            $timeLeft = $time[1];
+            $dias = $time[0];
+            $perAct = $time[2];
+        } else {
+            // No hay período activo
+            $timeLeft = 0;
+            $dias = 0;
+            $perAct = 0;
+        }
 
-        $idDep;
+        $idDep = $_SESSION['id_dep'];
 
-        $idReq = 0; 
-        
         $prevReq = !$object->verifyPreviusReq($idDep);
-        $perAct = $time[2];
         
         if (isset($_POST['getAll'])) {
             $reporte = $object->getAll();
