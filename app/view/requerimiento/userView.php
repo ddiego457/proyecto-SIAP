@@ -18,28 +18,12 @@ include_once 'app/view/layout/head.php';
 
 <!-- acomodar para que se vea mejor -->
 <!-- la variable atrapa la fecha fin y dias trapa los dias faltantes para la fecha fin -->
-<?php
-// Determinar el estado del banner según el periodo
-$periodStatus = 'active'; // default
-if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
-    $periodStatus = 'expired';
-} elseif (isset($timeLeft) && is_numeric($timeLeft) && $timeLeft > 0) {
-    $periodStatus = 'active';
-} elseif (isset($dias) && $dias <= 0) {
-    $periodStatus = 'expired';
-}
-?>
-<div class="alert-banner alert-<?php echo $periodStatus; ?>">
+<div class="alert-banner alert-warning">
         <div class="alert-banner-left">
-            <?php if ($periodStatus === 'expired'): ?>
-                <div class="alert-banner-title">⚠️ <strong>Periodo de envío finalizado</strong></div>
-                <div class="alert-banner-sub">El tiempo límite para enviar requerimientos ha concluido</div>
-            <?php else: ?>
-                <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo $timeLeft; ?></div>
-                <div class="alert-banner-sub">Complete todas las partidas de su dependencia antes del cierre</div>
-            <?php endif; ?>
+            <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo $timeLeft; ?></div>
+            <div class="alert-banner-sub">Complete todas las partidas de su dependencia antes del cierre</div>
         </div>
-        <div class="alert-banner-badge">  <?php echo $dias > 0 ? $dias : '0' ?> <span>días</span></div>
+        <div class="alert-banner-badge">  <?php echo $dias ?> <span>días</span></div>
 </div>
 
 <div class="page-body">
@@ -67,7 +51,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
             <div class="table-wrap">
             <input type="hidden" id="id_req" name="id_req" value="<?php echo $idReq; ?>">
             <!-- class="siap-table" esta clase que va dentro de la tabla oculta los datos totales del footer. hay que acomodarlo-->
-                <table id="tablaMain" class="siap-table centered">
+                <table id="tablaMain" >
                     <thead>
                         <tr>
                             <th>dependencias</th>

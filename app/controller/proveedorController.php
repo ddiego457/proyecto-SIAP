@@ -1,6 +1,6 @@
 <?php
 
-    use EquipoSiap\Siap\Model\proveedorModel;
+    use EquipoSiap\Siap\model\proveedorModel;
     $object = new proveedorModel();
     require_once "app/config/session.php";
 

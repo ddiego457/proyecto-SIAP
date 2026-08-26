@@ -2,10 +2,9 @@
 
 
 use EquipoSiap\Siap\model\periodoModel;
-require_once "app/config/session.php";
 
 
-$object = new periodomodel();
+$object = new periodoModel();
 
 if (!function_exists('sendJsonResponse')) {
     function sendJsonResponse($payload)
