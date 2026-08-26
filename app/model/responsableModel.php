@@ -180,18 +180,18 @@ class responsableModel extends ConnectDB
     private function executeDelete(int $idResponsable)
     {
         try {
+            $fechaDeSalida = date("Y-m-d");
             // 1. Primero, cerrar cargo activo para este responsable (setear estado a 0)
-            $stmt = $this->conex->prepare("UPDATE cargo SET estado = 0 WHERE id_responsable = ? AND estado = 1");
-            $stmt->bindValue(1, $idResponsable, \PDO::PARAM_INT);
-            $stmt->execute();
+            $stmt = $this->conex->prepare("UPDATE cargo SET estado = 0, fecha_fin = ? WHERE id_responsable = ? AND estado = 1");
+            $result = $stmt->execute([$fechaDeSalida, $idResponsable]);
 
             // 2. Eliminar el responsable
-            $stmt2 = $this->conex->prepare("DELETE FROM responsables WHERE id_responsable = ?");
+            $stmt2 = $this->conex->prepare("UPDATE responsables SET estado = 0 WHERE id_responsable = ?;");
             $stmt2->bindValue(1, $idResponsable, \PDO::PARAM_INT);
             $res = $stmt2->execute();
 
             // 3. Retornar éxito (el cargo ya fue cerrado en paso 1, la dependencia quedará disponible)
-            return $res;
+            return ($res && $result);
         } catch (\PDOException $e) {
             return false;
         }

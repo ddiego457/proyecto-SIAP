@@ -33,6 +33,9 @@ $(document).ready(function() {
                         if($('#select-dependencia').val() !== 'todos'){
                         $('#btn-modificar').show();
                         }
+                        else{
+                            $('#btn-modificar').hide();
+                        }
                         // Lógica para Enviar Definitivo
                         if (esAdmin) {
                             $('#btn-cambiar-estado').hide(); // El admin NUNCA ve el botón de enviar
@@ -255,7 +258,12 @@ $(document).ready(function() {
                 { data: "nov", render: function(data, type, row) { return crearInput(row.id_prod, 11, data); }},
                 { data: "dic", render: function(data, type, row) { return crearInput(row.id_prod, 12, data); }}
             ],
-            ordering: false
+            ordering: false,
+            responsive: true,
+            pageLength: 25,
+            language: {
+                url: "assets/js/DataTables/spanish.json"
+            }
         });
 
         function crearInput(id_prod, mes, valor_actual) {

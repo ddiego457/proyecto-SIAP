@@ -108,10 +108,12 @@ $(document).ready(function() {
                         if (res.success) {
                             alert(res.message || 'Responsable eliminado');
                         } else {
-                            alert(res.message || 'Error al eliminar.');
+                            alert(res.message || 'Error al eliminar. ' + res);
+                            console.log(res);
                         }
                     } else {
-                        alert('Error al eliminar.');
+                        alert('Error al eliminar. ' + res);
+                        console.log(res);
                     }
                     tabla.ajax.reload();
                 }
