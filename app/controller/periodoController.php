@@ -2,7 +2,7 @@
 
 
 use EquipoSiap\Siap\model\periodoModel;
-
+require_once "app/config/session.php";
 
 $object = new periodoModel();
 

@@ -9,4 +9,9 @@ if (!isset($_SESSION['id_dep'])) {
     exit();
 }
 
+if (($_GET['url'] !== "reporte" && $_GET['url'] !== "requerimiento") && $_SESSION['rol'] != "Administrador"){
+    header("Location: ?url=requerimiento&type=main");
+    exit();
+}
+
 ?>
