@@ -33,6 +33,11 @@
 
         <!-- Se mantiene navegación sin romper tu sistema -->
         <form  method="post" autocomplete="off">
+            <?php if ($error): ?>
+                <div class="error-message" style="color: #d9534f; background: #f2dede; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ebccd1;">
+                    <strong>Error:</strong> Usuario o contraseña incorrectos. Por favor, intente nuevamente.
+                </div>
+            <?php endif; ?>
             <div class="field">
             <span class="icon-left" aria-hidden="true">
                 <!-- user icon -->
