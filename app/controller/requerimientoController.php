@@ -19,7 +19,7 @@ if (isset($_GET['type'])) {
     if (!$object->verifyPeriod()) {
         $periodExpired = true;
     }
-    if (!$object->verifyPreviusReq($idDep)){
+    if ($object->verifyPreviusReq($idDep)){
         $prevReqError = true;
     }
     
@@ -106,7 +106,7 @@ if (isset($_POST['cambiarEstado'])) {
     $idReq = $_POST['id_req'];
     
     // Llamada a tu modelo
-    $resultado = $object->cambiarEstadoRequerimiento($idReq, 1); 
+    $resultado = $object->cambiarEstadoRequerimiento($idReq); 
     
     if ($resultado) {
         echo json_encode(['status' => 'success']);

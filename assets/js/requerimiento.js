@@ -77,7 +77,7 @@ $(document).ready(function() {
             order: [[15, 'desc']],
             autowidth: false,
             responsive: true,
-            pageLength: 50,
+            pageLength: 25,
             language: {
                 url: "assets/js/DataTables/spanish.json"
             },
@@ -180,6 +180,7 @@ $(document).ready(function() {
                 },
                 error: function(xhr, status, error) {
                     console.error(xhr.responseText);
+                    console.error(error);
                     alert("Ocurrió un error de conexión al intentar actualizar los datos.");
                     btn.prop('disabled', false).text(textoOriginal);
                 }

@@ -42,16 +42,12 @@ class requerimientoModel extends ConnectDB {
         return $this->executeVerifyPeriod();
     }
 
-    public function timeleft() {
-        return $this->executeTimeLeft();
-    }
-
     public function actualizarMatriz($idReq, $cantidades){
         return $this->executeActualizarMatriz($idReq, $cantidades);
     }
 
-    public function cambiarEstadoRequerimiento($idReq, $nuevo_estado){
-        return $this->executeCambiarEstadoRequerimiento($idReq, $nuevo_estado);
+    public function cambiarEstadoRequerimiento($idReq){
+        return $this->executeCambiarEstadoRequerimiento($idReq);
     }
 
     // =========================================================================
@@ -152,7 +148,7 @@ class requerimientoModel extends ConnectDB {
         $query = "SELECT COUNT(*) as total 
                   FROM requerimientos r
                   JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
-                  WHERE r.id_dep = :id_dep AND af.activo = 1";
+                  WHERE r.id_dep = :id_dep AND af.activo = 1 AND r.estado = 1";
                   
         $stmt = $this->conex->prepare($query);
         $stmt->bindValue(':id_dep', $idDep, \PDO::PARAM_INT);
@@ -172,13 +168,6 @@ class requerimientoModel extends ConnectDB {
         return $this->calculatePeriodStatus($periodo['per_inicio'], $periodo['per_fin']);
     }
 
-    private function executeTimeLeft() {
-        $query = "SELECT per_fin FROM periodos_entrega WHERE activo = 1";
-        $res = $this->conex->prepare($query);
-        $res->execute();
-        return $res->fetchall();
-    }
-
     private function executeActualizarMatriz($idReq, $cantidades) {
         try {
             $this->conex->beginTransaction();
@@ -193,11 +182,10 @@ class requerimientoModel extends ConnectDB {
         }
     }
 
-    private function executeCambiarEstadoRequerimiento($idReq, $nuevo_estado) {
-        $sql = "UPDATE requerimientos SET estado_envio = :estado WHERE id_req = :id";
+    private function executeCambiarEstadoRequerimiento($idReq) {
+        $sql = "UPDATE requerimientos SET estado_envio = 1 WHERE id_req = :id";
         $stmt = $this->conex->prepare($sql);
         return $stmt->execute([
-            ':estado' => $nuevo_estado,
             ':id' => $idReq
         ]);
     }
