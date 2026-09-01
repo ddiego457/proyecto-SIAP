@@ -1,4 +1,4 @@
-  /* ============================================================
+ /* ============================================================
   SIAP - Sistema Integrado de Anteproyecto Presupuestario
   Design System - Inspirado en el diseño institucional UPTAEB
    ============================================================ */
@@ -55,6 +55,7 @@ body {
   color: var(--text-dark);
   background: var(--bg);
   line-height: 1.5;
+  overflow-x: hidden;
 }
 a { text-decoration: none; color: inherit; }
 

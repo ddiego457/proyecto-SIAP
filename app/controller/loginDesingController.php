@@ -5,10 +5,9 @@ use EquipoSiap\Siap\model\loginDesingModel;
 
 
 $object = new loginDesingModel();
+$error = false;
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
-
-        $error = false;
 
         $nombre =  trim($_POST['usuario']);
         $contra = $_POST['contrasena'];

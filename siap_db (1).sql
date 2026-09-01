@@ -1,0 +1,1905 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Servidor: localhost
+-- Tiempo de generación: 01-09-2026 a las 03:44:59
+-- Versión del servidor: 10.4.28-MariaDB
+-- Versión de PHP: 8.2.4
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de datos: `siap_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `anio_fiscal`
+--
+
+CREATE TABLE `anio_fiscal` (
+  `id_aniof` int(11) NOT NULL,
+  `anio` year(4) NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `anio_fiscal`
+--
+
+INSERT INTO `anio_fiscal` (`id_aniof`, `anio`, `activo`) VALUES
+(1, '2024', 0),
+(2, '2025', 0),
+(3, '2026', 1),
+(4, '2028', 0),
+(5, '2029', 0);
+
+--
+-- Disparadores `anio_fiscal`
+--
+DELIMITER $$
+CREATE TRIGGER `sincronizar_estado_req_con_anio` AFTER UPDATE ON `anio_fiscal` FOR EACH ROW BEGIN
+    UPDATE requerimientos
+    SET estado = NEW.activo
+    WHERE id_aniof = NEW.id_aniof;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `cargo`
+--
+
+CREATE TABLE `cargo` (
+  `id_cargo` int(11) NOT NULL,
+  `id_responsable` int(11) NOT NULL,
+  `id_dep` int(11) NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date DEFAULT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `cargo`
+--
+
+INSERT INTO `cargo` (`id_cargo`, `id_responsable`, `id_dep`, `fecha_inicio`, `fecha_fin`, `estado`) VALUES
+(1, 1, 1, '2024-01-01', NULL, 0),
+(2, 2, 2, '2024-01-01', NULL, 0),
+(3, 3, 3, '2024-01-15', NULL, 0),
+(4, 4, 4, '2024-02-01', '2026-08-26', 0),
+(5, 5, 5, '2024-03-01', NULL, 1),
+(6, 6, 6, '2024-03-15', NULL, 1),
+(7, 7, 7, '2024-04-01', NULL, 1),
+(8, 8, 1, '2025-01-01', '2026-09-01', 0),
+(9, 9, 2, '2025-01-15', NULL, 1),
+(10, 10, 3, '2025-02-01', NULL, 1),
+(11, 11, 8, '2026-06-21', '2026-08-26', 0),
+(12, 12, 9, '2026-06-27', '2026-01-22', 0),
+(13, 13, 10, '2026-06-27', NULL, 1),
+(14, 14, 11, '2026-06-27', NULL, 1),
+(15, 15, 12, '2026-06-27', NULL, 1),
+(16, 16, 13, '2026-06-27', NULL, 0),
+(17, 17, 14, '2026-06-27', NULL, 1),
+(18, 18, 15, '2026-06-27', NULL, 1),
+(19, 19, 15, '2026-06-27', NULL, 1),
+(20, 20, 15, '2026-06-27', NULL, 1),
+(21, 21, 16, '2026-07-01', NULL, 1),
+(22, 22, 17, '2026-07-01', NULL, 1),
+(23, 23, 18, '2026-07-01', NULL, 1),
+(24, 24, 19, '2026-07-02', NULL, 1),
+(25, 25, 20, '2026-07-03', NULL, 1),
+(26, 26, 21, '2026-07-03', NULL, 1),
+(27, 27, 21, '2026-07-03', NULL, 1),
+(28, 28, 22, '2026-07-05', NULL, 1),
+(29, 29, 23, '2026-07-07', NULL, 1),
+(30, 30, 4, '2026-08-26', NULL, 1),
+(31, 31, 4, '2026-08-26', NULL, 1),
+(32, 32, 8, '2026-08-26', NULL, 1),
+(33, 33, 26, '2026-08-26', NULL, 1),
+(34, 34, 1, '2026-09-01', '2026-09-01', 0),
+(35, 35, 1, '2026-09-01', NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `dependencias`
+--
+
+CREATE TABLE `dependencias` (
+  `id_dep` int(11) NOT NULL,
+  `nom_dep` varchar(80) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `dependencias`
+--
+
+INSERT INTO `dependencias` (`id_dep`, `nom_dep`, `estado`) VALUES
+(1, 'Finanzas y Presupuesto', 1),
+(2, 'Dirección de Compras', 1),
+(3, 'Tecnología de la Información', 1),
+(4, 'Recursos Humanos', 1),
+(5, 'Logística y Almacenes', 1),
+(6, 'Mantenimiento y Servicios', 1),
+(7, 'Planificación Estratégica', 1),
+(8, 'tralalero', 1),
+(9, 'TIC', 1),
+(10, 'hola', 1),
+(11, 'tung tung', 1),
+(12, 'chamuco', 1),
+(13, 'wwww', 1),
+(14, 'Soccer', 1),
+(15, 'abc', 1),
+(16, 'abcdefg', 1),
+(17, 'pistear', 1),
+(18, 'becerro', 1),
+(19, 'ñame', 1),
+(20, 'Saramambiche', 1),
+(21, 'Saramambiche2', 1),
+(22, 'Saramambiche3', 1),
+(23, '12345', 1),
+(24, '6789', 1),
+(25, '101112', 1),
+(26, 'contraloria', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalle_req`
+--
+
+CREATE TABLE `detalle_req` (
+  `id_prod` int(11) DEFAULT NULL,
+  `id_req` int(11) NOT NULL,
+  `mes` tinyint(4) NOT NULL,
+  `cant_mes` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `detalle_req`
+--
+
+INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
+(3, 2, 2, 200),
+(4, 2, 2, 10),
+(5, 3, 3, 5),
+(6, 3, 3, 8),
+(7, 4, 4, 2),
+(8, 4, 4, 3),
+(9, 5, 1, 1),
+(10, 5, 1, 1),
+(11, 6, 2, 4),
+(12, 6, 2, 4),
+(13, 7, 3, 20),
+(14, 7, 3, 30),
+(15, 8, 4, 5),
+(16, 9, 5, 2),
+(17, 10, 6, 1),
+(5, 12, 2, 4),
+(6, 12, 2, 6),
+(13, 14, 4, 25),
+(14, 14, 4, 40),
+(4, 2, 2, 8),
+(7, 4, 4, 1),
+(12, 6, 2, 3),
+(16, 9, 5, 1),
+(21, 24, 7, 11),
+(1, 24, 1, 5),
+(2, 24, 5, 8),
+(3, 24, 8, 11),
+(14, 24, 8, 9),
+(5, 24, 3, 5),
+(19, 24, 1, 8),
+(20, 38, 1, 5),
+(21, 39, 1, 2),
+(1, 39, 2, 3),
+(3, 39, 8, 5),
+(18, 39, 8, 6),
+(21, 43, 3, 14),
+(21, 43, 11, 5),
+(1, 43, 1, 5),
+(2, 43, 12, 6),
+(13, 43, 9, 5),
+(14, 43, 9, 4),
+(21, 44, 1, 1),
+(21, 44, 12, 1),
+(1, 44, 12, 2),
+(2, 44, 6, 3),
+(13, 44, 5, 3),
+(14, 44, 4, 2),
+(14, 44, 11, 10),
+(7, 44, 6, 9),
+(7, 44, 8, 6),
+(8, 44, 8, 6),
+(9, 44, 8, 4),
+(12, 44, 4, 6),
+(15, 44, 9, 6),
+(16, 44, 9, 7),
+(5, 44, 3, 3),
+(6, 44, 3, 7),
+(19, 15, 1, 3),
+(19, 15, 8, 3),
+(6, 15, 1, 1),
+(3, 15, 2, 4),
+(14, 15, 4, 4),
+(18, 15, 3, 4),
+(1, 15, 1, 5),
+(21, 15, 1, 3),
+(21, 15, 7, 3),
+(3, 1, 1, 100),
+(2, 1, 1, 85),
+(1, 1, 1, 80),
+(12, 1, 2, 7),
+(11, 1, 1, 3),
+(11, 1, 2, 4),
+(19, 16, 1, 3),
+(19, 16, 8, 3),
+(2, 16, 5, 6),
+(21, 16, 1, 3),
+(21, 16, 7, 3),
+(1, 16, 1, 5),
+(15, 16, 1, 4),
+(3, 16, 2, 4),
+(14, 16, 4, 4),
+(18, 16, 3, 4),
+(6, 16, 1, 1),
+(5, 16, 1, 1),
+(5, 16, 4, 1),
+(19, 51, 1, 5),
+(5, 50, 1, 5),
+(5, 50, 4, 8),
+(5, 50, 8, 6),
+(19, 50, 1, 5),
+(6, 50, 1, 4),
+(11, 50, 1, 2),
+(19, 40, 1, 1),
+(21, 53, 1, 5),
+(21, 54, 1, 3),
+(232, 55, 1, 5),
+(233, 55, 1, 2),
+(27, 55, 1, 9),
+(27, 55, 7, 10),
+(791, 55, 1, 11),
+(791, 55, 2, 11),
+(208, 55, 1, 5),
+(21, 55, 1, 1),
+(21, 55, 2, 1),
+(21, 55, 3, 1),
+(21, 55, 4, 1),
+(21, 55, 5, 1),
+(7, 55, 1, 19),
+(19, 55, 1, 3),
+(970, 55, 1, 4),
+(5, 55, 1, 5),
+(5, 55, 3, 3),
+(5, 55, 4, 5),
+(5, 55, 5, 4),
+(5, 55, 6, 5),
+(0, 55, 2, 5),
+(37, 55, 1, 100),
+(1, 55, 1, 23),
+(1, 55, 2, 5),
+(1, 55, 6, 90),
+(1026, 55, 1, 4),
+(37, 56, 1, 1),
+(1024, 56, 1, 4),
+(1027, 56, 1, 8),
+(9, 57, 4, 10),
+(8, 57, 2, 8),
+(2, 57, 3, 4),
+(0, 57, 10, 4),
+(1, 57, 1, 110),
+(1, 57, 10, 4),
+(7, 57, 1, 3),
+(21, 57, 1, 3),
+(3, 47, 1, 20),
+(3, 11, 1, 20),
+(3, 11, 2, 6),
+(990, 13, 1, 10),
+(19, 48, 1, 1),
+(1024, 48, 1, 122),
+(1023, 48, 2, 32),
+(1025, 48, 2, 29),
+(955, 52, 1, 24),
+(1021, 52, 1, 12),
+(313, 52, 1, 25),
+(359, 52, 5, 10),
+(359, 52, 6, 10),
+(359, 52, 7, 7),
+(839, 52, 1, 14),
+(839, 52, 7, 10),
+(143, 52, 1, 11),
+(143, 52, 4, 6),
+(143, 52, 5, 5),
+(19, 52, 1, 8),
+(19, 52, 6, 3),
+(1023, 52, 1, 6),
+(1023, 52, 3, 4),
+(1024, 52, 1, 9),
+(973, 52, 3, 8),
+(989, 52, 1, 5),
+(894, 52, 1, 4),
+(1027, 52, 1, 3),
+(954, 52, 1, 3);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `partidas`
+--
+
+CREATE TABLE `partidas` (
+  `id_partida` int(11) NOT NULL,
+  `cod_partida` varchar(10) NOT NULL,
+  `descripcion` varchar(150) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `partidas`
+--
+
+INSERT INTO `partidas` (`id_partida`, `cod_partida`, `descripcion`, `estado`) VALUES
+(1, '401', 'Personal (Sueldos, bonos, prestaciones)', 1),
+(2, '402', 'Productos (Insumos, materiales, suministros)', 1),
+(3, '403', 'Servicios (Consultoría, mantenimiento, transporte)', 1),
+(4, '404', 'Bienes Muebles (Equipos, mobiliario, herramientas)', 1),
+(5, '407', 'Ayudas y Becas (Subsidios, becas educativas)', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `periodos_entrega`
+--
+
+CREATE TABLE `periodos_entrega` (
+  `id_periodo` int(11) NOT NULL,
+  `id_aniof` int(11) NOT NULL,
+  `per_inicio` date NOT NULL,
+  `per_fin` date NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `periodos_entrega`
+--
+
+INSERT INTO `periodos_entrega` (`id_periodo`, `id_aniof`, `per_inicio`, `per_fin`, `activo`) VALUES
+(1, 1, '2024-01-01', '2024-06-30', 0),
+(2, 1, '2024-07-01', '2024-12-31', 0),
+(3, 2, '2025-01-01', '2025-06-30', 0),
+(4, 2, '2025-07-01', '2025-12-31', 0),
+(5, 3, '2026-01-01', '2026-06-30', 0),
+(6, 3, '2026-07-01', '2026-12-31', 0),
+(7, 3, '2026-06-01', '2026-07-31', 0),
+(8, 3, '2026-08-26', '2026-11-30', 1),
+(9, 3, '2026-09-02', '2026-10-30', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `productos`
+--
+
+CREATE TABLE `productos` (
+  `id_prod` int(11) NOT NULL,
+  `id_proveedor` int(11) NOT NULL,
+  `id_partida` int(11) NOT NULL,
+  `nom_prod` varchar(150) NOT NULL,
+  `precio` decimal(12,2) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `productos`
+--
+
+INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `precio`, `estado`) VALUES
+(0, 1, 2, 'cocina electrica (unidad)', 22.00, 1),
+(1, 1, 2, 'Cable eléctrico AWG 12', 15.50, 1),
+(2, 1, 2, 'Interruptor termomagnético 20A', 8.75, 1),
+(3, 2, 2, 'Resma de papel bond 80g', 12.00, 1),
+(4, 2, 2, 'Tóner para impresora HP', 45.00, 1),
+(5, 3, 4, 'Computadora portátil Dell', 850.00, 1),
+(6, 3, 4, 'Monitor LCD 24 pulgadas', 120.00, 1),
+(7, 4, 3, 'Mantenimiento de aire acondicionado', 200.00, 1),
+(8, 4, 3, 'Reparación de motor eléctrico', 150.00, 1),
+(9, 5, 3, 'Consultoría en gestión de proyectos', 500.00, 1),
+(10, 5, 3, 'Auditoría de procesos', 600.00, 1),
+(11, 6, 3, 'Servicio de transporte de carga', 300.00, 1),
+(12, 6, 3, 'Almacenaje mensual', 250.00, 1),
+(13, 7, 2, 'Guantes quirúrgicos (caja)', 25.00, 1),
+(14, 7, 2, 'Jeringas desechables (100 u)', 18.00, 1),
+(15, 8, 3, 'Póliza de seguro de vida', 100.00, 1),
+(16, 9, 3, 'Asesoría en impuestos municipales', 350.00, 1),
+(17, 10, 3, 'Campaña publicitaria en redes', 700.00, 1),
+(18, 1, 2, 'cocina electrica (caja)', 45.90, 1),
+(19, 3, 5, 'lskdjfoisf', 0.42, 1),
+(20, 2, 3, 'cocina electrica (caja)', 70000.00, 1),
+(21, 5, 1, 'obreros', 200.00, 1),
+(22, 1, 2, 'TONER Q2612  LASER JET|UNIDAD|', 305.00, 1),
+(23, 1, 2, 'Tóner hp LaserJet 1022|UNIDAD|', 269.00, 1),
+(24, 1, 2, 'Tóner hp90A|UNIDAD|', 252.00, 1),
+(25, 1, 2, 'TONER IMPRESORA HP LASER JET 1536DNF MFT.|UNIDAD|', 189.00, 1),
+(26, 1, 2, 'TONER PARA IMPRESORA HP LASER JET 53A|UNIDAD|', 194.00, 1),
+(27, 1, 2, 'TONER PARA IMPRESORA HP LASER JET 1022|UNIDAD|', 193.00, 1),
+(28, 1, 2, 'TONER PARA IMPRESORA HP 83-A|UNIDAD|', 189.00, 1),
+(29, 1, 2, 'Tóner para impresora HP Laser Jet Car Tridge Q7553A|UNIDAD|', 252.00, 1),
+(30, 1, 2, 'Tóner para impresora HP Laser 1022 Q2612A/Fx-9/Fx-10 Universal|UNIDAD|', 126.00, 1),
+(31, 1, 2, 'TONER NUEVO|UNIDAD|', 189.00, 1),
+(32, 1, 2, 'Tinta para impresora Canon IC6100A-NM383 (Toner)|UNIDAD|', 90.00, 1),
+(33, 1, 2, 'Toner para impresora HP Laser P2012/53A|UNIDAD|', 99.00, 1),
+(34, 1, 2, 'CARTUCHO HP LASERJET 51A TINTA NEGRA|UNIDAD|', 36.00, 1),
+(35, 1, 2, 'CARTUCHO CH634A COLOR AZUL|UNIDAD|', 36.00, 1),
+(36, 1, 2, 'CARTUCHO CH634A COLOR ROJO|UNIDAD|', 36.00, 1),
+(37, 1, 2, 'CARTUCHO CH634A COLOR NEGRO|UNIDAD|', 36.00, 1),
+(38, 1, 2, 'CARTUCHO CH634A COLOR AMARILLO|UNIDAD|', 36.00, 1),
+(39, 1, 2, 'PAPEL BOND PARA FOTOCOPIADORA TAMAÑO CARTA|RESMA|', 4.00, 1),
+(40, 1, 2, 'PAPEL BOND PARA FOTOCOPIADORA TAMAÑO CARTA|CAJA|', 108.00, 1),
+(41, 1, 2, 'PAPEL BOND PARA FOTOCOPIADORA TAMAÑO OFICIO|CAJA|', 117.00, 1),
+(42, 1, 2, 'PAPEL BOND PARA FOTOCOPIADORA TAMAÑO EXTRA OFICIO|CAJA|', 126.00, 1),
+(43, 1, 2, 'PAPEL BOND PARA FOTOCOPIADORA TAMAÑO EXTRA OFICIO|RESMA|', 126.00, 1),
+(44, 1, 2, 'PAPEL BOND PARA FOTOCOPIADORA TAMAÑO OFICIO|RESMA|', 4.00, 1),
+(45, 1, 2, 'PAPEL FOTOGRAFICO|RESMA|', 6.00, 1),
+(46, 1, 2, 'PAPEL KRAFT |PLIEGOS|', 8.00, 1),
+(47, 1, 2, 'PAPEL DORADO Y PLATEADO ESPECIAL PARA ESTAMPAR TÍTULOS|ROLLO|', 10.00, 1),
+(48, 1, 2, 'PAPEL FORMA CONTINUA 01PARTES  (9.5 X 11 2000 SETS)|CAJA|', 29.00, 1),
+(49, 1, 2, 'Papel de sumadora|ROLLO|', 3.00, 1),
+(50, 1, 2, 'ETIQUETAS AUTOADHESIVAS|ROLLO|', 6.00, 1),
+(51, 1, 2, 'Rollos Térmicos |ROLLO|', 1.00, 1),
+(52, 1, 2, 'Cajas de 80 unid. Rollo 3” (75mm)|CAJA|', 49.00, 1),
+(53, 1, 2, 'Paquetes de Hojas Papel Carbón 100 unid.|PAQUETE|', 5.00, 1),
+(54, 1, 2, 'Resmas de 100 hojas cada uno de Cartulina opalina|RESMA|', 4.00, 1),
+(55, 1, 2, 'Láminas para encuadernar PVC azul institucional o transparente|CAJA|', 12.00, 1),
+(56, 1, 2, 'Anillos para encuadernar de 7/16|UNIDAD|', 17.00, 1),
+(57, 1, 2, 'Anillos para encuadernar de 3/4|UNIDAD|', 6.00, 1),
+(58, 1, 2, 'Anillos para encuadernar de 1/4|UNIDAD|', 6.00, 1),
+(59, 1, 2, 'Anillos para encuadernar de ½|UNIDAD|', 12.00, 1),
+(60, 1, 2, 'LAPIZ DE GRAFITO|CAJA|', 36.00, 1),
+(61, 1, 2, 'LAPICES DE GRAFITO |UNIDAD|', 3.00, 1),
+(62, 1, 2, 'LÁPIZ DE CREYÓN X12|CAJA|', 6.00, 1),
+(63, 1, 2, 'LAPIZ BICOLOR|CAJA|', 18.00, 1),
+(64, 1, 2, 'LAPIZ CORRECTOR|CAJA|', 45.00, 1),
+(65, 1, 2, 'BOLIGRAFO COLOR AZUL|CAJA|', 22.00, 1),
+(66, 1, 2, 'BOLIGRAFO COLOR NEGRO|CAJA|', 22.00, 1),
+(67, 1, 2, 'BOLIGRAFO COLOR ROJO|CAJA|', 22.00, 1),
+(68, 1, 2, 'BOLIGRAFO COLOR AZUL|UNIDAD|', 22.00, 1),
+(69, 1, 2, 'BOLÍGRAFOS TINTA GEL BORRABLES COLOR NEGRO|CAJA|', 7.00, 1),
+(70, 1, 2, 'BOLIGRAFO COLOR NEGRO|UNIDAD|', 22.00, 1),
+(71, 1, 2, 'BORRADOR NATA|CAJA|', 22.00, 1),
+(72, 1, 2, 'bolígrafos para firmar títulos|CAJA|', 16.00, 1),
+(73, 1, 2, 'BORRADOR DE PIZARRA ACRILICA|UNIDAD|', 1.00, 1),
+(74, 1, 2, 'block de análisis 4 columnas.|UNIDAD|', 2.00, 1),
+(75, 1, 2, 'block de análisis 6 columnas.|UNIDAD|', 2.00, 1),
+(76, 1, 2, 'BLOCK DE NOTAS RAYADOS|UNIDAD|', 2.00, 1),
+(77, 1, 2, 'CARPETA DE FIBRA MARRON TAMAÑO CARTA|CAJA|', 36.00, 1),
+(78, 1, 2, 'CARPETA DE FIBRA MARRON TAMAÑO OFICIO|CAJA|', 27.00, 1),
+(79, 1, 2, 'CARPETA DE FIBRA MARRON TAMAÑO EXTRA OFICIO|CAJA|', 22.00, 1),
+(80, 1, 2, 'Cajas de gancho de carpeta 200 unidades|CAJA|', 8.00, 1),
+(81, 1, 2, 'Caja de Separadores de Carpeta (25 Unidades)|CAJA|', 18.00, 1),
+(82, 1, 2, 'CARPETAS DE FIBRA MARRONES PLASTIFICADA TAMAÑO CARTA|UNIDAD|', 36.00, 1),
+(83, 1, 2, 'CARPETAS DE FIBRA MARRONES PLASTIFICADA TAMAÑO OFICIO|UNIDAD|', 22.00, 1),
+(84, 1, 2, 'CARPETA MANILA TAMAÑO CARTA|CAJA|', 18.00, 1),
+(85, 1, 2, 'CARPETA MANILA TAMAÑO OFICIO|CAJA|', 18.00, 1),
+(86, 1, 2, 'CARPETA PARA ARCHIVAR VERDES|CAJA|', 13.00, 1),
+(87, 1, 2, 'CARPETA LOMO ANCHO MAYKA|UNIDAD|', 12.00, 1),
+(88, 1, 2, 'CORTINAS DE TELA LUMINIZADA PARA VENTANALES DE 6M X 1,80M |SERVICIO|', 15.00, 1),
+(89, 1, 2, 'CORTINAS O PERSIANA |UNIDAD|', 38.00, 1),
+(90, 1, 2, 'ARCHICOMODO|UNIDAD|', 3.00, 1),
+(91, 1, 2, 'ARCHIVADOR TIPO ACORDEON |UNIDAD|', 4.00, 1),
+(92, 1, 2, 'HOJAS DE PAPEL MINISTRO|PAQUETE|', 18.00, 1),
+(93, 1, 2, 'CHINCHES|CAJA|', 14.00, 1),
+(94, 1, 2, 'cuenta fácil pointer|CAJA|', 3.00, 1),
+(95, 1, 2, 'CAJA DE CLIP |CAJA|', 1.00, 1),
+(96, 1, 2, 'CLIPS MORDAZA 2 PULGADAS 51MM|CAJA|', 3.00, 1),
+(97, 1, 2, 'CLIPS MORDAZA 1 PULGADAS|CAJA|', 3.00, 1),
+(98, 1, 2, 'CLIPS BLINDER|CAJA|', 2.00, 1),
+(99, 1, 2, 'CLPIS MARIPOSA NRO 1|CAJA|', 11.00, 1),
+(100, 1, 2, 'CLPIS MARIPOSA NRO 2|CAJA|', 11.00, 1),
+(101, 1, 2, 'EXACTOS GRANDES|UNIDAD|', 15.00, 1),
+(102, 1, 2, 'MARCADOR PUNTA ULTRAFINA COLOR NEGRO|CAJA|', 18.00, 1),
+(103, 1, 2, 'marcador permanente punta fina color negro|CAJA|', 9.00, 1),
+(104, 1, 2, 'marcador permanente punta fina color azul|CAJA|', 9.00, 1),
+(105, 1, 2, 'marcador permanente punta fina color rojo|CAJA|', 9.00, 1),
+(106, 1, 2, 'MARCADOR RESALTADOR COLOR AMARILLO|CAJA|', 27.00, 1),
+(107, 1, 2, 'MARCADOR RESALTADOR COLOR VERDE|CAJA|', 27.00, 1),
+(108, 1, 2, 'MARCADOR RESALTADOR COLOR ROSADO|CAJA|', 27.00, 1),
+(109, 1, 2, 'MARCADOR RESALTADOR COLOR AZUL|CAJA|', 27.00, 1),
+(110, 1, 2, 'MARCADOR RESALTADOR COLOR NARANJA|CAJA|', 27.00, 1),
+(111, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR AZUL |CAJA|', 18.00, 1),
+(112, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR NEGRO|UNIDAD|', 2.00, 1),
+(113, 1, 2, 'MARCADORES P/PIZARRA ACRILICA COLOR NEGRO |CAJA|', 43.00, 1),
+(114, 1, 2, 'MARCADORES P/PIZARRA ACRILICA COLOR AZUL|CAJA|', 43.00, 1),
+(115, 1, 2, 'MARCADORES P/PIZARRA ACRILICA COLOR ROJO|CAJA|', 43.00, 1),
+(116, 1, 2, 'MARCADORES P/PIZARRA ACRILICA COLOR VERDE|CAJA|', 43.00, 1),
+(117, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR MORADO |CAJA|', 18.00, 1),
+(118, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR NARANJA|CAJA|', 18.00, 1),
+(119, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR NEGRO|CAJA|', 18.00, 1),
+(120, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR ROJO |CAJA|', 18.00, 1),
+(121, 1, 2, 'MARCADORES TODO USO 680 PUNTA CUADRADA COLOR VERDE|CAJA|', 18.00, 1),
+(122, 1, 2, 'BORRADORES DE PIZZARRA ACRILICAS|UNIDAD|', 2.00, 1),
+(123, 1, 2, 'SOBRE MANILA TAMAÑO CARTAS|PAQUETE|', 13.00, 1),
+(124, 1, 2, 'SOBRE MANILA TAMAÑO OFICIO|PAQUETE|', 14.00, 1),
+(125, 1, 2, 'SOBRE MANILA TAMAÑO EXTRA OFICIO|PAQUETE|', 16.00, 1),
+(126, 1, 2, 'PEGA PRINT EN BARRA 20 GRS.|UNIDADES|', 4.00, 1),
+(127, 1, 2, 'PAPEL CRESPON (TIRRO) 1 PULGADA|UNIDADES|', 18.00, 1),
+(128, 1, 2, 'PAPEL CRESPON (TIRRO) 2 PULGADA|UNIDADES|', 18.00, 1),
+(129, 1, 2, 'CINTA ADHESIVA TRANSPARENTE 1 PULGADA|UNIDADES|', 5.00, 1),
+(130, 1, 2, 'CINTA ADHESIVA TRANSPARENTE 2 PULGADA|UNIDADES|', 7.00, 1),
+(131, 1, 2, 'CINTA ADHESIVA PARA ENVALAR (MORROPAC)|UNIDADES|', 9.00, 1),
+(132, 1, 2, 'Cajas Alfiler Tipo Barril|CAJA|', 3.00, 1),
+(133, 1, 2, 'Binder gancho doble clip|CAJA|', 2.00, 1),
+(134, 1, 2, ' Post it|CAJA|', 14.00, 1),
+(135, 1, 2, 'SACA GRAPAS|UNIDADES|', 7.00, 1),
+(136, 1, 2, 'GRAPAS CORRUGADAS|CAJA|', 14.00, 1),
+(137, 1, 2, 'GRAPAS LISA O ESTANDAR|CAJA|', 14.00, 1),
+(138, 1, 2, 'CARPETA COLGANTE TAMAÑO OFICIO|UNIDADES|', 13.00, 1),
+(139, 1, 2, 'TINTA PARA ALMOADILLA COLOR NEGRO|UNIDADES|', 11.00, 1),
+(140, 1, 2, 'TINTA PARA ALMOADILLA COLOR AZUL|UNIDADES|', 11.00, 1),
+(141, 1, 2, 'SELLO MECANICO DE LA DIRECCION |UNIDADES|', 18.00, 1),
+(142, 1, 2, 'SELLO MECANICO DE RECIBIDO|UNIDADES|', 18.00, 1),
+(143, 1, 2, 'COMPRA DE BOTELLONES|UNIDADES|', 18.00, 1),
+(144, 1, 2, 'GRAPADORA ELECTRICA|UNIDADES|', 22.00, 1),
+(145, 1, 2, 'GRAPADORA|UNIDADES|', 27.00, 1),
+(146, 1, 2, 'PERFORADORA|UNIDADES|', 18.00, 1),
+(147, 1, 2, 'SACAPUNTA ELECTRICO|UNIDADES|', 54.00, 1),
+(148, 1, 2, 'RESMA COLOR AZUL|RESMA|', 54.00, 1),
+(149, 1, 2, 'RESMA COLOR AMARILLO|RESMA|', 54.00, 1),
+(150, 1, 2, 'RESMA COLOR NARANJA|RESMA|', 54.00, 1),
+(151, 1, 2, 'RESMA COLOR CELESTE|RESMA|', 54.00, 1),
+(152, 1, 2, 'RESMA COLOR FUCSIA|RESMA|', 54.00, 1),
+(153, 1, 2, 'RESMA COLOR VERDE MANSANA|RESMA|', 54.00, 1),
+(154, 1, 2, 'RESMA COLOR MORADO|RESMA|', 54.00, 1),
+(155, 1, 2, 'RESMA COLOR ROJO|RESMA|', 54.00, 1),
+(156, 1, 2, 'RESMA DE CARTULINA DE COLORES|RESMA|', 72.00, 1),
+(157, 1, 2, 'RESMAS DE CARTULINA KIMBERLYN TAMAÑO CARTA|RESMA|', 8.00, 1),
+(158, 1, 2, 'CARTULINA DOBLE FAX |PLIEGOS|', 2.00, 1),
+(159, 1, 2, 'CARTULINA ESCOLAR BLANCA |PLIEGOS|', 5.00, 1),
+(160, 1, 2, 'Cartelera 90 * 120 cm|UNIDAD|', 18.00, 1),
+(161, 1, 2, 'CARTELERA DE CORCHO|UNIDAD|', 18.00, 1),
+(162, 1, 2, 'PIZARRA ACRILICA|UNIDAD|', 27.00, 1),
+(163, 1, 2, 'Almohadilla  dactilar|UNIDADES|', 2.00, 1),
+(164, 1, 2, 'ALMOHADILLAS|UNIDAD|', 7.00, 1),
+(165, 1, 2, 'CAJA DE COLORES  PRISMA|CAJAS|', 29.00, 1),
+(166, 1, 2, 'BARRA DE SILICON DELGADA|UNIDADES|', 4.00, 1),
+(167, 1, 2, 'PISTOLA DE SILICON DELGADA|UNIDADES|', 18.00, 1),
+(168, 1, 2, 'REVISTA CIENTÍFICA|UNIDAD|', 24.00, 1),
+(169, 1, 2, 'LIBRO FITOTECNIA|UNIDAD|', 17.00, 1),
+(170, 1, 2, 'LIBRO RIEGO|UNIDAD|', 17.00, 1),
+(171, 1, 2, 'LIBRO DRENAJE|UNIDAD|', 17.00, 1),
+(172, 1, 2, 'LIBRO MANUAL DE MANTENIMIENTO DE CULTIVOS|UNIDAD|', 17.00, 1),
+(173, 1, 2, 'Libros de actas 400 folios|UNIDAD|', 11.00, 1),
+(174, 1, 2, 'Libros de actas 200 folios|UNIDAD|', 8.00, 1),
+(175, 1, 2, 'Libros de acta 100 folios|UNIDAD|', 3.00, 1),
+(176, 1, 2, 'Libros de actas de 200 hojas|UNIDAD|', 4.00, 1),
+(177, 1, 2, 'LIBRO DE ACTA DE 500 FOLIOS|UNIDAD|', 36.00, 1),
+(178, 1, 2, 'Paquete de papel bond blanco 12 unidades|PAQUETE|', 3.00, 1),
+(179, 1, 2, 'PLIEGOS DE PAPEL BOND BLANCO|PLIEGOS|', 4.00, 1),
+(180, 1, 2, 'PLIEGOS DE PAPEL BOND DE DIFERENTES COLORES|PLIEGOS|', 4.00, 1),
+(181, 1, 2, 'PEGA LOCA EN GEL|UNIDADES|', 2.00, 1),
+(182, 1, 2, 'PEGA PRINT EN BARRA 20 GRS.|CAJA|', 23.00, 1),
+(183, 1, 2, 'PEGA ESCOLAR MEDIANA|UNIDADES|', 9.00, 1),
+(184, 1, 2, 'PEGA ESCOLAR GRANDE ELEFANTE|UNIDADES|', 18.00, 1),
+(185, 1, 2, 'COLA BLANCA DE MADERA|GALON|', 24.00, 1),
+(186, 1, 2, 'PINTURA AL FRIO AMARILLO|UNIDADES|', 9.00, 1),
+(187, 1, 2, 'PINTURA AL FRIO AZUL|UNIDADES|', 9.00, 1),
+(188, 1, 2, 'PINTURA AL FRIO VERDE|UNIDADES|', 9.00, 1),
+(189, 1, 2, 'PINTURA AL FRIO ROJO|UNIDADES|', 9.00, 1),
+(190, 1, 2, 'PINTURA AL FRIO NEGRO|UNIDADES|', 9.00, 1),
+(191, 1, 2, 'PINTURA AZUL CELESTE|CUÑETE|', 18.00, 1),
+(192, 1, 2, 'PINTURA COLOR CREMA |CUÑETE|', 18.00, 1),
+(193, 1, 2, ' Pintura en Aceite Color Blanco|GALON|', 14.00, 1),
+(194, 1, 2, 'CUÑETE DE PINTURA COLOR BEIG|CUÑETE|', 19.00, 1),
+(195, 1, 2, 'Pintura en Aceite color blanco|GALON|', 13.00, 1),
+(196, 1, 2, 'PINTURA EN ACEITE COLOR NEGRO|CUÑETE|', 60.00, 1),
+(197, 1, 2, 'PINTURA EN ACEITE COLOR AMARILLO|GALON|', 24.00, 1),
+(198, 1, 2, 'Pintura en Aceite color blanco|CUÑETE|', 18.00, 1),
+(199, 1, 2, 'SILICON LIQUIDO TAMAÑO MEDIANO|UNIDADES|', 9.00, 1),
+(200, 1, 2, 'SACAPUNTA CON DEPOSITO|UNIDADES|', 22.00, 1),
+(201, 1, 2, 'REGLA PLASTICA 30 CMS|UNIDADES|', 9.00, 1),
+(202, 1, 2, 'REGLA PLASTICA 60 CMS|UNIDADES|', 18.00, 1),
+(203, 1, 2, 'REGLA METALICA 60 CMS|UNIDADES|', 8.00, 1),
+(204, 1, 2, 'Agenda diaria ejecutiva |UNIDAD|', 5.00, 1),
+(205, 1, 2, 'LIBRETAS A RAYA DE 200 PAGINAS|UNIDAD|', 18.00, 1),
+(206, 1, 2, 'LIBRETA A RAYA EN ESPIRAL GRANDE|UNIDAD|', 18.00, 1),
+(207, 1, 2, 'Libretas de Block de raya tipo periodista.|UNIDAD|', 2.00, 1),
+(208, 1, 2, 'PEN DRIVE DE 8 GB|UNIDADES|', 6.00, 1),
+(209, 1, 2, 'PEN DRIVE DE 16 GB|UNIDADES|', 8.00, 1),
+(210, 1, 2, 'PEN DRIVE DE 64 GB|UNIDADES|', 36.00, 1),
+(211, 1, 2, 'Memorias SD|UNIDADES|', 5.00, 1),
+(212, 1, 2, 'TIJERA|UNIDADES|', 22.00, 1),
+(213, 1, 2, 'TIJERAS DE ACERO GRANDE |UNIDADES|', 8.00, 1),
+(214, 1, 2, 'Bolsas de bandas de gomas N°18 (Ligas) X KILO|PAQUETES|', 4.00, 1),
+(215, 1, 2, 'PILAS TRIPLE AAA|PAQUETES|', 14.00, 1),
+(216, 1, 2, 'CAJA DE PILAS 2032|CAJA|', 108.00, 1),
+(217, 1, 2, 'CABLE RJ45|UNIDADES|', 18.00, 1),
+(218, 1, 2, 'CABLE N 8 ELECTRICIDAD|METROS|', 35.00, 1),
+(219, 1, 2, 'CABLE DE ALTA TENSION |UNIDAD|', 18.00, 1),
+(220, 1, 2, 'Extensión de alta tensión|UNIDAD|', 10.00, 1),
+(221, 1, 2, 'EXTENSION|UNIDAD|', 18.00, 1),
+(222, 1, 2, 'CABLES DE VIDEO |ROLLO|', 3.00, 1),
+(223, 1, 2, 'Kvm USB|UNIDAD|', 22.00, 1),
+(224, 1, 2, 'CABLE DE CONEXIÓN DE IMPRESORA USB|UNIDAD|', 14.00, 1),
+(225, 1, 2, 'TONER PARA IMPRESORA HP 90-A|UNIDAD|', 5.00, 1),
+(226, 1, 2, 'TONER Q2612  LASER JET|UNIDAD|', 305.00, 1),
+(227, 1, 2, 'TONER PARA IMPRESORA HP LASER JETP2015DL|UNIDAD|', 11.00, 1),
+(228, 1, 2, 'TONER PARA IMPRESORA HP 83-A|UNIDAD|', 189.00, 1),
+(229, 1, 2, 'TONER PARA IMPRESORA HP 83-A|UNIDAD|', 189.00, 1),
+(230, 1, 2, 'COJINES|UNIDADES|', 18.00, 1),
+(231, 1, 2, 'ALFOMBRAS|UNIDADES|', 90.00, 1),
+(232, 1, 2, 'ZAPATO ANTIDESLIZANTE BLANCO|PAR|', 18.00, 1),
+(233, 1, 2, 'ZAPATERA|UNIDADES|', 18.00, 1),
+(234, 1, 2, 'BANDEJAS TRES NIVELES|UNIDAD|', 12.00, 1),
+(235, 1, 2, 'BANDEJAS PORTAPAPELES|UNIDAD|', 3.00, 1),
+(236, 1, 2, 'Escalera plegable|UNIDAD|', 54.00, 1),
+(237, 1, 2, 'Escalera de 3 peldaños|UNIDAD|', 39.00, 1),
+(238, 1, 2, 'Escalera de 6 peldaños|UNIDAD|', 97.00, 1),
+(239, 1, 2, 'Escalera de 12 peldaños|UNIDAD|', 153.00, 1),
+(240, 1, 2, 'RESINA BRILLIANT ESMALTE  A1|JERINGA|', 22.00, 1),
+(241, 1, 2, 'RESINA BRILLIANT ESMALTE A2|JERINGA|', 22.00, 1),
+(242, 1, 2, 'RESINA BRILLIAN ESMALTE A3|JERINGA|', 22.00, 1),
+(243, 1, 2, 'RESINA  BRILLIAN ESMALTE  A3.5|JERINGA|', 22.00, 1),
+(244, 1, 2, 'RESINA   FLUIDA|JERINGA|', 31.00, 1),
+(245, 1, 2, 'IONOMERO FUJI  PLUS DE VIDRIO FOTOCURADO|JERINGA|', 83.00, 1),
+(246, 1, 2, 'IONOMERO FUJI PLUS DE VIDRIO AUTOCURADO|CAJA|', 63.00, 1),
+(247, 1, 2, 'ADHESIVO PARA RESINA|FRASCO|', 18.00, 1),
+(248, 1, 2, 'ACIDO PARA RESINA|JERINGA|', 13.00, 1),
+(249, 1, 2, 'MICROBRUSH  (APLICADORES) NUMERO 4|PAQUETE|', 7.00, 1),
+(250, 1, 2, 'BANDA DE CELULOIDES|PAQUETE|', 6.00, 1),
+(251, 1, 2, 'PAPEL PARA ARTUCULAR|CAJA|', 11.00, 1),
+(252, 1, 2, 'BANDA MATRIZ 5mm y 3mm|PAQUETE|', 5.00, 1),
+(253, 1, 2, 'LIJAS PARA RESINA|PAQUETE|', 14.00, 1),
+(254, 1, 2, 'LIJAS METELICA|PAQUETE|', 14.00, 1),
+(255, 1, 2, 'HILO DENTAL|UNIDAD|', 22.00, 1),
+(256, 1, 2, 'ANESTESIA 2%|CAJA|', 43.00, 1),
+(257, 1, 2, 'AGUJAS CORTAS |CAJA|', 18.00, 1),
+(258, 1, 2, 'AGUJAS LARGAS|CAJA|', 36.00, 1),
+(259, 1, 2, 'AGUJAS RECTAS|CAJA|', 7.00, 1),
+(260, 1, 2, 'AGUJAS HIPODERMICAS|CAJA|', 8.00, 1),
+(261, 1, 2, 'AGUJAS CURVADAS |CAJA|', 7.00, 1),
+(262, 1, 2, 'GASAS|PAQUETE|', 16.00, 1),
+(263, 1, 2, 'DYCAL|CAJA|', 22.00, 1),
+(264, 1, 2, 'GUANTES  TALLA  S|CAJA|', 18.00, 1),
+(265, 1, 2, 'GUANTES TALLA  M|CAJA|', 18.00, 1),
+(266, 1, 2, 'TAPA BOCA|CAJA|', 7.00, 1),
+(267, 1, 2, 'TAPA BOCA 3M|CAJA|', 105.00, 1),
+(268, 1, 2, 'PROTECTOR DE OIDO OREJERAS DE SEGURIDAD COVO|UNIDAD|', 4.00, 1),
+(269, 1, 2, 'TAPA OIDO|CAJA|', 73.00, 1),
+(270, 1, 2, 'PERDONT|FRASCO|', 14.00, 1),
+(271, 1, 2, 'LISTERINES|FRASCO|', 27.00, 1),
+(272, 1, 2, 'ESPONJAS HEMOSTATICAS|UNIDAD|', 79.00, 1),
+(273, 1, 2, 'ALCOHOL ABSOLUTO GALON|GALON|', 32.00, 1),
+(274, 1, 2, 'AGUA DESTILADA GALON|GALON|', 14.00, 1),
+(275, 1, 2, 'ALVOGIL|ENVASE|', 27.00, 1),
+(276, 1, 2, 'ESPEJOS BUCAL|CAJA|', 2.00, 1),
+(277, 1, 2, 'CAMPOS BABERO DESECHABRE|PAQUETE|', 11.00, 1),
+(278, 1, 2, 'HIPOCLORITO 5% DE 500ml|FRASCO|', 9.00, 1),
+(279, 1, 2, 'PARAMONO|FRASCO|', 14.00, 1),
+(280, 1, 2, 'FORMOCRESOL|FRASCO|', 14.00, 1),
+(281, 1, 2, 'EUGENOL|FRASCO|', 14.00, 1),
+(282, 1, 2, 'SOLUCION HEMOSTETICA|FRASCO|', 27.00, 1),
+(283, 1, 2, 'PLACA RADIOGRAFICA PERIAPICAL|PAQUETE|', 2.00, 1),
+(284, 1, 2, 'LIQUIDOS REVELADORES Y FIJADORE KODAK|FRASCO|', 16.00, 1),
+(285, 1, 2, 'PUNTAS DE CAVITRON|UNIDAD|', 117.00, 1),
+(286, 1, 2, 'BABEROS PLASTICOS|UNIDAD|', 9.00, 1),
+(287, 1, 2, 'ESPATULAS 7A GRANDES|UNIDAD|', 22.00, 1),
+(288, 1, 2, 'ESPATULAS PARA LLEVAR CEMENTO|UNIDAD|', 22.00, 1),
+(289, 1, 2, 'TURBINA NSK|UNIDAD|', 54.00, 1),
+(290, 1, 2, 'MICROMOTOR  O KIT NSK EX 203 203|UNIDAD|', 252.00, 1),
+(291, 1, 2, 'DISCO FLEX|PAQUETE|', 11.00, 1),
+(292, 1, 2, 'CEPILLO  PROFILAXIS PARA EL MICROMOTOR|PAQUETE|', 63.00, 1),
+(293, 1, 2, 'PASTA PROFILACTICA|ENVASE|', 20.00, 1),
+(294, 1, 2, 'PIEDRA DE ALCANZA  REDONDAS Y PINO|UNIDAD|', 2.00, 1),
+(295, 1, 2, 'PIEDRA DE ALCANZA PARA PULIR RESINA DIAMANTES CILINDRICA|UNIDAD|', 5.00, 1),
+(296, 1, 2, 'PIEDRA DE DIAMANTE REDONDA|UNIDAD|', 5.00, 1),
+(297, 1, 2, 'FRESAS QUIRURGICAS ZEKRYA|UNIDAD|', 11.00, 1),
+(298, 1, 2, 'FRESAS REDONDAS DE CARBURO NUMEROS 2, 4, 6 |UNIDAD|', 5.00, 1),
+(299, 1, 2, 'FRESAS CILINDRICAS DE CARBURO|UNIDAD|', 5.00, 1),
+(300, 1, 2, 'EXPLORADORES|UNIDAD|', 7.00, 1),
+(301, 1, 2, 'BATA HOMBRE TEJIDO ANTIMICROBIANO|UNIDAD|', 35.00, 1),
+(302, 1, 2, 'BATAS QUIRURGICAS MANGA LARGAS.|PAQUETE|', 14.00, 1),
+(303, 1, 2, 'BATAS  DE LABORATORIO|UNIDAD|', 12.00, 1),
+(304, 1, 2, 'OXIDO DE ZIN|ENVASE|', 18.00, 1),
+(305, 1, 2, 'GALON DE GEL|GALON|', 54.00, 1),
+(306, 1, 2, 'ACETAMINOFEN 600  MG|CAJA|', 4.00, 1),
+(307, 1, 2, 'IBUPROFENO 800 MG.|CAJA|', 13.00, 1),
+(308, 1, 2, 'DICLOFENAC AMPOLLA|UNIDAD|', 13.00, 1),
+(309, 1, 2, 'DICLOFENAC POTASICO|CAJA|', 4.00, 1),
+(310, 1, 2, 'KETOPROFENO COMP.|CAJA|', 9.00, 1),
+(311, 1, 2, 'KETOPROFENO AMPOLLA|UNIDAD|', 13.00, 1),
+(312, 1, 2, 'OMEPRAZOL CAPSULA|CAJA|', 9.00, 1),
+(313, 1, 2, 'OMEPRAZOL AMPOLLAS|UNIDAD|', 2.00, 1),
+(314, 1, 2, 'LORATADINA 10 MG|CAJA|', 2.00, 1),
+(315, 1, 2, 'CITIRICINA|CAJA|', 5.00, 1),
+(316, 1, 2, 'ACIDO FOLICO TABLETA|CAJA|', 4.00, 1),
+(317, 1, 2, 'SULFATO FERROSO|CAJA|', 1.00, 1),
+(318, 1, 2, 'CITRATO DE CALCIO|CAJA|', 14.00, 1),
+(319, 1, 2, 'CLOROTRIMETRON |CAJA|', 9.00, 1),
+(320, 1, 2, 'BETAGEN SOSPEN AMPOLLA|CAJA|', 13.00, 1),
+(321, 1, 2, 'IRTOPAN AMPOLLA|CAJA|', 23.00, 1),
+(322, 1, 2, 'VOLTAREN|CAJA|', 22.00, 1),
+(323, 1, 2, 'AZITROMICINA |CAJAS|', 5.00, 1),
+(324, 1, 2, 'CIPROFLOXACINO|CAJAS|', 5.00, 1),
+(325, 1, 2, 'AMOXICILINA / ACIDO CLAVULANICO|CAJA|', 23.00, 1),
+(326, 1, 2, 'RINOLAST TABLETAS|CAJA|', 16.00, 1),
+(327, 1, 2, 'ANESTESIA 2%|FRASCO|', 14.00, 1),
+(328, 1, 2, 'GEL ANTIBACTERIAl|GALON|', 54.00, 1),
+(329, 1, 2, 'ALCOHOL|GALON|', 14.00, 1),
+(330, 1, 2, 'ALCOHOL|LITROS|', 4.00, 1),
+(331, 1, 2, 'INYECTADORA 3 CC|CAJAS|', 16.00, 1),
+(332, 1, 2, 'INYECTADORA 5 CC|CAJAS|', 18.00, 1),
+(333, 1, 2, 'INYECTADORA 10 CC|CAJAS|', 23.00, 1),
+(334, 1, 2, 'INYECTADORA 20 CC|CAJAS|', 27.00, 1),
+(335, 1, 2, 'SOLUCION FISIOLOGICA 0.90|FRASCO|', 4.00, 1),
+(336, 1, 2, 'SOLUCION DEXTROSA|FRASCO|', 11.00, 1),
+(337, 1, 2, 'SOLUCION RINGER LACTATO|FRACO|', 11.00, 1),
+(338, 1, 2, 'HIDROCORTISONA|UNIDAD|', 14.00, 1),
+(339, 1, 2, 'CAPTOPRIL 500 MG|CAJAS|', 7.00, 1),
+(340, 1, 2, 'MACROGOTERO|UNIDAD|', 1.00, 1),
+(341, 1, 2, 'PAPEL PARA CAMILLA 5K|BOBINA|', 72.00, 1),
+(342, 1, 2, 'GASAS  ESTERIL GRANDES |CAJA|', 341.00, 1),
+(343, 1, 2, 'GASAS MEDIANAS|CAJA|', 269.00, 1),
+(344, 1, 2, 'FESTAL|CAJA|', 9.00, 1),
+(345, 1, 2, 'ADHESIVO TRANSPARENTE BLANCO|TUBO|', 90.00, 1),
+(346, 1, 2, 'BUDESONIDA BUDECOR|UNIDAD|', 22.00, 1),
+(347, 1, 2, 'BUDESONIDA BUDECOR|GOTAS|', 16.00, 1),
+(348, 1, 2, 'VENTIDE INHALADOR|UNIDAD|', 18.00, 1),
+(349, 1, 2, 'COLTRAX AMPOLLA|UNIDAD|', 9.00, 1),
+(350, 1, 2, 'COLTRAX TABLETA|CAJA|', 5.00, 1),
+(351, 1, 2, 'BROMURO  HIOSCINA|CAJA|', 11.00, 1),
+(352, 1, 2, 'GERDEX|GALON|', 50.00, 1),
+(353, 1, 2, 'GUANTES DESECHABLES TALLA M|CAJA|', 11.00, 1),
+(354, 1, 2, 'GUANTES DESECHABLES TALLA L|CAJA|', 13.00, 1),
+(355, 1, 2, 'SCALP|CAJA|', 18.00, 1),
+(356, 1, 2, 'GUIA FARMACOLOGICA|UNIDAD|', 252.00, 1),
+(357, 1, 2, 'PILAS AA|UNIDAD|', 7.00, 1),
+(358, 1, 2, 'ESPECULOS DESECHABLES|BULTO|', 180.00, 1),
+(359, 1, 2, 'FIJADOR PARA CITOLOGIA EN ESPRAY|UNIDAD|', 26.00, 1),
+(360, 1, 2, 'LAMINA ACRILICA|UNIDAD|', 40.00, 1),
+(361, 1, 2, 'LAMINAS PARA CITOLOGIA|CAJA|', 7.00, 1),
+(362, 1, 2, 'SUMINISTRO DE ALIMENTO PARA EL COMEDOR ESTUDIANTIL|UNIDAD|', 32.00, 1),
+(363, 1, 2, 'MATERIALES ELECTRICOS|UNIDAD|', 180.00, 1),
+(364, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 77|CAJA|', 17.00, 1),
+(365, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 57|CAJA|', 42.00, 1),
+(366, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 27|PAQUETE|', 2.00, 1),
+(367, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 16|PAQUETE|', 5.00, 1),
+(368, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 7|PAQUETE|', 2.00, 1),
+(369, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 27|CAJA|', 108.00, 1),
+(370, 1, 2, 'ADQUISICIÓN DE VASOS PLÁSTICOS NRO 7|CAJA|', 90.00, 1),
+(371, 1, 2, 'ADQUISICIÓN CUBERTOS DESECHABLES|BULTO|', 36.00, 1),
+(372, 1, 2, 'CUBIERTOS DESECHABLES |CAJA|', 6.00, 1),
+(373, 1, 2, 'ADQUISICIÓN DE PLATOS DESECHABLES|PAQUETE|', 3.00, 1),
+(374, 1, 2, 'ADQUISICIÓN DE PLATOS DESECHABLES|BULTO|', 153.00, 1),
+(375, 1, 2, 'ADQUISICIÓN DE CUCHARAS DESECHABLES|PAQUETE|', 3.00, 1),
+(376, 1, 2, 'ADQUISICIÓN DE TENEDORES DESECHABLES|PAQUETE|', 2.00, 1),
+(377, 1, 2, 'ADQUISICIÓN DE CUCHILLOS DESECHABLES|PAQUETE|', 4.00, 1),
+(378, 1, 2, 'ADQUISICIÓN DE SERVILLETAS|PAQUETE|', 3.00, 1),
+(379, 1, 2, 'ADQUISICIÓN DE SERVILLETAS|BULTO|', 45.00, 1),
+(380, 1, 2, 'ADQUISICIÓN DE TAPABOCAS|CAJA|', 18.00, 1),
+(381, 1, 2, 'ADQUISICIÓ GUANTES DE LATEX|CAJA|', 14.00, 1),
+(382, 1, 2, 'ADUISICÓN DE GORROS DESECHABLES|CAJA|', 14.00, 1),
+(383, 1, 2, 'ADQUISICIÓN PAÑOS DE LANILLA AMARILLOS  DE COCINA|UNIDAD|', 1.00, 1),
+(384, 1, 2, 'Paños absorbentes 30 x 40 cm (paquete de 18 unidades)|PAQUTE|', 11.00, 1),
+(385, 1, 2, 'ADQUISICIÓN PAÑOS DE LANILLA AMARILLOS  DE COCINA|BULTO|', 180.00, 1),
+(386, 1, 2, 'ADQUISICIÓN DE SODA CAUSTICA POR LITROS / KGS|SACO|', 18.00, 1),
+(387, 1, 2, 'ADQUISICIÓN JABÓN LÍQUIDO POR LITROS / GALON|BIDON|', 9.00, 1),
+(388, 1, 2, 'ADQUISICIÓN DESINFECTNTE POR LITROS / GALON|BIDON|', 9.00, 1),
+(389, 1, 2, 'ADQUISICIÓN DESENGRASANTE POR LITROS / GALON|BIDON|', 9.00, 1),
+(390, 1, 2, 'ADQUISICIÓN CLORO POR LITROS / GALON|BIDON|', 9.00, 1),
+(391, 1, 2, 'CEPILLOS DE BARRER|UNIDAD|', 9.00, 1),
+(392, 1, 2, 'Escobillón de techo con palo de madera y sus extensores|UNIDAD|', 6.00, 1),
+(393, 1, 2, 'Haragán con palo de aluminio 24”|UNIDAD|', 13.00, 1),
+(394, 1, 2, 'Haragán limpia vidrios|UNIDAD|', 4.00, 1),
+(395, 1, 2, 'ADQUISICIÓN DE COLETON|UNIDAD|', 63.00, 1),
+(396, 1, 2, 'ADQUISICIÓN DE COLETON PEQUEÑO|UNIDAD|', 14.00, 1),
+(397, 1, 2, 'ADQUISICIÓN DE COLETON MEDIANO|UNIDAD|', 24.00, 1),
+(398, 1, 2, 'ADQUISICIÓN DE COLETON GRANDE|UNIDAD|', 27.00, 1),
+(399, 1, 2, 'ADQUISICIÓN DE ARAGANES|UNIDAD|', 27.00, 1),
+(400, 1, 2, 'ADQUISICIÓN DE PORTA MOPAS|UNIDAD|', 27.00, 1),
+(401, 1, 2, 'ADQUISICIÓ DE CARRO ASEADOR|UNIDAD|', 66.00, 1),
+(402, 1, 2, 'HERRAJES PARA POCETA|UNIDAD|', 6.00, 1),
+(403, 1, 2, 'HERRAJES PARA LAVAMANOS|UNIDAD|', 6.00, 1),
+(404, 1, 2, 'ADQUISICIÓN DE CEPILLOS PARA POCETAS|UNIDAD|', 9.00, 1),
+(405, 1, 2, 'ADQUISICIÓN DE MANGUERA DE AGUA 50 MTRS USO DOMESTICO|UNIDAD|', 36.00, 1),
+(406, 1, 2, 'ADQUISICIÓN DE MANGUERA DE AGUA 100 MTRS USO DOMESTICO|UNIDAD|', 108.00, 1),
+(407, 1, 2, 'Pico de ½” para manguera |UNIDAD|', 3.00, 1),
+(408, 1, 2, 'ADQUISICIÓN PALAS PLASTICAS PARA BASURA|UNIDAD|', 13.00, 1),
+(409, 1, 2, 'Pala metálica de jardinería|UNIDAD|', 12.00, 1),
+(410, 1, 2, 'Pala pequeña de jardinería 340mm|UNIDAD|', 4.00, 1),
+(411, 1, 2, 'Palín pala escamaran cabo de madera|UNIDAD|', 9.00, 1),
+(412, 1, 2, 'Piqueta-pico con cabo de madera|UNIDAD|', 15.00, 1),
+(413, 1, 2, 'Barra forjada de acero|UNIDAD|', 46.00, 1),
+(414, 1, 2, 'Chícora de metal con cabo de madera|UNIDAD|', 13.00, 1),
+(415, 1, 2, 'Rastrillo tipo abanico de plástico|UNIDAD|', 3.00, 1),
+(416, 1, 2, 'Rastrillo tipo araña de metal resistente con cabo de madera|UNIDAD|', 3.00, 1),
+(417, 1, 2, 'Rastrillo de hierro con cabo de madera|UNIDAD|', 6.00, 1),
+(418, 1, 2, 'Machete tres canales con mango de madera|UNIDAD|', 4.00, 1),
+(419, 1, 2, 'Set de lima plana para amolar machete/cuchillo|UNIDAD|', 6.00, 1),
+(420, 1, 2, 'Lima rabo de ratón 200mm x 5,56mm|UNIDAD|', 3.00, 1),
+(421, 1, 2, 'ADQUISICIÓN TOBOS PLÁSTICO 150 LT PARA BASURA|UNIDAD|', 72.00, 1),
+(422, 1, 2, 'Tobo plástico de 10 lts|UNIDAD|', 2.00, 1),
+(423, 1, 2, 'Tobo de 150 lts|UNIDAD|', 25.00, 1),
+(424, 1, 2, 'ADQUISICIÓN PAPELERAS|UNIDAD|', 43.00, 1),
+(425, 1, 2, 'ADQUISICIÓN PAPELERAS 60Lts|UNIDAD|', 18.00, 1),
+(426, 1, 2, 'ADQUISICIÓN PAPELERAS 30Lts|UNIDAD|', 12.00, 1),
+(427, 1, 2, 'ADQUISICIÓN BOLSAS NEGRAS PARA BASURA |PAQUETE|', 54.00, 1),
+(428, 1, 2, 'ADQUISICIÓN BOLSAS NEGRAS PARA BASURA 60Lts|PAQUETE|', 4.00, 1),
+(429, 1, 2, 'ADQUISICIÓN BOLSAS NEGRAS PARA BASURA 30Lts|PAQUETE|', 10.00, 1),
+(430, 1, 2, 'ADQUISICIÓN BOLSAS NEGRAS PARA BASURA 120 Lts|PAQUETE|', 6.00, 1),
+(431, 1, 2, 'ADQUISICIÓN BOLSAS NEGRAS PARA BASURA 200Lts|PAQUETE|', 5.00, 1),
+(432, 1, 2, 'ADQUISICIÓN GUANTES DE GOMA|BULTO|', 1.00, 1),
+(433, 1, 2, 'ADQUISICIÓN DE COLETOS|UNIDAD|', 5.00, 1),
+(434, 1, 2, 'ADQUISISCIÓN DE MOPAS|UNIDAD|', 11.00, 1),
+(435, 1, 2, 'ADQUISICIÓN DE ESPONJAS DOBLE USO|PAQUETE|', 9.00, 1),
+(436, 1, 2, 'ADQUISICIÓN BRILLOS DE ALAMBRES|PAQUETE|', 11.00, 1),
+(437, 1, 2, 'ADQUISICIÓN BRILLOS JABONOSOS|PAQUETE|', 43.00, 1),
+(438, 1, 2, 'CHEFANDISH ACERO INOXIDABLE # 5|UNIDAD|', 36.00, 1),
+(439, 1, 2, 'CHEFANDISH ACERO INOXIDABLE # 10|UNIDAD|', 45.00, 1),
+(440, 1, 2, 'CHEFANDISH ACERO INOXIDABLE # 15|UNIDAD|', 54.00, 1),
+(441, 1, 2, 'HACHAS CARNICERAS DE 3 \"|UNIDAD|', 54.00, 1),
+(442, 1, 2, 'HACHAS CARNICERAS DE 4 \"|UNIDAD|', 63.00, 1),
+(443, 1, 2, 'JUEGOS DE CUCHILLO DE 12 CTM|UNIDAD|', 45.00, 1),
+(444, 1, 2, 'JUEGOS DE CUCHILLO DE 16  CTM|UNIDAD|', 54.00, 1),
+(445, 1, 2, 'JUEGOS DE CUCHILLO DE 18 CTM|UNIDAD|', 63.00, 1),
+(446, 1, 2, 'CUCHARONES SOPEROS ACERO INOXIDABLES DE  8 OZ|UNIDAD|', 18.00, 1),
+(447, 1, 2, 'CUCHARONES SOPEROS ACERO INOXIDABLES DE 10 OZ|UNIDAD|', 27.00, 1),
+(448, 1, 2, 'CUCHARONES SOPEROS ACERO INOXIDABLES DE 15 OZ|UNIDAD|', 36.00, 1),
+(449, 1, 2, 'CUCHARAS PARA SERVIR ACERO INOXIDABLE PEQUEÑAS|UNIDAD|', 27.00, 1),
+(450, 1, 2, 'CUCHARAS PARA SERVIR ACERO INOXIDABLE MEDIANAS|UNIDAD|', 36.00, 1),
+(451, 1, 2, 'CUCHARAS PARA SERVIR ACERO INOXIDABLE GRANDES|UNIDAD|', 45.00, 1),
+(452, 1, 2, 'TENEDOR INDUSTRIAL TRINCHE ACERO INOXIDABLE PEQUEÑO|UNIDAD|', 18.00, 1),
+(453, 1, 2, 'TENEDOR INDUSTRIAL TRINCHE ACERO INOXIDABLE MEDIANO|UNIDAD|', 22.00, 1),
+(454, 1, 2, 'TENEDOR INDUSTRIAL TRINCHE ACERO INOXIDABLE GRANDE|UNIDAD|', 27.00, 1),
+(455, 1, 2, 'TABLAS DE PICAR DE POLIETILENO 50x50|UNIDAD|', 72.00, 1),
+(456, 1, 2, 'TABLAS DE PICAR DE POLIETILENO 50x80|UNIDAD|', 81.00, 1),
+(457, 1, 2, 'TABLAS DE PICAR DE POLIETILENO 100 x 100|UNIDAD|', 90.00, 1),
+(458, 1, 2, 'VASOS DE ALUMINIO DE 10 ó 12 OZ|UNIDAD|', 27.00, 1),
+(459, 1, 2, 'ESCUDILLAS DE ACERO INOXIDABLE DE 15 OZ|UNIDAD|', 36.00, 1),
+(460, 1, 2, 'BANDEJAS DE SERVICIO ACERO INOXIDABLE (MENAJE)|UNIDAD|', 14.00, 1),
+(461, 1, 2, 'PINZAS CORTA CABLE |UNIDAD|', 27.00, 1),
+(462, 1, 2, 'PINZAS SACA HIELO ACERO INOXIDABLE PEQUEÑAS|UNIDAD|', 9.00, 1),
+(463, 1, 2, 'PINZAS SACA HIELO ACERO INOXIDABLE MEDIANAS|UNIDAD|', 11.00, 1),
+(464, 1, 2, 'PINZAS SACA HIELO ACERO INOXIDABLE GRANDES|UNIDAD|', 14.00, 1),
+(465, 1, 2, 'PICA HIELO (PUNZÓN) MEDIANO|UNIDAD|', 18.00, 1),
+(466, 1, 2, 'ESPUMADERA INDUSTRIAL ACERO INOXIDABLE|UNIDAD|', 45.00, 1),
+(467, 1, 2, 'CUCHARAS PARA SERVIR PERFORADAS ACERO INOXIDABLES|UNIDAD|', 54.00, 1),
+(468, 1, 2, 'PELADOR DE PAPAS PEQUEÑOS|UNIDAD|', 18.00, 1),
+(469, 1, 2, 'PELADOR DE PAPAS MEDIANOS|UNIDAD|', 27.00, 1),
+(470, 1, 2, 'PELADOR DE PAPAS GRANDES|UNIDAD|', 36.00, 1),
+(471, 1, 2, 'EXPRIMIDOR DE JUGOS USO INDUSTRIAL MEDIANO|UNIDAD|', 81.00, 1),
+(472, 1, 2, 'EXPRIMIDOR DE JUGOS USO INDUSTRIAL GRANDE|UNIDAD|', 90.00, 1),
+(473, 1, 2, 'BANDEJAS PANADERAS PEQUEÑAS|UNIDAD|', 27.00, 1),
+(474, 1, 2, 'BANDEJAS PANADERAS MEDIANAS|UNIDAD|', 36.00, 1),
+(475, 1, 2, 'BANDEJAS PANADERAS GRANDES|UNIDAD|', 45.00, 1),
+(476, 1, 2, 'BANDEJAS PASTELERAS GRANDES|UNIDAD|', 40.00, 1),
+(477, 1, 2, 'RALLADOR DE QUESO ACERO INOXIDABLE 4 CARAS|UNIDAD|', 13.00, 1),
+(478, 1, 2, 'RALLADOR DE QUESO ACERO INOXIDABLE 6 CARAS|UNIDAD|', 18.00, 1),
+(479, 1, 2, 'MOLDES REPOSTEROS DE ALUMINIO REDONDOS PEQUEÑOS|UNIDAD|', 11.00, 1),
+(480, 1, 2, 'MOLDES REPOSTEROS DE ALUMINIO REDONDOS MEDIANOS|UNIDAD|', 14.00, 1),
+(481, 1, 2, 'MOLDES REPOSTEROS DE ALUMINIO REDONDOS GRANDES|UNIDAD|', 18.00, 1),
+(482, 1, 2, 'MOLDES REPOSTEROS DE ALUMINIO RECTANGULAR PEQUEÑOS|UNIDAD|', 25.00, 1),
+(483, 1, 2, 'MOLDES REPOSTEROS DE ALUMINIO RECTANGULAR MEDIANOS|UNIDAD|', 29.00, 1),
+(484, 1, 2, 'MOLDES REPOSTEROS DE ALUMINIO RECTANGULAR GRANDES|UNIDAD|', 32.00, 1),
+(485, 1, 2, 'OLLAS DE ALUMINIO 20 LITROS|UNIDAD|', 72.00, 1),
+(486, 1, 2, 'OLLAS DE ALUMINIO 40 LITROS|UNIDAD|', 81.00, 1),
+(487, 1, 2, 'OLLAS DE ALUMINIO 60 LITROS|UNIDAD|', 90.00, 1),
+(488, 1, 2, 'OLLAS DE ALUMINIO 80 LITROS|UNIDAD|', 99.00, 1),
+(489, 1, 2, 'OLLAS DE ALUMINIO 100 LITROS|UNIDAD|', 117.00, 1),
+(490, 1, 2, 'OLLAS DE ALUMINIO 200 LITROS|UNIDAD|', 126.00, 1),
+(491, 1, 2, 'COLADOR DE PASTA USO INDUSTRIAL ACERO INOXIDABLE PEQUEÑO|UNIDAD|', 18.00, 1),
+(492, 1, 2, 'COLADOR DE PASTA USO INDUSTRIAL ACERO INOXIDABLE MEDIANO|UNIDAD|', 29.00, 1),
+(493, 1, 2, 'COLADOR DE PASTA USO INDUSTRIAL ACERO INOXIDABLE GRANDE|UNIDAD|', 36.00, 1),
+(494, 1, 2, 'CALDEROS INDUSTRIALES PEQUEÑOS|UNIDAD|', 395.00, 1),
+(495, 1, 2, 'CALDEROS INDUSTRIALES MEDIANO|UNIDAD|', 449.00, 1),
+(496, 1, 2, 'CALDEROS INDUSTRIALES GRANDE|UNIDAD|', 503.00, 1),
+(497, 1, 2, 'CALDEROS INDUSTRIALES EXTRA GRANDE|UNIDAD|', 539.00, 1),
+(498, 1, 2, 'CHAINA PEQUEÑAS|UNIDAD|', 14.00, 1),
+(499, 1, 2, 'CHINAS MEDIANAS|UNIDAD|', 18.00, 1),
+(500, 1, 2, 'CHAINAS GRANDES|UNIDAD|', 22.00, 1),
+(501, 1, 2, 'ESPATULAS ACERO INOXIDABLES PEQUEÑAS|UNIDAD|', 14.00, 1),
+(502, 1, 2, 'ESPATULAS ACERO INOXIDABLES MEDIANA|UNIDAD|', 22.00, 1),
+(503, 1, 2, 'ESPATULAS ACERO INOXIDABLES GRANDE|UNIDAD|', 25.00, 1),
+(504, 1, 2, 'SARTENES PEQUEÑOS|UNIDAD|', 63.00, 1),
+(505, 1, 2, 'SARTENES MEDIANOS|UNIDAD|', 90.00, 1),
+(506, 1, 2, 'SARTENES GRANDES|UNIDAD|', 108.00, 1),
+(507, 1, 2, 'COLADOR DE JUGOS INDUSTRIAL|UNIDAD|', 72.00, 1),
+(508, 1, 2, 'COLADOR DE JUGOS PEQUEÑOS|UNIDAD|', 54.00, 1),
+(509, 1, 2, 'COLADOR DE JUGOS MEDIANOS|UNIDAD|', 45.00, 1),
+(510, 1, 2, 'COLADOR DE CAFÉ O MANGAS PEQUEÑAS|UNIDAD|', 11.00, 1),
+(511, 1, 2, 'COLADOR DE CAFÉ O MANGAS MEDIANAS|UNIDAD|', 14.00, 1),
+(512, 1, 2, 'COLADOR DE CAFÉ O MANGAS GRANDES|UNIDAD|', 18.00, 1),
+(513, 1, 2, 'JARRAS DE ACERO INOXIDABLES PEQUEÑAS|UNIDAD|', 95.00, 1),
+(514, 1, 2, 'JARRAS DE ACERO INOXIDABLES MEDIANAS|UNIDAD|', 104.00, 1),
+(515, 1, 2, 'JARRAS DE ACERO INOXIDABLES GRANDES|UNIDAD|', 117.00, 1),
+(516, 1, 2, 'JARRAS DE PLÁSTICO PEQUEÑAS|UNIDAD|', 11.00, 1),
+(517, 1, 2, 'JARRAS DE PLÁSTICO MEDIANAS|UNIDAD|', 14.00, 1),
+(518, 1, 2, 'JARRAS DE PLÁSTICO GRANDES|UNIDAD|', 18.00, 1),
+(519, 1, 2, 'Juego de Vajillas de (24 piezas) para atender consejo universitario.|JUEGO|', 92.00, 1),
+(520, 1, 2, 'Juego de Cubiertos (Acero Inoxidable)|JUEGO|', 8.00, 1),
+(521, 1, 2, 'Caja de vasos de vidrio grande (6 unidades)|JUEGO|', 12.00, 1),
+(522, 1, 2, 'Jarra de Vidrio (1.5 Litros) |UNIDAD|', 4.00, 1),
+(523, 1, 2, 'Regla metálica de 100cm|UNIDAD|', 6.00, 1),
+(524, 1, 2, 'Reglas T cabeza desmontable 75cm|UNIDAD|', 7.00, 1),
+(525, 1, 2, 'REGULADOR DE CORRIENTE PARA COMPUTADORAS|UNIDAD|', 45.00, 1),
+(526, 1, 2, 'PROTECTOR DE CORRIENTE 110 V|UNIDAD|', 54.00, 1),
+(527, 1, 2, 'PROTECTOR DE CORRIENTE 220 V|UNIDAD|', 72.00, 1),
+(528, 1, 2, 'CINTAS DE CIERRA INDUSTRIAL|UNIDAD|', 54.00, 1),
+(529, 1, 2, 'CANDADOS ANTICIZALLA|UNIDAD|', 23.00, 1),
+(530, 1, 2, 'PULPA DE FRUTAS|KILO|', 5.00, 1),
+(531, 1, 2, 'AZUCAR|BULTO|', 13.00, 1),
+(532, 1, 2, 'CAFÉ|BULTO|', 54.00, 1),
+(533, 1, 2, 'CAFÉ|KILO|', 8.00, 1),
+(534, 1, 2, 'FLOR DE JAMAICA|KILO|', 4.00, 1),
+(535, 1, 2, 'Edulcorante sacarosa con stevia|KILO|', 3.00, 1),
+(536, 1, 2, 'PAPEL HIGIENICO DE BAÑO|PAQUETE|', 2.00, 1),
+(537, 1, 2, 'PAPEL TOALLA DE BAÑO|BULTO|', 4.00, 1),
+(538, 1, 2, 'JABON DE TOCADOR O BAÑO|UNIDAD|', 1.00, 1),
+(539, 1, 2, 'JABON EN POLVO|KILO|', 1.00, 1),
+(540, 1, 2, 'JABON LIQUIDO|LITROS|', 1.00, 1),
+(541, 1, 2, 'JABON LIQUIDO|PIPA|', 145.00, 1),
+(542, 1, 2, 'DESINFECTANTE|LITROS|', 1.00, 1),
+(543, 1, 2, 'DESINFECTANTE|PIPAS|', 121.00, 1),
+(544, 1, 2, 'CLORO.|LITROS|', 1.00, 1),
+(545, 1, 2, 'CLORO.|PIPAS|', 121.00, 1),
+(546, 1, 2, 'DESMANCHADOR|LITROS|', 1.00, 1),
+(547, 1, 2, 'DESMANCHADOR|PIPAS|', 169.00, 1),
+(548, 1, 2, 'MISTOLIN|LITROS|', 4.00, 1),
+(549, 1, 2, 'CERA|LITROS|', 1.00, 1),
+(550, 1, 2, 'CERA|PIPAS|', 133.00, 1),
+(551, 1, 2, 'LIMPIA VIDRIO|BIDON|', 16.00, 1),
+(552, 1, 2, 'Garrafas plásticas de 4 lts blanca con tapa|UNIDAD|', 3.00, 1),
+(553, 1, 2, 'Bidón plástico resistente de 20 lts|UNIDAD|', 4.00, 1),
+(554, 1, 2, 'GUANTES DE NEOPRENO |PAR|', 3.00, 1),
+(555, 1, 2, 'GUANTES DE CARNAZA (JARDINERIA)|PAR|', 2.00, 1),
+(556, 1, 2, 'GUANTES QUIRÚRGICOS LATEX (NRO,7.5)|PAR|', 15.00, 1),
+(557, 1, 2, 'GUANTES QUIRÚRGICOS LATEX (NRO,8.5)|PAR|', 15.00, 1),
+(558, 1, 2, 'Par de guantes de uso industrial|PAR|', 3.00, 1),
+(559, 1, 2, 'Par de guantes de tela tejido con puntos |PAR|', 1.00, 1),
+(560, 1, 2, 'TOBO ESCURRIDOR|UNIDAD|', 2.00, 1),
+(561, 1, 2, 'LAMINA DE CIELO RASO|UNIDAD|', 15.00, 1),
+(562, 1, 2, 'CASCO DE SEGURIDAD INDUSTRIAL|UNIDAD|', 5.00, 1),
+(563, 1, 2, 'BOTAS DE SEGURIDAD CON PUNTA DE ACERO O COMPOSITE (POLICARBONATO) RESISTENTE AL IMPACTO Y LA COMPRENSION.|PAR|', 20.00, 1),
+(564, 1, 2, 'BOTAS TIPO FRAZZANY|PAR|', 32.00, 1),
+(565, 1, 2, 'Pares de botas tácticas.|PAR|', 32.00, 1),
+(566, 1, 2, 'BOTAS DE SEGURIDAD CATERPILLAR|PAR|', 27.00, 1),
+(567, 1, 2, 'Bota de goma PVC caña alta|PAR|', 21.00, 1),
+(568, 1, 2, 'LENTE DE SEGURIDAD CONTRA IMPACTO|CAJA|', 162.00, 1),
+(569, 1, 2, 'LENTE DE SEGURIDAD CONTRA IMPACTO|UNIDAD|', 13.00, 1),
+(570, 1, 2, 'Bultos de mascarillas desechables (2.000 unidades por bulto)|BULTO|', 68.00, 1),
+(571, 1, 2, 'Tester Probador De Fuente De Poder 20/24 Pines|UNIDAD|', 13.00, 1),
+(572, 1, 2, 'PROBADOR DE CORRIENTE|UNIDAD|', 4.00, 1),
+(573, 1, 2, 'CINTA METRICA DE FIBRA DE VIDRIO |UNIDAD|', 26.00, 1),
+(574, 1, 2, 'ARNES DE SEGURIDAD 3 ANILLOS|UNIDAD|', 28.00, 1),
+(575, 1, 2, 'CALCULADORA DM1200V 12 DIGITOS|UNIDAD|', 6.00, 1),
+(576, 1, 2, 'ENGRAPADORA TIPO ALICATE|UNIDAD|', 5.00, 1),
+(577, 1, 2, 'PERFORADORA DE HUECO TRIPLE|UNIDAD|', 10.00, 1),
+(578, 1, 2, 'PERFORADORA DE HUECO DOBLE|UNIDAD|', 2.00, 1),
+(579, 1, 2, 'TRÍPODE PARA LA CÁMARA DIGITAL PARA CÁMARA|UNIDAD|', 20.00, 1),
+(580, 1, 2, 'ROUTER|UNIDAD|', 43.00, 1),
+(581, 1, 2, 'KIT DE LIMPIEZA PARA IMPRESORA ZEBRA ZC300|UNIDAD|', 40.00, 1),
+(582, 1, 2, 'CINTA DE IMPRESORA ZEBRA ZC300 COLOR, DE 200 IMPRESIONES RBN, YMCKO|UNIDAD|', 101.00, 1),
+(583, 1, 2, 'HILO PABILO |UNIDAD|', 2.00, 1),
+(584, 1, 2, 'HILOS NYLON DURAFIL 40/2|ROLLO|', 13.00, 1),
+(585, 1, 2, 'BROCHA 2|UNIDAD|', 2.00, 1),
+(586, 1, 2, 'BROCHA 4|UNIDAD|', 2.00, 1),
+(587, 1, 2, 'CABEZADA CINTA DECORATIVA |METROS|', 2.00, 1),
+(588, 1, 2, 'PERCALINA VINOTINTO|ROLLO|', 10.00, 1),
+(589, 1, 2, 'PERCALINA AZUL MARINO|ROLLO|', 10.00, 1),
+(590, 1, 2, 'PERCALINA ROJO |ROLLO|', 10.00, 1),
+(591, 1, 2, 'PERCALINA NEGRO |ROLLO|', 10.00, 1),
+(592, 1, 2, 'CARTÓN GRANDE DE EMBALAJE |CAJA|', 2.00, 1),
+(593, 1, 2, 'CARTÓN 2 EN KILO|PLIEGOS|', 4.00, 1),
+(594, 1, 2, 'PRENSAS DE MADERA|UNIDAD|', 32.00, 1),
+(595, 1, 2, 'SEGUETA |UNIDAD|', 8.00, 1),
+(596, 1, 2, 'HOJA DE SEGUETA|UNIDAD|', 2.00, 1),
+(597, 1, 2, 'PORTA PERCALINA DE ACERO|UNIDAD|', 4.00, 1),
+(598, 1, 2, 'Bombas Manuales para el trasegado de químicos|UNIDAD|', 41.00, 1),
+(599, 1, 2, 'Carretilla 2 ruedas macizas 1” 200 kg|UNIDAD|', 92.00, 1),
+(600, 1, 2, 'Carrucha|UNIDAD|', 57.00, 1),
+(601, 1, 2, 'Embudo grande|UNIDAD|', 6.00, 1),
+(602, 1, 2, 'Peto para Desmalezadora|UNIDAD|', 6.00, 1),
+(603, 1, 2, 'Careta protectora para desmalezar|UNIDAD|', 5.00, 1),
+(604, 1, 2, 'Arnés de seguridad con eslinga|UNIDAD|', 30.00, 1),
+(605, 1, 2, 'Bujías Bosch platinum|UNIDAD|', 2.00, 1),
+(606, 1, 2, 'Bobina de nylon para Desmalezadora 3.3mm 190mts|UNIDAD|', 23.00, 1),
+(607, 1, 2, 'Aceite dos tiempos 2050|UNIDAD|', 8.00, 1),
+(608, 1, 2, 'Tijera plana para podar arbustos 22”|UNIDAD|', 8.00, 1),
+(609, 1, 2, 'Tijera pico de loro de podar jardín 18cm x 8cm acero inoxidable|UNIDAD|', 3.00, 1),
+(610, 1, 2, 'Tijera pico de loro grande para podar|UNIDAD|', 13.00, 1),
+(611, 1, 2, 'Serrucho de poda plegable con dientes|UNIDAD|', 5.00, 1),
+(612, 1, 2, 'Rollo de Mecatillo|ROLLO|', 4.00, 1),
+(613, 1, 2, 'Bobina de Mecate|BOBINA|', 78.00, 1),
+(614, 1, 2, 'Sacas|UNIDAD|', 11.00, 1),
+(615, 1, 2, 'Saco de abono|SACO|', 4.00, 1),
+(616, 1, 2, 'Porrón de plástico grande|UNIDAD|', 23.00, 1),
+(617, 1, 2, 'Porrón de plástico mediano|UNIDAD|', 13.00, 1),
+(618, 1, 2, 'Porrón de plástico pequeño|UNIDAD|', 4.00, 1),
+(619, 1, 2, 'Juego de destornilladores de estría y pala|JUEGO|', 3.00, 1),
+(620, 1, 2, 'Juego de destornilladores tipo estrella|JUEGO|', 14.00, 1),
+(621, 1, 2, 'Juego de llaves ale|JUEGO|', 8.00, 1),
+(622, 1, 2, 'Juego de alicate|JUEGO|', 10.00, 1),
+(623, 1, 2, 'Sacabujía|UNIDAD|', 11.00, 1),
+(624, 1, 2, 'Juego de lijas de 400|JUEGO|', 7.00, 1),
+(625, 1, 2, 'Portanylon|UNIDAD|', 5.00, 1),
+(626, 1, 2, 'ENCUDERNADORA ANILLADORA ESPIRAL CONTINUO HUECO REDONDO|UNIDAD|', 124.00, 1),
+(627, 1, 2, 'LITRO DE SOLVENTE (THINNER) |LITROS|', 3.00, 1),
+(628, 1, 2, 'UNIDADES DE APÓSITOS ESTÉRILES (5×9 CM)|UNIDAD|', 11.00, 1),
+(629, 1, 2, 'UNIDADES DE APLICADORES DE ALGODÓN (HISOPOS)|UNIDAD|', 16.00, 1),
+(630, 1, 2, 'UNIDAD DE JABÓN AZUL O NEUTRO|UNIDAD|', 2.00, 1),
+(631, 1, 2, 'PISTOLA DE CALOR |UNIDAD|', 18.00, 1),
+(632, 1, 2, 'FILTROS CARTUCHOS PARA VAPORES ORGÁNICOS Y ACIDO|UNIDAD|', 18.00, 1),
+(633, 1, 2, 'RESPIRADOR CARA COMPLETA DOBLE FILTRO|UNIDAD|', 74.00, 1),
+(634, 1, 2, 'RESPIRADOR MEDIA CARA DOBLE FILTRO PARA SOLVENTE|UNIDAD|', 9.00, 1),
+(635, 1, 2, 'BAJA LENGUA|UNIDAD|', 6.00, 1),
+(636, 1, 2, 'PAPEL TÉRMICO AUTOADHESIVO 80X40MM X 500 ETIQUETAS|ROLLO |', 8.00, 1),
+(637, 1, 2, 'BALON DE FUTBAL SALA|UNIDAD|', 30.00, 1),
+(638, 1, 2, 'MALLA PARA VOLEYBALL|UNIDAD|', 26.00, 1),
+(639, 1, 2, 'CONO DEPORTIVO MEDIANO|UNIDAD|', 13.00, 1),
+(640, 1, 2, 'BANDERA DE VENEZUELA|UNIDAD|', 9.00, 1),
+(641, 1, 2, 'BANDERA DE ESTADO LARA|UNIDAD|', 9.00, 1),
+(642, 1, 2, 'SEMILLAS DE PEPINO GUSTAVO F1|GRAMO|', 1.00, 1),
+(643, 1, 2, 'SEMILLAS DE CEBOLLÍN|GRAMO|', 2.00, 1),
+(644, 1, 2, 'MAÍZ AMARILLO 88 % DE GERMINACIÓN|KILO|', 5.00, 1),
+(645, 1, 2, 'SEMILLAS LECHUGA AMERICANA 85% DE GERMINACIÓN|UNIDAD|', 9.00, 1),
+(646, 1, 2, 'SACOS SUBPRODUCTO GALLINAZA (ESTIÉRCOL DE GALLINA).|SACO|', 12.00, 1),
+(647, 1, 2, 'PIEDRA PICADA|M2|', 20.00, 1),
+(648, 1, 2, 'ARENA AZUL|M2|', 17.00, 1),
+(649, 1, 2, 'TIERRA NEGRA.|M2|', 43.00, 1),
+(650, 1, 2, 'FRANELAS  |UNIDAD|', 8.00, 1),
+(651, 1, 2, 'GORRAS|UNIDAD|', 5.00, 1),
+(652, 1, 2, 'TRIPLE 15|SACO|', 1.00, 1),
+(653, 1, 2, 'NITRATO DE AMONIO. 34 ,5% NITRÓGENO|SACO|', 3.00, 1),
+(654, 1, 2, 'FOSFATO DE AMONIO AL 80 |LITROS|', 5.00, 1),
+(655, 1, 2, 'UREA PERLADA|SACO|', 23.00, 1),
+(656, 1, 2, 'SULFATO  DE MANGANESO|KILO|', 42.00, 1),
+(657, 1, 2, 'SULFATO DE MAGNESIO|KILO|', 46.00, 1),
+(658, 1, 2, 'SULFATO  DE HIERRO|KILO|', 4.00, 1),
+(659, 1, 2, 'BÓRAX|KILO|', 17.00, 1),
+(660, 1, 2, 'AZUFRE ELEMENTAL|KILO|', 12.00, 1),
+(661, 1, 2, ' AZUFRE MOJABLE|KILO|', 18.00, 1),
+(662, 1, 2, 'BACILLUS TURIGENSIS|KILO|', 12.00, 1),
+(663, 1, 2, 'TRICODERMA|KILO|', 15.00, 1),
+(664, 1, 2, 'MICORRIZA HOGON DEL SUELO|SACO|', 13.00, 1),
+(665, 1, 2, 'MELAZA |TOBO|', 10.00, 1),
+(666, 1, 2, 'DELTRAC O DELTAMETRINA|LITROS|', 33.00, 1),
+(667, 1, 2, 'CIPERPLANT AL 20%|LITROS|', 17.00, 1),
+(668, 1, 2, 'ACTARA|UNIDAD|', 13.00, 1),
+(669, 1, 2, 'ABONO FOLIAR CALCIO, BORO, HIERRO|CUÑETE|', 36.00, 1),
+(670, 1, 2, 'LEONARDITA(ACONDICIONADOR DEL SUELO)|CUÑETE|', 37.00, 1),
+(671, 1, 2, 'JABON POTASIO |LITROS|', 12.00, 1),
+(672, 1, 2, 'YESO AGRÍCOLA(SULFATO DE CALCIO) 50KG|SACO|', 15.00, 1),
+(673, 1, 2, ' PIPAS 200 LITROS CON TAPAS|PIPA|', 42.00, 1),
+(674, 1, 2, 'PIPAS DE 100 LITROS|PIPA|', 21.00, 1),
+(675, 1, 2, 'LLAVE DE PASO|TOBO|', 3.00, 1),
+(676, 1, 2, 'TUBO DE PVC 3” DE 3 MTRS|UNIDAD|', 11.00, 1),
+(677, 1, 2, 'TUBOS DE ½” DE 3 MTRS|UNIDAD|', 3.00, 1),
+(678, 1, 2, 'TUBO ¾”  3 METROS|UNIDAD|', 3.00, 1),
+(679, 1, 2, 'CEMENTO|SACO|', 12.00, 1),
+(680, 1, 2, 'CAL AGRÍCOLA CADA SACO 16 KG|SACO|', 2.00, 1),
+(681, 1, 2, 'Termometros para animales|UNIDAD|', 15.00, 1),
+(682, 1, 2, 'termómetro para medidor del suelo|UNIDAD|', 24.00, 1),
+(683, 1, 2, 'Botones Condecoraciones (bases)|UNIDAD|', 4.00, 1),
+(684, 1, 2, 'Ramos de flores |UNIDAD|', 18.00, 1),
+(685, 1, 2, 'CHALECOS DE SEGURIDAD DE TRANSITO|UNIDAD|', 2.00, 1),
+(686, 1, 2, 'CHALECOS REFLECTANTES|UNIDAD|', 10.00, 1),
+(687, 1, 2, 'OVEROL PARA HOMBRE TERMICO|UNIDAD|', 21.00, 1),
+(688, 1, 2, 'PETO PROTECTOR DE PECHO|UNIDAD|', 29.00, 1),
+(689, 1, 2, 'INTERRUPTORES|UNIDAD|', 3.00, 1),
+(690, 1, 2, 'TOMA CORRIENTE|UNIDAD|', 3.00, 1),
+(691, 1, 2, 'CONEXIONES RECTANGULARES|CAJA|', 2.00, 1),
+(692, 1, 2, 'BREAKER 20 AMP, 2 POLOS|UNIDAD|', 21.00, 1),
+(693, 1, 2, 'BOMBILLAS FLUORECENTE|UNIDAD|', 32.00, 1),
+(694, 1, 2, 'LUMINARIAS LED 100W|UNIDAD|', 33.00, 1),
+(695, 1, 2, 'TEIPE NEGRO|UNIDAD|', 1.00, 1),
+(696, 1, 2, 'TEIPE ELÉCTRICO 3/4|CAJA|', 18.00, 1),
+(697, 1, 2, 'TEFLON ¾ X 10|CAJA|', 7.00, 1),
+(698, 1, 2, 'Pitos de silbato P/VIGILANCIA|DOCENA|', 27.00, 1),
+(699, 1, 2, 'CONOS DE SEGURIDAD VIGILANCIA|UNIDAD|', 11.00, 1),
+(700, 1, 2, 'Balones de voleibol   Mikasa V200w Pelota|UNIDAD|', 25.00, 1),
+(701, 1, 2, 'Balones baloncesto número 7 Cidsen N7/molten  fiba 7|UNIDAD|', 17.00, 1),
+(702, 1, 2, 'Balones fútbol sala   Molten Número 4 F9a4800|UNIDAD|', 22.00, 1),
+(703, 1, 2, 'Balones fútbol campo número 5 Campo Mikasa Ss-50 Pelota Número 5|UNIDAD|', 22.00, 1),
+(704, 1, 2, 'Fit ball Pelota Balón Yoga Pilates Gym Fisio 55 65 75 85cm|UNIDAD|', 18.00, 1),
+(705, 1, 2, 'Kit de ligas Bandas Ligas Elásticas De Ejercicio Resistentes (kit 11pcs)|UNIDAD|', 14.00, 1),
+(706, 1, 2, 'Par de Mallas baloncesto |UNIDAD|', 8.00, 1),
+(707, 1, 2, 'Plicómetros (calibrador de grasa) genérico slimguide|UNIDAD|', 17.00, 1),
+(708, 1, 2, 'Cintas antropométricas|UNIDAD|', 4.00, 1),
+(709, 1, 2, 'Goniómetros Goniómetro Plástico 360 Grados Blue Jay|UNIDAD|', 3.00, 1),
+(710, 1, 2, 'Magene Sensor De Ritmo Cardíaco H64 Banda Cardiaca Fitness|UNIDAD|', 38.00, 1),
+(711, 1, 2, 'Camilla |UNIDAD|', 125.00, 1),
+(712, 1, 2, 'Kit Glucómetro 50 Lanceta 50 Tiras|UNIDAD|', 19.00, 1),
+(713, 1, 2, 'BATERIA AAA|PAR|', 3.00, 1),
+(714, 1, 2, 'BATERIA 9 VOLT|PAR|', 40.00, 1),
+(715, 1, 2, 'BATERÍA 8D|UNIDAD|', 319.00, 1),
+(716, 1, 2, 'BATERÍA 4D|UNIDAD|', 319.00, 1),
+(717, 1, 2, 'BATERÍA 950 AMP|UNIDAD|', 32.00, 1),
+(718, 1, 2, 'BATERÍA 700 AMP|UNIDAD|', 123.00, 1),
+(719, 1, 2, 'CAUCHOS (235/75 R15) AMB|UNIDAD|', 131.00, 1),
+(720, 1, 2, 'CAUCHOS (11.00.20) |UNIDAD|', 233.00, 1),
+(721, 1, 2, 'CAUCHOS (295/80R22,5)|UNIDAD|', 213.00, 1),
+(722, 1, 2, 'FILTRO DE ACEITE (W3690)|UNIDAD|', 21.00, 1),
+(723, 1, 2, 'FILTRO DE ACEITE (MITO-3000) |UNIDAD|', 29.00, 1),
+(724, 1, 2, 'FILTRO SECANTE (88-24-101-000) |UNIDAD|', 20.00, 1),
+(725, 1, 2, 'FILTRO SEPARADOR DE AGUA ( 24071)|UNIDAD|', 8.00, 1),
+(726, 1, 2, 'FILTRO DE COMBUSTIBLE (G-3627)|UNIDAD|', 7.00, 1),
+(727, 1, 2, 'FILTRO DE COMBUSTIBLE (34024)|UNIDAD|', 25.00, 1),
+(728, 1, 2, 'FILTRO DE COMBUSTIBLE (GF-4102)|UNIDAD|', 7.00, 1),
+(729, 1, 2, 'FILTRO DE COMBUSTIBLE (33353)|UNIDAD|', 10.00, 1),
+(730, 1, 2, 'FILTRO DE COMBUSTIBLE (33352)|UNIDAD|', 14.00, 1),
+(731, 1, 2, 'FILTRO DE AIRE (WCA-8003)|UNIDAD|', 33.00, 1),
+(732, 1, 2, 'FILTRO DE AIRE (WCA-2548)|UNIDAD|', 25.00, 1),
+(733, 1, 2, 'REFRIGERANTES|UNIDAD|', 16.00, 1),
+(734, 1, 2, 'ACEITE HIDRÁULICO PARA LA DIRECCIÓN|LITROS|', 10.00, 1),
+(735, 1, 2, 'ACEITE DEXRON CAJA AUTOMÁTICA|LITROS|', 9.00, 1),
+(736, 1, 2, 'ACEITE DE MOTOR 15W40|LITROS|', 8.00, 1),
+(737, 1, 2, 'ACEITE SEMISINTÉTICO 20W50|LITROS|', 13.00, 1),
+(738, 1, 2, 'ACEITE SEMISINTÉTICO 20W50|PAILA|', 57.00, 1),
+(739, 1, 2, 'ACEITE DE MOTOR DIESEL 50HD|PAILA|', 147.00, 1),
+(740, 1, 2, 'GRASA PARA LUBRICACIÓN DE RODAMIENTOS |POTE|', 4.00, 1),
+(741, 1, 2, 'RELOJ DE TEMPERATURA|UNIDAD|', 12.00, 1),
+(742, 1, 2, 'RELOJ DE PRESIÓN DE ACEITE|UNIDAD|', 33.00, 1),
+(743, 1, 2, 'CORREAS PARA EL ALTERNADOR (01/2023| S09001)|UNIDAD|', 8.00, 1),
+(744, 1, 2, 'EQUIPADO DE COMBUSTIBLE (GASOIL)|UNIDAD|', 1.00, 1),
+(745, 1, 2, 'LIGA DE FRENOS DOT4|LITROS|', 12.00, 1),
+(746, 1, 2, 'LIGA DE FRENOS DOT3|LITROS|', 17.00, 1),
+(747, 1, 2, 'Dvd-Rw Externo|UNIDAD|', 33.00, 1),
+(748, 1, 2, 'SSD Externo 1tb Sata|UNIDAD|', 89.00, 1),
+(749, 1, 2, 'Disco Duro 500gb Sata|UNIDAD|', 17.00, 1),
+(750, 1, 2, 'Memoria RAM Ddr3 2gb|UNIDAD|', 10.00, 1),
+(751, 1, 2, 'Memoria RAM Ddr2 4gb|UNIDAD|', 21.00, 1),
+(752, 1, 2, 'Cd Virgen|UNIDAD|', 18.00, 1),
+(753, 1, 2, 'Dvd Virgen|UNIDAD|', 18.00, 1),
+(754, 1, 2, 'Fuente De Poder Atx 600 Watt|UNIDAD|', 37.00, 1),
+(755, 1, 2, 'Baterías Cr2032|UNIDAD|', 16.00, 1),
+(756, 1, 2, 'Cables De Video VgaCpu-Monitor|UNIDAD|', 4.00, 1),
+(757, 1, 2, 'Tarjetas De Red Inalámbrica|UNIDAD|', 7.00, 1),
+(758, 1, 2, 'Pasta Térmica|UNIDAD|', 10.00, 1),
+(759, 1, 2, 'Limpia Contactos Electrónicos|UNIDAD|', 15.00, 1),
+(760, 1, 2, 'Mouse USB|UNIDAD|', 5.00, 1),
+(761, 1, 2, 'Teclado USB|UNIDAD|', 11.00, 1),
+(762, 1, 2, 'Destornilladores|JUEGO|', 23.00, 1),
+(763, 1, 2, 'Llaves Allen|JUEGO|', 16.00, 1),
+(764, 1, 2, 'Destornilladores De Estrella|JUEGO|', 5.00, 1),
+(765, 1, 2, 'Pulsera Antiestática|UNIDAD|', 8.00, 1),
+(766, 1, 2, 'Lámpara Para Electrónica|UNIDAD|', 26.00, 1),
+(767, 1, 2, 'ADAPTADOR DE DB9-USB|UNIDAD|', 6.00, 1),
+(768, 1, 2, 'CONECTORES RJ45|PAQUETES|', 8.00, 1),
+(769, 1, 2, 'MECHAS DE 70 PIEZAS|JUEGO|', 80.00, 1),
+(770, 1, 2, 'CRIMPEADORA RJ 45 LANPRO|UNIDAD|', 36.00, 1),
+(771, 1, 2, 'PATCH PANNEL UTP CAT 6 24 PTOS LANPRO|UNIDAD|', 83.00, 1),
+(772, 1, 2, 'PATCH PANNEL UTP CAT 6 48 PTOS LANPRO|UNIDAD|', 156.00, 1),
+(773, 1, 2, 'PATCH LARGO CATEGORÍA 6 SIEMON|UNIDAD|', 7.00, 1),
+(774, 1, 2, 'SQ ELÉCTRICO|UNIDAD|', 15.00, 1),
+(775, 1, 2, 'QNAP32TB (TS-853 PRO-8G-84R-US|UNIDAD|', 27.00, 1),
+(776, 1, 2, 'PATCH CORD FIBRA 1,3 MTS SFP+|UNIDAD|', 73.00, 1),
+(777, 1, 2, 'MÓDULO DE FIBRA SFP|UNIDAD|', 59.00, 1),
+(778, 1, 2, 'TESTER DIGITAL – CABLE UTP CON DISPLAY (FLUKE MS2-100)|UNIDAD|', 13.00, 1),
+(779, 1, 2, 'ORGANIZADOR HORIZONTAL PLÁSTICO PARA RACK 2U|UNIDAD|', 19.00, 1),
+(780, 1, 2, 'ORGANIZADOR HORIZONTAL PLÁSTICO PARA RACK 3U|UNIDAD|', 19.00, 1),
+(781, 1, 2, 'COUPLERS CAT 6|UNIDAD|', 7.00, 1),
+(782, 1, 2, 'FACE PLATE CAT 6|CAJA 1X10|', 2.00, 1),
+(783, 1, 2, 'RACK TIRRO MUEBLE 12U 18 PULGADAS|UNIDADES|', 176.00, 1),
+(784, 1, 2, '||', 25.00, 0),
+(785, 1, 3, 'RECARGA DE TONER|UNIDAD|', 225.00, 1),
+(786, 1, 3, 'RECARGA DE CARTUCHO|UNIDAD|', 36.00, 1),
+(787, 1, 3, 'REPARACION Y MANTEMIENTO DE FOTOCOPIADORA|UNIDAD|', 539.00, 1),
+(788, 1, 3, 'REPARACION Y MANTEMIENTO DE  IMPRESORA |UNIDAD|', 216.00, 1),
+(789, 1, 3, 'REPARACION Y MANTEMIENTO DE  IMPRESORA LASER JET 1210|UNIDAD|', 539.00, 1),
+(790, 1, 3, 'REPARACION Y MANTEMIENTO DE  IMPRESORA  HP LASER JET 53 A|UNIDAD|', 539.00, 1),
+(791, 1, 3, 'REPARACION Y MANTEMIENTO DE  IMPRESORA LASER JET 83 |UNIDAD|', 539.00, 1),
+(792, 1, 3, 'REPARACION Y MANTEMIENTO DE  VIDEOBEAM|UNIDAD|', 216.00, 1),
+(793, 1, 3, 'MANTENIMIENTO DE AIRES ACONDICIONADO|SERVICIO|', 11.00, 1),
+(794, 1, 3, 'REPARACION Y MANT DE AIRES ACONDICIONADO|UNIDAD|', 898.00, 1),
+(795, 1, 3, 'VIATICOS|UNIDAD|', 180.00, 1),
+(796, 1, 3, 'Viáticos de transporte dentro del estado Lara|UNIDAD|', 4.00, 1),
+(797, 1, 3, 'Viáticos de transporte interior del país |UNIDAD|', 9.00, 1),
+(798, 1, 3, 'Viáticos de alimentación dentro del estado Lara |UNIDAD|', 4.00, 1),
+(799, 1, 3, 'Viáticos de alimentación en el interior del país  |UNIDAD|', 9.00, 1),
+(800, 1, 3, 'SUMINISTRO DE REFRIGERIOS|UNIDAD|', 90.00, 1),
+(801, 1, 3, 'HOSPEDAJE|SERVICIO|', 17.00, 1),
+(802, 1, 3, 'ALQUILER DE TRANSPORTE PARTICULAR|UNIDAD|', 216.00, 1),
+(803, 1, 3, 'ELABORACION DE SELLOS|UNIDAD|', 36.00, 1),
+(804, 1, 3, 'sudaderas identificadas.|DOCENAS|', 40.00, 1),
+(805, 1, 3, 'pantalones tácticos. |DOCENAS|', 166.00, 1),
+(806, 1, 3, 'gorras identificadas.|DOCENAS|', 20.00, 1),
+(807, 1, 3, 'ELABORACIÓN DE CAMISAS PARA ACTOS, REUNIONES, CONFERENCIAS ENTRE OTROS.|SERVICIO|', 6.00, 1),
+(808, 1, 3, 'CONFECCION DE FRANELAS|UNIDAD|', 9.00, 1),
+(809, 1, 3, 'ELABORACION DE PENDON|UNIDAD|', 54.00, 1),
+(810, 1, 3, 'ALQUILER DE EQUIPOS TECNOLOGICOS|UNIDAD|', 216.00, 1),
+(811, 1, 3, 'Servicio para la Elaboraciòn y Suministro de Comida|SERVICIO|', 32.00, 1),
+(812, 1, 3, 'SERVICIO DE FUMIGACION.|UNIDAD|', 269.00, 1),
+(813, 1, 3, 'Reparación y Mantenimiento varios de los equipos del comedor estudiantil|UNIDAD|', 719.00, 1),
+(814, 1, 3, 'Refrigerios (Reunión organizadas por proyectos institucionales)|UNIDAD|', 5.00, 1),
+(815, 1, 3, 'IMPUESTO AL VALOR AGREGADO PNF HSL|UNIDAD|', 602.00, 1),
+(816, 1, 3, 'IMPUESTO AL VALOR AGREGADO PNF CP|UNIDAD|', 602.00, 1),
+(817, 1, 3, 'ELABORACIÓN DE CARPETAS INSTITUCIONALES POR CADA 100|SERVICIO|', 11.00, 1),
+(818, 1, 3, 'Cursos de adiestramiento en Procesos Administrativos.|UNIDAD|', 18.00, 1),
+(819, 1, 3, 'Cursos Manejos de Programas Informáticos.|UNIDAD|', 18.00, 1),
+(820, 1, 3, 'Curso de producción de videos y creación de contenido interactivo|UNIDAD|', 27.00, 1),
+(821, 1, 3, 'SERV. LÁMINAS DE DRYWALL PARED PARA REALIZAR EL ESPACIO DE LA OFICINA DEL JEFE|UNIDAD|', 13.00, 1),
+(822, 1, 3, 'Cursos de Actualización en Planificación Estratégica e Indicadores de Gestión DFPD|UNIDAD|', 81.00, 1),
+(823, 1, 3, 'Cursos de adiestramiento y capacitación.|UNIDAD|', 22.00, 1),
+(824, 1, 3, 'Cursos de adiestramiento, capacitación. En áreas estratégicas DFPD|UNIDAD|', 81.00, 1),
+(825, 1, 3, 'Curso de especialización en Excel|UNIDAD|', 48.00, 1),
+(826, 1, 3, 'CURSO DE RELACIONES HUMANAS|UNIDAD|', 54.00, 1),
+(827, 1, 3, 'Capacitaciones del personal de servicio.|UNIDAD|', 63.00, 1),
+(828, 1, 3, 'Servicio de cisternas de agua|UNIDAD|', 19.00, 1),
+(829, 1, 3, 'IMPUESTO AL VALOR AGREGADO PNF SCA|UNIDAD|', 595.00, 1),
+(830, 1, 3, 'SERVICIO DE INTERNET (NUCLEO JIMENEZ)|SERVICIO|', 228.00, 1),
+(831, 1, 3, 'REPARACION DE SISTEMA DE AGUAS BLANCA (NUCLEO JIMENEZ)|SERVICIO|', 584.00, 1),
+(832, 1, 3, 'MANTENIMIENTO DE EQUIPOS DE COMPUTACIÓN, IMPRESORAS, VIDEO BEEM, LAPTOP|SERVICIO|', 11.00, 1),
+(833, 1, 3, 'MANTENIMIENTO Y ORNATO DE JARDINERÍA|SERVICIO|', 115.00, 1),
+(834, 1, 3, 'MANTENIMIENTO DE ORNATO (NUCLEO JIMENEZ)|SERVICIO|', 70.00, 1),
+(835, 1, 3, 'MANTENIMENTO DE SEDE  (NUCLEO JIMENEZ)|SERVICIO|', 146.00, 1);
+INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `precio`, `estado`) VALUES
+(836, 1, 3, 'TRANSPORTE ESTUDIANTIL (NUCLEO JIMENEZ)|SERVICIO|', 7882.00, 1),
+(837, 1, 3, 'SUSTITUCION DE CANALES DE AGUAS|SERVICIO|', 3332.00, 1),
+(838, 1, 3, 'ACONDICIONAMIENTO DE BATERIA DE BAÑOS|SERVICIO|', 2991.00, 1),
+(839, 1, 3, 'RECUPRACION DE ESPACIOS POR FILTRACIONES|SERVICIO|', 1078.00, 1),
+(840, 1, 3, 'RESTAURACION DE CONSTRUCCIONES|SERVICIO|', 14956.00, 1),
+(841, 1, 3, 'Talleres de formación para el personal docente.|SERVICIO|', 18.00, 1),
+(842, 1, 3, 'Seminarios  de complementación de las unidades curriculares de las menciones de polímeros y metalúrgica para los estudiantes |SERVICIO|', 36.00, 1),
+(843, 1, 3, 'MANTENIMIENTO DE LA MAQUINA CORTADORA|SERVICIO|', 57.00, 1),
+(844, 1, 3, 'CONEXIÓN DE UN PUNTO DE INTERNET A LAS PC QUE PERMITA LLEVAR EL CONTROL DEL PROCEDIMIENTO DOCUMENTAL.|SERVICIO|', 81.00, 1),
+(845, 1, 3, 'MANTENIMIENTO Y ARREGLO DE LA MAQUINA ESTAMPADORA.|SERVICIO|', 81.00, 1),
+(846, 1, 3, 'MANTENIMIENTO DE LA PRENSA METÁLICA|SERVICIO|', 40.00, 1),
+(847, 1, 3, 'ARREGLO DE UN FILTRO DE AGUA MINERAL|SERVICIO|', 49.00, 1),
+(848, 1, 3, 'Servicio de volteo para bote de escombros|SERVICIO|', 36.00, 1),
+(849, 1, 3, 'Talleres, Conversatorios, Cursos entre otros  |SERVICIO|', 9.00, 1),
+(850, 1, 3, 'Curso de Especialización de Impuestos y Retenciones|UNIDAD|', 55.00, 1),
+(851, 1, 3, 'Curso de especialización en Excel|SERVICIO|', 54.00, 1),
+(852, 1, 3, 'Remodelación área de Atención al Estudiante.|SERVICIO|', 108.00, 1),
+(853, 1, 3, 'Archivador metálico grande|SERVICIO|', 139.00, 1),
+(854, 1, 3, 'Mantenimientos de las Lámparas internas.  |SERVICIO|', 4.00, 1),
+(855, 1, 3, 'REPARACION DE PUERTA INTERNA|SERVICIO|', 8.00, 1),
+(856, 1, 3, 'Reparacion de las gavetas de los escritorios|SERVICIO|', 12.00, 1),
+(857, 1, 3, 'Reparaciones de cajetines de toma corrientes|SERVICIO|', 3.00, 1),
+(858, 1, 3, 'Reparaciones de sillas apilables de reuniones |SERVICIO|', 20.00, 1),
+(859, 1, 3, 'Alquiler Rastra DE 20 disco |SERVICIO|', 125.00, 1),
+(860, 1, 3, 'RETROEXCAVADOR|SERVICIO|', 208.00, 1),
+(861, 1, 3, 'Transporte rustico (Toyota)|SERVICIO|', 83.00, 1),
+(862, 1, 3, 'Impresión de pendones  lona full color|SERVICIO|', 23.00, 1),
+(863, 1, 3, 'Servicio técnico para equipos de laboratorio de Ciencias aplicadas Manuel Naranjo  |SERVICIO|', 33.00, 1),
+(864, 1, 3, 'REVISIÓN DE NEUMÁTICOS (ALINEACIÓN Y BALANCEO)|SERVICIO|', 82.00, 1),
+(865, 1, 3, 'CAMBIO DE ACEITE|SERVICIO|', 25.00, 1),
+(866, 1, 3, 'INSTALACIÓN Y DESINSTALACIÓN DEL TANQUE DE COMBUSTIBLE PARA LAVADO|SERVICIO|', 114.00, 1),
+(867, 1, 3, 'LAVADO DEL TANQUE DE COMBUSTIBLE |SERVICIO|', 12.00, 1),
+(868, 1, 3, 'LAVADO PARA MANTENIMIENTO DE LAS UNIDADES|SERVICIO|', 49.00, 1),
+(869, 1, 3, 'Mantenimiento a impresoras |SERVICIO|', 67.00, 1),
+(870, 1, 3, 'Mantenimiento a fotocopiadora |SERVICIO|', 72.00, 1),
+(871, 1, 3, 'MANTENIMIENTO DEL SISTEMA ELÉCTRICO|SERVICIO|', 123.00, 1),
+(872, 1, 3, 'REPARACIÓN DE NEUMÁTICOS|SERVICIO|', 16.00, 1),
+(873, 1, 3, 'REVISIÓN DE BATERÍA|SERVICIO|', 25.00, 1),
+(874, 1, 3, 'REVISIÓN DE CHASIS|SERVICIO|', 245.00, 1),
+(875, 1, 3, 'REVISIÓN DE MOTOR|SERVICIO|', 37.00, 1),
+(876, 1, 3, 'PINTURA PARA LAS FACHADAS DE  LA ALDEA URDANETA|SERVICIO|', 17.00, 1),
+(877, 1, 3, 'UNIFORMES PARA LOS ESTUDIANTES (JUEGOS INTERPNF 2026)|SERVICIO|', 27.00, 1),
+(878, 1, 3, 'UNIFORMES PARA LOS DOCENTES Y EQUIPO TÉCNICO DEL PNFA|SERVICIO|', 27.00, 1),
+(879, 1, 3, 'ALQUILER DE FESTEJO PARA FERIA DE EMPRENDIMIENTO|SERVICIO|', 269.00, 1),
+(880, 1, 3, 'CONTRATACIÓN DE SONIDO PARA EVENTOS VARIOS|SERVICIO|', 180.00, 1),
+(881, 1, 3, 'CORPOELEC|SERVICIO|', 22.00, 1),
+(882, 1, 3, 'CANTV|SERVICIO|', 35.00, 1),
+(883, 1, 3, 'DIGITEL|SERVICIO|', 727.00, 1),
+(884, 1, 3, 'MOVILNET|SERVICIO|', 61.00, 1),
+(885, 1, 3, 'HIDROLARA|SERVICIO|', 60.00, 1),
+(886, 1, 3, 'ALQUILER DE TRANSPORTE ESTUDIANTIL|SERVICIO|', 2393.00, 1),
+(887, 1, 4, 'SILLAS EJECUTIVAS|UNIDAD|', 359.00, 1),
+(888, 1, 4, 'SILLAS EJECUTIVAS ERGONOMICA|UNIDAD|', 449.00, 1),
+(889, 1, 4, 'SILLAS SECRETARIAL ERGONOMICA|UNIDAD|', 449.00, 1),
+(890, 1, 4, 'SILLA PLASTICA BLANCA|UNIDAD|', 9.00, 1),
+(891, 1, 4, 'SILLAS VISITANTES|UNIDAD|', 269.00, 1),
+(892, 1, 4, 'SILLA DE ESCRITORIO|UNIDAD|', 359.00, 1),
+(893, 1, 4, 'SILLAS SECRETARIALES DE RUEDAS |UNIDAD|', 135.00, 1),
+(894, 1, 4, 'SILLAS ERGONOMICAS|UNIDAD|', 180.00, 1),
+(895, 1, 4, 'Sillas de Oficina Tipo Cajero|UNIDAD|', 494.00, 1),
+(896, 1, 4, 'COMPUTADORAS PERSONALES LAPTOS|UNIDAD|', 719.00, 1),
+(897, 1, 4, 'COMPUTADORAS DE ESCRITORIO|UNIDAD|', 90.00, 1),
+(898, 1, 4, 'Computadora I7 4ta 8gb 500gb Hdd Monitor Teclado Y Mouse Pc|UNIDAD|', 208.00, 1),
+(899, 1, 4, 'Computadora Pc 11va Gen 8gb RAM 1tb SSD I5|UNIDAD|', 815.00, 1),
+(900, 1, 4, 'Computadora Pc Gamer Intel Core I5 16ram 512ssd 600w White 4|UNIDAD|', 180.00, 1),
+(901, 1, 4, 'Computadora  I5 7ma. Gen 8 gb Ram Disco de estado Sólido|UNIDAD|', 97.00, 1),
+(902, 1, 4, 'Computadora  I5 10ma. Gen 16 gb Ram Disco de estado Sólido|UNIDAD|', 252.00, 1),
+(903, 1, 4, 'Computador PC completa  Core 15 256Gb 8Gb Ram|UNIDAD|', 182.00, 1),
+(904, 1, 4, 'IMPRESORAS MULTIFUNCIONAL|UNIDAD|', 269.00, 1),
+(905, 1, 4, 'IMPRESORAS LASER A COLOR|UNIDAD|', 269.00, 1),
+(906, 1, 4, 'Impresora (Tickera)|UNIDAD|', 234.00, 1),
+(907, 1, 4, 'Impresora Laser Monográfica|UNIDAD|', 94.00, 1),
+(908, 1, 4, 'Impresora multifuncional: Fotocopiadora, Impresora, escáner Canon Mf-264dw Wifi Duplex|UNIDAD|', 24.00, 1),
+(909, 1, 4, 'RATON DE COMPUTADORA|UNIDAD|', 8.00, 1),
+(910, 1, 4, 'CORNETA PARA COMPUTADORAS DE MESA|UNIDAD|', 13.00, 1),
+(911, 1, 4, 'CORNETA AMPLIFICADA CON MICROFONO|UNIDAD|', 719.00, 1),
+(912, 1, 4, 'Micrófono Inalámbrico Lavalier K35 para Teléfonos Jack 3.5|UNIDAD|', 11.00, 1),
+(913, 1, 4, 'Audífonos inalámbricos|UNIDAD|', 14.00, 1),
+(914, 1, 4, 'AIRE ACONDICIONADO INDUSTRIAL|UNIDAD|', 2695.00, 1),
+(915, 1, 4, 'VIDEO BEAN |UNIDAD|', 269.00, 1),
+(916, 1, 4, 'Cámara digital 4K|UNIDAD|', 36.00, 1),
+(917, 1, 4, 'Cámara de Video|UNIDAD|', 269.00, 1),
+(918, 1, 4, 'MICRÓFONOS INALÁMBRICO RECARGABLE UHF CON BATERÍAS INCLUIDAS|UNIDAD|', 12.00, 1),
+(919, 1, 4, 'MICROFONO|UNIDAD|', 22.00, 1),
+(920, 1, 4, 'Micrófono Inalámbrico Lavalier K35 para Teléfonos Jack 3.5|UNIDAD|', 11.00, 1),
+(921, 1, 4, 'Aro de luz Led para selfies, Iluminación, Fotografía 12 pulgadas|UNIDAD|', 9.00, 1),
+(922, 1, 4, 'Cable de datos para escáner tipo HP scanjet 5590|UNIDAD|', 25.00, 1),
+(923, 1, 4, 'FOTOCOPIADORA|UNIDAD|', 1258.00, 1),
+(924, 1, 4, 'ARCHIVADORES|UNIDAD|', 449.00, 1),
+(925, 1, 4, 'Archivador metálico grande ( 2 puertas)|UNIDAD|', 719.00, 1),
+(926, 1, 4, 'Archivador vertical de 4 gavetas con cerradura|UNIDAD|', 454.00, 1),
+(927, 1, 4, 'Mesones|UNIDAD|', 180.00, 1),
+(928, 1, 4, 'DIVAN|UNIDAD|', 629.00, 1),
+(929, 1, 4, 'CORNETA CON BLUETOOTH|UNIDAD|', 187.00, 1),
+(930, 1, 4, 'CORNETA CON MICROFONO|UNIDAD|', 629.00, 1),
+(931, 1, 4, 'ESCRITORIO|UNIDAD|', 216.00, 1),
+(932, 1, 4, 'TENSIOMETRO|UNIDAD|', 234.00, 1),
+(933, 1, 4, 'GLUCOMETRO MAS CINTAS REACTIVAS|UNIDAD|', 63.00, 1),
+(934, 1, 4, 'OXIMETRO|UNIDAD|', 54.00, 1),
+(935, 1, 4, 'BATIDORES DE MANO PEQUEÑOS|UNIDAD|', 1796.00, 1),
+(936, 1, 4, 'BATIDORES DE MANO MEDIANOS|UNIDAD|', 2695.00, 1),
+(937, 1, 4, 'BATIDORES DE MANO GRANDES|UNIDAD|', 1832.00, 1),
+(938, 1, 4, 'CAFETERA|UNIDAD|', 45.00, 1),
+(939, 1, 4, 'LICUADORA INDUSTRIAL GRANDE|UNIDAD|', 539.00, 1),
+(940, 1, 4, 'MICROONDAS|UNIDAD|', 45.00, 1),
+(941, 1, 4, 'Termo de café. 1.9 lts|UNIDAD|', 18.00, 1),
+(942, 1, 4, 'LICUADORA INDUSTRIAL PEQUEÑA|UNIDAD|', 359.00, 1),
+(943, 1, 4, 'FILTROS DE AGUA POPOTAMO 40 LITROS|UNIDAD|', 180.00, 1),
+(944, 1, 4, 'FILTROS DE AGUA POPOTAMO 22 LITROS|UNIDAD|', 146.00, 1),
+(945, 1, 4, 'FILTROS DE AGUA POPOTAMO 15 LITROS|UNIDAD|', 101.00, 1),
+(946, 1, 4, 'LINEA DE SERVICIO CALIENTE |UNIDAD|', 2695.00, 1),
+(947, 1, 4, 'LINEA DE SERVICIO FRIA|UNIDAD|', 2695.00, 1),
+(948, 1, 4, 'REVERBEROS INDUSTRIALES|UNIDAD|', 3054.00, 1),
+(949, 1, 4, 'COCINA INDUSTRIAL 6 HORNILLAS|UNIDAD|', 4671.00, 1),
+(950, 1, 4, 'CAVA CUARTO CONGELADORAS HORIZONTALES|UNIDAD|', 17965.00, 1),
+(951, 1, 4, 'CAVA CUARTO CONSERVADORA VERTICAL 2 PUERTAS|UNIDAD|', 4491.00, 1),
+(952, 1, 4, 'CAVAS TIPO VITRINAS CONSERVADORAS 3 PUERTAS|UNIDAD|', 5928.00, 1),
+(953, 1, 4, 'DISPENSADOR DE JUGOS |UNIDAD|', 3593.00, 1),
+(954, 1, 4, 'MARMITA DE ACERO INXOSIDABLE|UNIDAD|', 7186.00, 1),
+(955, 1, 4, 'VASCULANTE DE ACERO INOXIDABLE|UNIDAD|', 17965.00, 1),
+(956, 1, 4, 'BATIDORAS INDUSTRIAL|UNIDAD|', 1707.00, 1),
+(957, 1, 4, 'REBANADORA INDUSTRIAL CHARCUTERA GRANDE|UNIDAD|', 1796.00, 1),
+(958, 1, 4, 'AYUDANTE DE COCINA|UNIDAD|', 898.00, 1),
+(959, 1, 4, 'MOLINO ELECTRICO INDUSTRIAL PARA CARNES|UNIDAD|', 1473.00, 1),
+(960, 1, 4, 'PELAPAPAS INDUSTRIAL|UNIDAD|', 1617.00, 1),
+(961, 1, 4, 'CAENTADOR DE AGUA INDUSTRIAL|UNIDAD|', 1437.00, 1),
+(962, 1, 4, 'BALANZA ELECTRONICA |UNIDAD|', 1437.00, 1),
+(963, 1, 4, 'BALANZA MANUAL|UNIDAD|', 180.00, 1),
+(964, 1, 4, 'HIELERAS INDUSTRIALES|UNIDAD|', 2156.00, 1),
+(965, 1, 4, 'BOMBA HIDRONEUMÁTICA (PULMÓN)|UNIDAD|', 1617.00, 1),
+(966, 1, 4, 'EQUIPO DE COMPUTACIÓN I-5 (MONITOR, TECLADO,RATÓN, CPU i5)|UNIDAD|', 1078.00, 1),
+(967, 1, 4, 'AIRE ACONDICIONADO 24.000 BTU|UNIDAD|', 898.00, 1),
+(968, 1, 4, 'AIRE ACONDICIONADOS 12000 BTU|UNIDAD|', 208.00, 1),
+(969, 1, 4, 'AIRE ACONDICIONADO 18.000 BTU|UNIDAD|', 2695.00, 1),
+(970, 1, 4, 'FILTRO DISPENSADOR DE AGUA|UNIDAD|', 2515.00, 1),
+(971, 1, 4, 'GUARDAROPA (LOCKERS) 2 DIVISIONES|UNIDAD|', 359.00, 1),
+(972, 1, 4, 'REGULADOR|UNIDAD|', 47.00, 1),
+(973, 1, 4, 'REGULADOR DE CORRIENTE PARA COMPUTADORAS|UNIDAD|', 45.00, 1),
+(974, 1, 4, 'REGULADORES UPS|UNIDAD|', 48.00, 1),
+(975, 1, 4, 'UPS APC SMART RT 5000 VA 208V|UNIDAD|', 18.00, 1),
+(976, 1, 4, 'UPS|UNIDAD|', 45.00, 1),
+(977, 1, 4, 'SMART TV 43 PULGADAS|UNIDAD|', 153.00, 1),
+(978, 1, 4, 'VENTILADOR DE PARED|UNIDAD|', 34.00, 1),
+(979, 1, 4, 'NEVERA EJECUTIVA|UNIDAD|', 90.00, 1),
+(980, 1, 4, 'Encuadernadora espiral |UNIDAD|', 135.00, 1),
+(981, 1, 4, 'DISPENSADOR DE AGUA|UNIDAD|', 449.00, 1),
+(982, 1, 4, 'ESTANTE CON CERRADURA|UNIDAD|', 29.00, 1),
+(983, 1, 4, 'MESA DE ESCRITORIO|UNIDAD|', 71.00, 1),
+(984, 1, 4, 'MESA SILLA|UNIDAD|', 13.00, 1),
+(985, 1, 4, 'PANTALLA PARA PROYECTOR VIDEO BEAM|UNIDAD|', 27.00, 1),
+(986, 1, 4, 'FUMIGADORA|UNIDAD|', 146.00, 1),
+(987, 1, 4, 'BIBLIOTECA TIPO ESCAPARATE|UNIDAD|', 231.00, 1),
+(988, 1, 4, 'Grifo de ½ NTP para lavamanos|UNIDAD|', 44.00, 1),
+(989, 1, 4, 'Teléfono Celular para uso institucional|UNIDAD|', 63.00, 1),
+(990, 1, 4, 'Pizarra acrilica |UNIDAD|', 32.00, 1),
+(991, 1, 4, 'MAQUINA ENCUADERNADORA|UNIDAD|', 121.00, 1),
+(992, 1, 4, 'Hidrojet 1.400W 1.900PSI alta presión|UNIDAD|', 78.00, 1),
+(993, 1, 4, 'Aspiradora 1.200W 10 lts|UNIDAD|', 76.00, 1),
+(994, 1, 4, 'Aspiradora 1.200W 10 lts|UNIDAD|', 1311.00, 1),
+(995, 1, 4, 'Aspiradora 1.200W 10 lts|UNIDAD|', 234.00, 1),
+(996, 1, 4, 'Lavadora y secadora industrial morocha|UNIDAD|', 1069.00, 1),
+(997, 1, 4, 'Motosierra Stihl Ms382 70cm x 72c Gasolina punta dura|UNIDAD|', 970.00, 1),
+(998, 1, 4, 'Guadaraña o Desmalezadora Stihl robusta trabajo pesado Fs 460|UNIDAD|', 653.00, 1),
+(999, 1, 4, 'Cortasetos Stihl Hs - 45|UNIDAD|', 375.00, 1),
+(1000, 1, 4, 'SUMADORA|UNIDAD|', 35.00, 1),
+(1001, 1, 4, 'USB|UNIDAD|', 5.00, 1),
+(1002, 1, 4, 'MEMORIA SD|UNIDAD|', 5.00, 1),
+(1003, 1, 4, 'CAMARA DE VIDEO|UNIDAD|', 269.00, 1),
+(1004, 1, 4, 'ASPIRADORA DE AGUA Y POLVO VACMASTER SOPLADORA|UNIDAD|', 135.00, 1),
+(1005, 1, 4, 'PARABAN CLINICO DE 4 CUERPOS SEPARADOR PLEGABLE CON RUEDAS|UNIDAD|', 172.00, 1),
+(1006, 1, 4, 'TELEVISIÓN DE 42 Pulgada|UNIDAD|', 198.00, 1),
+(1007, 1, 4, 'Motocultor a Disel, gasoil|UNIDAD|', 1342.00, 1),
+(1008, 1, 4, 'Aspersor de cañon 2|UNIDAD|', 59.00, 1),
+(1009, 1, 4, 'ROUSTER WIFI DUAL BANDA AC 1200|UNIDAD|', 28.00, 1),
+(1010, 1, 4, 'MEDIDOR DE PH Y CONDUCTIVIDAD DEL SUELO|UNIDAD|', 69.00, 1),
+(1011, 1, 4, 'INCUBADORA|UNIDAD|', 208.00, 1),
+(1012, 1, 4, 'NIVEL OPTICO TOPOGRÁFICO|UNIDAD|', 209.00, 1),
+(1013, 1, 4, 'MIRA TOPOGRAFICA ALUMINIO|UNIDAD|', 42.00, 1),
+(1014, 1, 4, 'GPS NAVEGADOR|UNIDAD|', 250.00, 1),
+(1015, 1, 4, 'GUILLOTINA A4 BASE DE METAL |UNIDAD|', 28.00, 1),
+(1016, 1, 4, 'ENFRIADOR VERTICAL PARA BIOINSUMOS|UNIDAD|', 1543.00, 1),
+(1017, 1, 4, 'Linternas recargables |UNIDAD|', 7.00, 1),
+(1018, 1, 4, 'Linternas recargables |UNIDAD|', 12.00, 1),
+(1019, 1, 4, 'EXTENSIONES DE ALTA TENSIÓN|UNIDAD|', 16.00, 1),
+(1020, 1, 4, 'SERVIDORES DE CUALQUIER GAMA ACTUALIZADOS|UNIDAD|', 4766.00, 1),
+(1021, 1, 4, 'SWITCHES DE CUALQUIER GAMA ACTUALIZADOS CISCO|UNIDAD|', 375.00, 1),
+(1022, 1, 4, 'HORNO MICROONDAS|UNIDAD|', 180.00, 1),
+(1023, 1, 5, 'BECAS|UNIDAD|', 7.00, 1),
+(1024, 1, 5, 'PREPARADURIA|UNIDAD|', 18.00, 1),
+(1025, 1, 5, 'AYUDAS EVENTUALES|UNIDAD|', 18.00, 1),
+(1026, 1, 5, 'AYUDAS A LOS ESTUDIANTES CON DISCAPACIDAD|UNIDAD|', 18.00, 1),
+(1027, 1, 5, 'AYUDAS A LOS ESTUDIANTES CONSEJO POPULAR EST.|UNIDAD|', 18.00, 1),
+(1028, 1, 5, '||', 79.00, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `proveedores`
+--
+
+CREATE TABLE `proveedores` (
+  `id_proveedor` int(11) NOT NULL,
+  `nom_prov` varchar(100) NOT NULL,
+  `descripcion` varchar(150) DEFAULT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `proveedores`
+--
+
+INSERT INTO `proveedores` (`id_proveedor`, `nom_prov`, `descripcion`, `estado`) VALUES
+(1, 'Distribuidora Eléctrica C.A.', 'Material eléctrico y equipos', 1),
+(2, 'Papelería Central', 'Útiles de oficina y papelería', 1),
+(3, 'TecnoSoluciones 2025', 'Equipos de cómputo y redes', 1),
+(4, 'Mantenimientos Industriales', 'Servicios de mantenimiento', 1),
+(5, 'Consultores Asociados', 'Servicios de consultoría', 1),
+(6, 'Logística Rápida', 'Transporte y almacenaje', 1),
+(7, 'Suministros Médicos', 'Insumos de salud', 1),
+(8, 'Seguros del Centro', 'Pólizas de seguros', 1),
+(9, 'Impuestos Express', 'Asesoría fiscal', 1),
+(10, 'Publicidad Creativa', 'Diseño y campañas publicitarias', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `requerimientos`
+--
+
+CREATE TABLE `requerimientos` (
+  `id_req` int(11) NOT NULL,
+  `id_dep` int(11) NOT NULL,
+  `id_tasa` int(11) NOT NULL,
+  `id_aniof` int(11) NOT NULL,
+  `estado_envio` tinyint(1) NOT NULL DEFAULT 0,
+  `fecha_env` date NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `requerimientos`
+--
+
+INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado_envio`, `fecha_env`, `estado`) VALUES
+(1, 1, 1, 1, 1, '2024-01-10', 0),
+(2, 2, 2, 1, 1, '2024-02-15', 0),
+(3, 3, 3, 1, 0, '2024-03-20', 0),
+(4, 4, 4, 1, 1, '2024-04-05', 0),
+(5, 5, 5, 2, 0, '2025-01-25', 0),
+(6, 1, 6, 2, 1, '2025-02-28', 0),
+(7, 2, 7, 2, 1, '2025-03-15', 0),
+(8, 3, 8, 2, 0, '2025-04-10', 0),
+(9, 6, 9, 2, 0, '2025-05-12', 0),
+(10, 7, 10, 2, 1, '2025-06-18', 0),
+(11, 1, 11, 3, 1, '2026-01-20', 1),
+(12, 2, 12, 3, 0, '2026-02-14', 1),
+(13, 3, 13, 3, 1, '2026-03-22', 1),
+(14, 4, 14, 3, 0, '2026-04-05', 1),
+(15, 8, 5, 1, 1, '2026-06-30', 0),
+(16, 8, 10, 4, 1, '2026-06-27', 0),
+(17, 8, 10, 4, 0, '2026-06-27', 0),
+(18, 8, 10, 4, 0, '2026-06-27', 0),
+(19, 8, 10, 4, 0, '2026-06-27', 0),
+(20, 8, 10, 4, 0, '2026-06-27', 0),
+(21, 8, 10, 4, 0, '2026-06-27', 0),
+(22, 8, 10, 4, 0, '2026-06-27', 0),
+(23, 8, 10, 4, 0, '2026-06-27', 0),
+(24, 10, 10, 4, 0, '2026-06-27', 0),
+(25, 11, 10, 3, 0, '2026-06-27', 1),
+(26, 11, 10, 3, 0, '2026-06-27', 1),
+(27, 11, 10, 3, 0, '2026-06-27', 1),
+(28, 12, 10, 3, 0, '2026-06-27', 1),
+(29, 13, 10, 3, 0, '2026-06-27', 1),
+(30, 13, 10, 3, 0, '2026-06-27', 1),
+(31, 13, 10, 3, 0, '2026-06-27', 1),
+(32, 13, 10, 3, 0, '2026-06-27', 1),
+(33, 13, 10, 3, 0, '2026-06-27', 1),
+(34, 13, 10, 3, 0, '2026-06-27', 1),
+(35, 13, 10, 3, 0, '2026-06-27', 1),
+(36, 13, 10, 3, 0, '2026-06-27', 1),
+(37, 14, 10, 3, 0, '2026-06-27', 1),
+(38, 14, 10, 3, 0, '2026-06-27', 1),
+(39, 15, 10, 3, 0, '2026-06-27', 1),
+(40, 8, 10, 3, 0, '2026-06-28', 1),
+(41, 8, 10, 3, 0, '2026-06-28', 1),
+(42, 9, 10, 3, 0, '2026-06-30', 1),
+(43, 16, 10, 3, 0, '2026-06-30', 1),
+(44, 17, 10, 3, 0, '2026-06-30', 1),
+(47, 18, 10, 3, 1, '2026-06-30', 1),
+(48, 19, 10, 3, 1, '2026-07-01', 1),
+(50, 21, 10, 3, 0, '2026-07-03', 1),
+(51, 22, 10, 3, 0, '2026-07-05', 1),
+(52, 26, 10, 3, 1, '2026-08-26', 1),
+(53, 20, 10, 3, 1, '2026-08-30', 1),
+(54, 20, 10, 3, 0, '2026-08-30', 1),
+(55, 20, 10, 3, 0, '2026-08-30', 1),
+(56, 20, 10, 3, 0, '2026-08-30', 1),
+(57, 20, 10, 3, 0, '2026-08-31', 1),
+(58, 20, 10, 3, 0, '2026-08-31', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `responsables`
+--
+
+CREATE TABLE `responsables` (
+  `id_responsable` int(11) NOT NULL,
+  `id_rol` int(11) NOT NULL,
+  `nom_rep` varchar(100) NOT NULL,
+  `password` varchar(120) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `responsables`
+--
+
+INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_rep`, `password`, `estado`) VALUES
+(1, 1, 'Ana María Pérez', 'admin123', 1),
+(2, 2, 'Luis Rodríguez', 'jefe123', 0),
+(3, 2, 'Carlos Gómez', 'analista1', 1),
+(4, 2, 'María Fernández', 'coord1', 0),
+(5, 2, 'José Ramírez', 'director1', 1),
+(6, 2, 'Laura Martínez', 'asist1', 1),
+(7, 2, 'Pedro Sánchez', 'superv1', 1),
+(8, 2, 'Sofía Herrera', 'jefe2', 0),
+(9, 2, 'Jorge Díaz', 'analista2', 1),
+(10, 2, 'Elena Castro', 'coord2', 1),
+(11, 2, 'pepe', '$2y$10$gBndiZQSy3Rp5MT2fTmFh.2euhEmWnw/VkiMIX5yJ2XFND8bJ1ENK', 0),
+(12, 1, 'diego', '$2y$10$5BkT1/Pj06r7e8vcyV67v.Tujh8xx4iu0w5JMxamEMrb3F3EJ0nhK', 1),
+(13, 2, 'ronaldo', '$2y$10$iwY6wy/yEbZ/OOjdsTd9n.aL4c4Jpg6iMloIjN49nch52d1E9GnhO', 1),
+(14, 2, 'che', '$2y$10$G6Ku9B8HgEAhSH/FJmToteads3OL2fXcf6HVJhTkbfZ3Qc77x2Sge', 1),
+(15, 2, 'JV', '$2y$10$sl2fdBuAEomUhylJCi15/.9zdoRduQb/cENpOPQakl3RS7ohr1Cbm', 1),
+(16, 2, 'pedro', '$2y$10$wa1GsdLxLSm8/ehAkxU.VuD2aWFMSIOH4r30cO.aKAS1SQ5RI5qpy', 1),
+(17, 2, 'steve', '$2y$10$XQsd//P0vaV.s8wiZ9vCye40T5e.bS2Jl0JkNGfwYoJ9UA361M8Je', 1),
+(18, 2, 'abc', '$2y$10$vR9/uO2hkbu9tKraBS05runSC92Gsd1pMAtbzO3K/n4e0s7erI5Ke', 1),
+(19, 2, 'abc', '$2y$10$Ug0yClzlD.I7mZE3GoKPs.uFJwcI66YfQ2NESB5tso0DOI2Mpp5Ea', 1),
+(20, 2, 'abc', '$2y$10$FjZ1oh3UlfWXLkgg0658xOl/QrxwJIIzvhiJ1FaPaYa8LF9BaYU6u', 1),
+(21, 2, 'master', '$2y$10$jiCIlK6Ro1rMFy6N04DsI.HpwXX2ChPhWtfWMjvuA20uHigrKSyL2', 1),
+(22, 2, 'nashe', '$2y$10$BsatO0goLoCtHPCy8gDjB.xKJk10K1ZLkSCOTVhZ5YciWZCMJb/ji', 1),
+(23, 2, 'chavo', '$2y$10$jWrWFG1Jx/l9Qh33TInbVO2Rzi7w7uyMLzsrOtdNjMto3MlQWVX7W', 1),
+(24, 2, '1234', '$2y$10$R2ojrVRq2gvJoHwuPA0m5.Mw2.72QaCIFE0lkxlTy4lQXiLUyuDcu', 1),
+(25, 2, 'baki', '$2y$10$T.vMUh0HijGEMVPXnCWB1.uu9S3Zsr03L27dtqPj8rC5ejHTE18l2', 1),
+(26, 2, 'Yujiro', '$2y$10$7z4wE.99FXkb/f4W3f8GZ.zIYin1LoDal4dhgBtseJdCPKc7mwO6a', 1),
+(27, 2, 'Yujiro', '$2y$10$E5CUKr0B.pPz7nXXx85aa.etDz4Karz0tQFDuwxsEPyj/cSP4wMja', 1),
+(28, 2, 'yuchiro', '$2y$10$Hl.t/CM4DD2WW8v/VtmGQOLRY6vSCh60VytKOpofJ7qUepcXn4Lq.', 1),
+(29, 2, 'ronaldiño', '$2y$10$MZ/S0ZlRBZywZxuzLDP29Ous2h54/hkC4CFKu2ElsJ/UKJfbrOB2C', 1),
+(30, 2, 'Manuel', '$2y$10$WK9qAaLk6A4wxIF/XYbbFOwD8oTQzVTKNLeVnUpG356soMyqsgeem', 1),
+(31, 2, 'Manuel', '$2y$10$MSiOmQom.b0IcmAmoUPMk.tSAxHaF/CPSw2GFIFkspino2wGdo0Fq', 1),
+(32, 2, 'Ana', '$2y$10$p1NFNxAEQJ2.Gz9aKm6dPuoc3ZYt/.hBxA/DpGoPF3qnWzNvM.uka', 1),
+(33, 2, 'Ana Soto', '$2y$10$UMp6cvWZH/t8cSav/I2qTudkH98iXidgAfT4rrXv2sdkVGKJOlDSy', 1),
+(34, 2, 'Soteldo', '$2y$10$uqEa..RtKFBZsrdiDTNzDukC7OemRaRj4AQ3d.fjvxFWdV4nGktoq', 0),
+(35, 2, 'Lamar', '$2y$10$6NUbpJFvVNQsBDYYjv1u9uWMpTPhh/RkIQ1m8vFX3Dcg.AOX3DsBe', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `roles`
+--
+
+CREATE TABLE `roles` (
+  `id_rol` int(11) NOT NULL,
+  `descripcion` varchar(70) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id_rol`, `descripcion`) VALUES
+(1, 'Administrador'),
+(2, 'Usuario');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tasa_bcv`
+--
+
+CREATE TABLE `tasa_bcv` (
+  `id_tasa` int(11) NOT NULL,
+  `fecha_reg` date NOT NULL,
+  `tasa_bcv_usd` decimal(12,2) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tasa_bcv`
+--
+
+INSERT INTO `tasa_bcv` (`id_tasa`, `fecha_reg`, `tasa_bcv_usd`, `estado`) VALUES
+(1, '2025-01-15', 60.25, 0),
+(2, '2025-02-15', 61.10, 0),
+(3, '2025-03-15', 62.45, 0),
+(4, '2025-04-15', 63.00, 0),
+(5, '2025-05-15', 64.20, 0),
+(6, '2025-06-15', 65.50, 0),
+(7, '2025-07-15', 66.75, 0),
+(8, '2025-08-15', 67.90, 0),
+(9, '2025-09-15', 68.30, 0),
+(10, '2025-10-15', 69.00, 1),
+(11, '2025-11-15', 70.10, 0),
+(12, '2025-12-15', 71.25, 0),
+(13, '2026-01-15', 72.40, 0),
+(14, '2026-02-15', 73.50, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `telefonos`
+--
+
+CREATE TABLE `telefonos` (
+  `id_telf` int(11) NOT NULL,
+  `id_proveedor` int(11) NOT NULL,
+  `telefono` varchar(20) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `telefonos`
+--
+
+INSERT INTO `telefonos` (`id_telf`, `id_proveedor`, `telefono`, `estado`) VALUES
+(1, 1, '+58-212-555-1001', 1),
+(2, 1, '+58-212-555-1002', 1),
+(3, 2, '+58-212-555-2001', 1),
+(4, 3, '+58-212-555-3001', 1),
+(5, 3, '+58-212-555-3002', 1),
+(6, 4, '+58-212-555-4001', 1),
+(7, 5, '+58-212-555-5001', 1),
+(8, 6, '+58-212-555-6001', 1),
+(9, 7, '+58-212-555-7001', 1),
+(10, 8, '+58-212-555-8001', 1),
+(11, 9, '+58-212-555-9001', 1),
+(12, 10, '+58-212-555-0001', 1),
+(13, 1, 'fasdf', 1);
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `anio_fiscal`
+--
+ALTER TABLE `anio_fiscal`
+  ADD PRIMARY KEY (`id_aniof`);
+
+--
+-- Indices de la tabla `cargo`
+--
+ALTER TABLE `cargo`
+  ADD PRIMARY KEY (`id_cargo`),
+  ADD KEY `id_responsable` (`id_responsable`),
+  ADD KEY `id_dep` (`id_dep`);
+
+--
+-- Indices de la tabla `dependencias`
+--
+ALTER TABLE `dependencias`
+  ADD PRIMARY KEY (`id_dep`);
+
+--
+-- Indices de la tabla `detalle_req`
+--
+ALTER TABLE `detalle_req`
+  ADD KEY `id_req` (`id_req`),
+  ADD KEY `id_prod` (`id_prod`);
+
+--
+-- Indices de la tabla `partidas`
+--
+ALTER TABLE `partidas`
+  ADD PRIMARY KEY (`id_partida`);
+
+--
+-- Indices de la tabla `periodos_entrega`
+--
+ALTER TABLE `periodos_entrega`
+  ADD PRIMARY KEY (`id_periodo`),
+  ADD KEY `id_aniof` (`id_aniof`);
+
+--
+-- Indices de la tabla `productos`
+--
+ALTER TABLE `productos`
+  ADD PRIMARY KEY (`id_prod`),
+  ADD KEY `id_proveedor` (`id_proveedor`),
+  ADD KEY `id_partida` (`id_partida`);
+
+--
+-- Indices de la tabla `proveedores`
+--
+ALTER TABLE `proveedores`
+  ADD PRIMARY KEY (`id_proveedor`);
+
+--
+-- Indices de la tabla `requerimientos`
+--
+ALTER TABLE `requerimientos`
+  ADD PRIMARY KEY (`id_req`),
+  ADD KEY `id_dep` (`id_dep`),
+  ADD KEY `id_tasa` (`id_tasa`),
+  ADD KEY `id_aniof` (`id_aniof`);
+
+--
+-- Indices de la tabla `responsables`
+--
+ALTER TABLE `responsables`
+  ADD PRIMARY KEY (`id_responsable`),
+  ADD KEY `id_rol` (`id_rol`);
+
+--
+-- Indices de la tabla `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id_rol`);
+
+--
+-- Indices de la tabla `tasa_bcv`
+--
+ALTER TABLE `tasa_bcv`
+  ADD PRIMARY KEY (`id_tasa`);
+
+--
+-- Indices de la tabla `telefonos`
+--
+ALTER TABLE `telefonos`
+  ADD PRIMARY KEY (`id_telf`),
+  ADD KEY `id_proveedor` (`id_proveedor`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `anio_fiscal`
+--
+ALTER TABLE `anio_fiscal`
+  MODIFY `id_aniof` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `cargo`
+--
+ALTER TABLE `cargo`
+  MODIFY `id_cargo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+
+--
+-- AUTO_INCREMENT de la tabla `dependencias`
+--
+ALTER TABLE `dependencias`
+  MODIFY `id_dep` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT de la tabla `partidas`
+--
+ALTER TABLE `partidas`
+  MODIFY `id_partida` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `periodos_entrega`
+--
+ALTER TABLE `periodos_entrega`
+  MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT de la tabla `proveedores`
+--
+ALTER TABLE `proveedores`
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de la tabla `requerimientos`
+--
+ALTER TABLE `requerimientos`
+  MODIFY `id_req` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+
+--
+-- AUTO_INCREMENT de la tabla `responsables`
+--
+ALTER TABLE `responsables`
+  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+
+--
+-- AUTO_INCREMENT de la tabla `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `tasa_bcv`
+--
+ALTER TABLE `tasa_bcv`
+  MODIFY `id_tasa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT de la tabla `telefonos`
+--
+ALTER TABLE `telefonos`
+  MODIFY `id_telf` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `cargo`
+--
+ALTER TABLE `cargo`
+  ADD CONSTRAINT `cargo_ibfk_1` FOREIGN KEY (`id_responsable`) REFERENCES `responsables` (`id_responsable`),
+  ADD CONSTRAINT `cargo_ibfk_2` FOREIGN KEY (`id_dep`) REFERENCES `dependencias` (`id_dep`);
+
+--
+-- Filtros para la tabla `detalle_req`
+--
+ALTER TABLE `detalle_req`
+  ADD CONSTRAINT `detalle_req_ibfk_2` FOREIGN KEY (`id_req`) REFERENCES `requerimientos` (`id_req`),
+  ADD CONSTRAINT `id_prod` FOREIGN KEY (`id_prod`) REFERENCES `productos` (`id_prod`);
+
+--
+-- Filtros para la tabla `periodos_entrega`
+--
+ALTER TABLE `periodos_entrega`
+  ADD CONSTRAINT `periodos_entrega_ibfk_1` FOREIGN KEY (`id_aniof`) REFERENCES `anio_fiscal` (`id_aniof`);
+
+--
+-- Filtros para la tabla `productos`
+--
+ALTER TABLE `productos`
+  ADD CONSTRAINT `productos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`),
+  ADD CONSTRAINT `productos_ibfk_2` FOREIGN KEY (`id_partida`) REFERENCES `partidas` (`id_partida`);
+
+--
+-- Filtros para la tabla `requerimientos`
+--
+ALTER TABLE `requerimientos`
+  ADD CONSTRAINT `requerimientos_ibfk_1` FOREIGN KEY (`id_dep`) REFERENCES `dependencias` (`id_dep`),
+  ADD CONSTRAINT `requerimientos_ibfk_2` FOREIGN KEY (`id_tasa`) REFERENCES `tasa_bcv` (`id_tasa`),
+  ADD CONSTRAINT `requerimientos_ibfk_3` FOREIGN KEY (`id_aniof`) REFERENCES `anio_fiscal` (`id_aniof`);
+
+--
+-- Filtros para la tabla `responsables`
+--
+ALTER TABLE `responsables`
+  ADD CONSTRAINT `responsables_ibfk_1` FOREIGN KEY (`id_rol`) REFERENCES `roles` (`id_rol`);
+
+--
+-- Filtros para la tabla `telefonos`
+--
+ALTER TABLE `telefonos`
+  ADD CONSTRAINT `telefonos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

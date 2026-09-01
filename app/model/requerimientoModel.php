@@ -130,7 +130,14 @@ class requerimientoModel extends ConnectDB {
 
 //carga en la vista la siguiente partida, para que el metodo de consulta a los productos carga la siguiente
             $siguiente_partida = $this->calculateNextPartida($partida);
-            //si todo sale bien, se ejecutan todas las consultas y se envia un mensaje de exito
+            
+            if($siguiente_partida === 'FINAL'){
+                $stmt = $this->conex->prepare("UPDATE requerimientos SET estado = 1 WHERE id_req = :idReq");
+                $stmt->execute([
+                    ":idReq" => $idReq
+                ]);
+            }
+
             $this->conex->commit();
             return [
                 "status" => "success", 
@@ -252,12 +259,13 @@ class requerimientoModel extends ConnectDB {
             COALESCE(req_data.Total_Cantidad, 0) AS Total_Cantidad,
             pro.precio AS precio_unit_usd,
             (COALESCE(req_data.Total_Cantidad, 0) * pro.precio) AS total_usd,
-            (COALESCE(req_data.Total_Cantidad, 0) * pro.precio * COALESCE(req_data.tasa, 0)) AS total_bs
+            (COALESCE(req_data.Total_Cantidad, 0) * pro.precio * COALESCE(tasa_vigente.tasa, 0)) AS total_bs
         FROM productos pro
         JOIN partidas p ON pro.id_partida = p.id_partida
+        CROSS JOIN (SELECT tasa_bcv_usd AS tasa FROM tasa_bcv WHERE estado = 1 LIMIT 1) AS tasa_vigente
         " . $joinType . " (
             SELECT 
-                dr.id_prod, r.id_req, d.nom_dep, tb.tasa_bcv_usd AS tasa,
+                dr.id_prod, r.id_req, d.nom_dep,
                 SUM(CASE WHEN dr.mes = 1 THEN dr.cant_mes END) AS Ene,
                 SUM(CASE WHEN dr.mes = 2 THEN dr.cant_mes END) AS Feb,
                 SUM(CASE WHEN dr.mes = 3 THEN dr.cant_mes END) AS Mar,
@@ -274,10 +282,9 @@ class requerimientoModel extends ConnectDB {
             FROM detalle_req dr
             JOIN requerimientos r ON dr.id_req = r.id_req
             JOIN dependencias d ON r.id_dep = d.id_dep
-            JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
             JOIN anio_fiscal af ON r.id_aniof = af.id_aniof 
             WHERE af.activo = 1 " . $filtrosSQL . "         
-            GROUP BY dr.id_prod, r.id_req, d.nom_dep, tb.tasa_bcv_usd
+            GROUP BY dr.id_prod, r.id_req, d.nom_dep
         ) AS req_data ON pro.id_prod = req_data.id_prod
         WHERE pro.estado = 1 
         ORDER BY p.cod_partida, pro.nom_prod;";
@@ -297,7 +304,7 @@ class requerimientoModel extends ConnectDB {
         $id_aniof = $this->getActiveAnioFiscalId();
 
         $qReq = "INSERT INTO requerimientos (id_dep, id_tasa, id_aniof, estado_envio, fecha_env, estado) 
-                 VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 1)";
+                 VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 0)";
         $sReq = $this->conex->prepare($qReq);
         $sReq->execute([
             ':id_dep' => $this->idDepAct,

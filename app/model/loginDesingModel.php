@@ -29,7 +29,7 @@ class loginDesingModel extends ConnectDB
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // 2. Si el usuario existe y la contraseña coincide con el hash
-        if ($user !== null && password_verify($password, $user['password'])) {
+        if ($user && isset($user['password']) && password_verify($password, $user['password'])) {
             unset($user['password']);
             return $user; 
         }
