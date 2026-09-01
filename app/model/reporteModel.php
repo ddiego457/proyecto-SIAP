@@ -5,7 +5,7 @@ use EquipoSiap\Siap\config\Connect\ConnectDB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Mpdf/Mpdf;
+use Mpdf\Mpdf;
 
 class reporteModel extends ConnectDB
 {
@@ -67,7 +67,7 @@ class reporteModel extends ConnectDB
         $data = $this->executeGetReqReport($id);
         //ajustar metodo para que reciba un parametro $titulo que defina el titulo en el caso de ser
         //un archivo consolidado un de un dendencia en especifico
-        $result = $this->executeGetPdfReqReport($data, $titulo)
+        $result = $this->executeGetPdfReqReport($data, $titulo);
     }
 
     public function getReqReport($id = '', $plantilla, $prefijo){
@@ -499,5 +499,6 @@ private function executeGetPdfReqReport(array $datos, string $tituloReporte = 'C
     exit;
 
     
+}
 }
 
