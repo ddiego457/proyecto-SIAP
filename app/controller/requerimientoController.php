@@ -26,6 +26,7 @@ if (isset($_GET['type'])) {
     // Si hay error de período, no continuar con el registro
     if ($periodExpired || $prevReqError) {
         // Si es petición AJAX con guardarPartida, responder JSON
+        header("Location: ?url=requerimiento&type=main");
         if (isset($_POST['guardarPartida'])) {
             $msg = $periodExpired ? "El período de carga de requerimientos ha vencido o no está activo." : "Ya existe un requerimiento previo o no está activo.";
             echo json_encode(["status" => "error", "message" => $msg]);

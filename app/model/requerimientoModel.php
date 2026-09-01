@@ -130,7 +130,14 @@ class requerimientoModel extends ConnectDB {
 
 //carga en la vista la siguiente partida, para que el metodo de consulta a los productos carga la siguiente
             $siguiente_partida = $this->calculateNextPartida($partida);
-            //si todo sale bien, se ejecutan todas las consultas y se envia un mensaje de exito
+            
+            if($siguiente_partida === 'FINAL'){
+                $stmt = $this->conex->prepare("UPDATE requerimientos SET estado = 1 WHERE id_req = :idReq");
+                $stmt->execute([
+                    ":idReq" => $idReq
+                ]);
+            }
+
             $this->conex->commit();
             return [
                 "status" => "success", 
@@ -297,7 +304,7 @@ class requerimientoModel extends ConnectDB {
         $id_aniof = $this->getActiveAnioFiscalId();
 
         $qReq = "INSERT INTO requerimientos (id_dep, id_tasa, id_aniof, estado_envio, fecha_env, estado) 
-                 VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 1)";
+                 VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 0)";
         $sReq = $this->conex->prepare($qReq);
         $sReq->execute([
             ':id_dep' => $this->idDepAct,
