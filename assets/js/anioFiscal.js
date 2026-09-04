@@ -33,6 +33,9 @@ $(document).ready(function() {
     // Registrar
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('registerAnioFiscal', true);
             $.ajax({
@@ -49,13 +52,19 @@ $(document).ready(function() {
                             if (res.redirect) window.location.href = res.redirect; else window.location.href = '?url=anioFiscal&type=list';
                         } else {
                             alert(res.message || 'Error al registrar. Verifique los datos.');
+                            $btn.prop('disabled', false).text('✓ Registrar');
                         }
                     } else if (res == true) {
                         alert('Registro exitoso');
                         window.location.href = '?url=anioFiscal&type=list';
                     } else {
                         alert('Error al registrar. Verifique los datos.');
+                        $btn.prop('disabled', false).text('✓ Registrar');
                     }
+                },
+                error: function() {
+                    alert('Error de conexión.');
+                    $btn.prop('disabled', false).text('✓ Registrar');
                 }
             });
     });

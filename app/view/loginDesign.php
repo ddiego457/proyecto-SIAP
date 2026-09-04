@@ -33,19 +33,11 @@
 
         <!-- Se mantiene navegación sin romper tu sistema -->
         <form  method="post" autocomplete="off">
-<<<<<<< HEAD
             <?php if($error){ ?>
                 <div class="error-message" style="color: #d9534f; background: #f2dede; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ebccd1;">
                     <strong>Error:</strong> Usuario o contraseña incorrectos. Por favor, intente nuevamente.
                 </div>
             <?php } ?>
-=======
-            <?php if ($error){ ?>
-                <div class="error-message" style="color: #d9534f; background: #f2dede; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ebccd1;">
-                    <strong>Error:</strong> Usuario o contraseña incorrectos. Por favor, intente nuevamente.
-                </div>
-            <?php }?>
->>>>>>> 1d88bf8836822bb24f8c9601ab2a6ce00b01ff55
             <div class="field">
             <span class="icon-left" aria-hidden="true">
                 <!-- user icon -->

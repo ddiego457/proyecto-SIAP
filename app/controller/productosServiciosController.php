@@ -81,8 +81,13 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida o proveedor inválido.']);
             }
 
+            // Evitar duplicados (misma partida + proveedor + nombre)
+            if ($object->existsByKey($idPartida, $idProveedor, $nombre)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe un producto/servicio con ese nombre para la misma partida y proveedor.']);
+            }
+
             $result = $object->add($idPartida, $idProveedor, $nombre, $precio);
-            $payload = ['success' => (bool)$result, 'message' => $result ? 'Producto o servicio registrado' : 'Error al guardar el registro.'];
+            $payload = ['success' => (bool)$result, 'message' => $result ? 'Producto o servicio registrado' : 'Error al guardar el registro (duplicado o error BD).'];
             if ($result) $payload['redirect'] = '?url=productosServicios&type=main';
             sendJsonResponse($payload);
         }

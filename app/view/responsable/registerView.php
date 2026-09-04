@@ -17,6 +17,11 @@ include_once 'app/view/layout/head.php';
             <span class="card-title">Nuevo Responsable</span>
         </div>
         <div class="card-body">
+            <?php if (empty($dependenciasDisponibles)): ?>
+                <div style="color: #8a6d3b; background: #fcf8e3; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #faebcc;">
+                    <strong>Atención:</strong> No hay dependencias disponibles. Todas tienen un responsable asignado. Para reutilizar una, primero elimine o inactive su responsable actual.
+                </div>
+            <?php endif; ?>
             <form id="formRegistro">
                 <div class="field-group">
                     <label class="field-label">Nombre</label>
@@ -46,7 +51,7 @@ include_once 'app/view/layout/head.php';
                         <?php endforeach; ?>
                     </datalist>
                     <input type="hidden" id="register_id_dep" name="id_dep">
-                    <p class="field-hint">Seleccione una dependencia existente de la lista.</p>
+                    <p class="field-hint">Escriba y seleccione una dependencia existente de la lista.</p>
                 </div>
                 <div class="flex gap-10" style="margin-top:24px;">
                     <button type="submit" class="btn btn-success" style="flex:1;">&#10003; Registrar</button>

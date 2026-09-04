@@ -2,11 +2,13 @@ $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
     const dependenciaOptions = {};
+    const dependenciaKeysLower = {};
     $('#dependenciasList option').each(function() {
         const value = $(this).val();
         const id = $(this).data('id');
         if (value) {
             dependenciaOptions[value] = id;
+            dependenciaKeysLower[value.toLowerCase()] = id;
         }
     });
 
@@ -14,6 +16,8 @@ $(document).ready(function() {
         const currentValue = $(this).val();
         if (dependenciaOptions.hasOwnProperty(currentValue)) {
             $('#register_id_dep').val(dependenciaOptions[currentValue]);
+        } else if (dependenciaKeysLower.hasOwnProperty(currentValue.toLowerCase())) {
+            $('#register_id_dep').val(dependenciaKeysLower[currentValue.toLowerCase()]);
         } else {
             $('#register_id_dep').val('');
         }
@@ -44,13 +48,16 @@ $(document).ready(function() {
 
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
         const selectedDepId = $('#register_id_dep').val();
         if (!selectedDepId) {
             alert('Seleccione una dependencia válida de la lista.');
             return;
         }
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
-        formData.append('id_dep', selectedDepId);
+        formData.set('id_dep', selectedDepId);
         formData.append('registerResponsable', true);
         $.ajax({
             url: currentUrl,
@@ -66,10 +73,16 @@ $(document).ready(function() {
                         if (res.redirect) window.location.href = res.redirect; else window.location.href = '?url=responsable&type=main';
                     } else {
                         alert(res.message || 'Error al registrar. Verifique los datos.');
+                        $btn.prop('disabled', false).text('✓ Registrar');
                     }
                 } else {
                     alert('Error al registrar. Verifique los datos.');
+                    $btn.prop('disabled', false).text('✓ Registrar');
                 }
+            },
+            error: function() {
+                alert('Error de conexión.');
+                $btn.prop('disabled', false).text('✓ Registrar');
             }
         });
     });

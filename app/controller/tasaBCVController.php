@@ -15,9 +15,21 @@
             if (isset($_POST['registerTasa'])) {
                 if (isset($_POST['tasa_bcv_usd']) && isset($_POST['fecha_reg'])) {
                     // El formulario usa los nombres exactos de columnas de tasa_bcv
-                    $result = $object->add((float)$_POST['tasa_bcv_usd'], $_POST['fecha_reg'], 1);
+                    $fecha = trim((string)$_POST['fecha_reg']);
+                    if ($fecha === '') {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'La fecha no puede estar vacía.']);
+                        die();
+                    }
+                    // Evitar duplicados por fecha
+                    if ($object->existsByFecha($fecha)) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'Ya existe una tasa registrada para esa fecha.']);
+                        die();
+                    }
+                    $result = $object->add((float)$_POST['tasa_bcv_usd'], $fecha, 1);
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'redirect' => '?url=tasaBCV&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Tasa BCV registrada' : 'Error al registrar (duplicado o error BD).', 'redirect' => '?url=tasaBCV&type=main']);
                     die();
                 }
             }

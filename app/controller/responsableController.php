@@ -17,21 +17,44 @@
             $dependenciasDisponibles = $object->getAvailableDependencias();
 
             if (isset($_POST['registerResponsable'])) {
-                if (isset($_POST['nom_rep']) && isset($_POST['contrasena']) && isset($_POST['id_rol']) && isset($_POST['id_dep'])) {
-                    $idDep = (int)$_POST['id_dep'];
+                if (isset($_POST['nom_rep']) && isset($_POST['contrasena']) && isset($_POST['id_rol'])) {
+                    $nombre = trim($_POST['nom_rep']);
+                    if ($nombre === '') {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'El nombre no puede estar vacío.']);
+                        die();
+                    }
+                    // Evitar duplicados por nombre (case-insensitive)
+                    if ($object->existsByName($nombre)) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'Ya existe un responsable con ese nombre.']);
+                        die();
+                    }
+                    $idDep = isset($_POST['id_dep']) ? (int)$_POST['id_dep'] : 0;
+                    // Respaldo: si el navegador tiene la página vieja en caché (datalist),
+                    // resolvemos el ID por el nombre escrito, sin importar mayúsculas.
+                    if ($idDep <= 0 && isset($_POST['dependencia_search'])) {
+                        $buscada = strtolower(trim((string)$_POST['dependencia_search']));
+                        foreach ($dependenciasDisponibles as $dep) {
+                            if (strtolower(trim($dep['nom_dep'])) === $buscada) {
+                                $idDep = (int)$dep['id_dep'];
+                                break;
+                            }
+                        }
+                    }
                     if ($idDep <= 0) {
                         header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Dependencia inválida.']);
+                        echo json_encode(['success' => false, 'message' => 'Dependencia inválida. Recargue la página con Ctrl+F5, escriba el nombre y seleccione la dependencia de la lista.']);
                         die();
                     }
                     $result = $object->add(
-                        $_POST['nom_rep'],
+                        $nombre,
                         $_POST['contrasena'],
                         (int)$_POST['id_rol'],
                         $idDep
                     );
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'redirect' => '?url=responsable&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable registrado exitosamente' : 'Error al registrar en la base de datos.', 'redirect' => '?url=responsable&type=main']);
                     die();
                 }
             }

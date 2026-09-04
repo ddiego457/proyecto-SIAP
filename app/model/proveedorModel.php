@@ -71,6 +71,11 @@ class proveedorModel extends ConnectDB
     private function executeInsert()
     {
         try {
+            // Evitar duplicados por nombre (case-insensitive)
+            if ($this->existsByNombre($this->nombre)) {
+                return false;
+            }
+
             $stmt = $this->conex->prepare("INSERT INTO proveedores (nom_prov, descripcion, estado) VALUES (?, ?, 1)");
             $stmt->bindValue(1, $this->nombre);
             $stmt->bindValue(2, $this->descripcion);
@@ -78,6 +83,19 @@ class proveedorModel extends ConnectDB
         } catch (\PDOException $e) {
             return false;
         }
+    }
+
+    // Validación pública para evitar duplicados por nombre
+    public function existsByNombre(string $nombre): bool
+    {
+        return $this->executeExistsByNombre($nombre);
+    }
+
+    private function executeExistsByNombre(string $nombre): bool
+    {
+        $stmt = $this->conex->prepare("SELECT 1 FROM proveedores WHERE LOWER(TRIM(nom_prov)) = LOWER(TRIM(?))");
+        $stmt->execute([$nombre]);
+        return (bool)$stmt->fetchColumn();
     }
 
     public function update(int $id, string $nombre, ?string $descripcion, ?int $estado)
@@ -183,12 +201,24 @@ class proveedorModel extends ConnectDB
         return $this->executeAddContact($idProveedor, $telefono);
     }
 
+    // Validación de formato de teléfono: solo dígitos, + y -
+    private static function validarTelefono(string $telefono): bool
+    {
+        // Permite: dígitos, + (al inicio), - (en medio), espacios opcionales
+        // Ejemplos válidos: +58-212-5551234, 0212-5551234, +58 212 555 1234
+        return (bool)preg_match('/^\+?[0-9][0-9\-\s]{6,}$/', trim($telefono));
+    }
+
     private function executeAddContact(int $idProveedor, string $telefono)
     {
+        $tel = trim($telefono);
+        if (!self::validarTelefono($tel)) {
+            return false;
+        }
         try {
             $stmt = $this->conex->prepare("INSERT INTO telefonos (id_proveedor, telefono, estado) VALUES (?, ?, 1)");
             $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
-            $stmt->bindValue(2, trim($telefono));
+            $stmt->bindValue(2, $tel);
             return $stmt->execute();
         } catch (\PDOException $e) {
             return false;
@@ -203,9 +233,13 @@ class proveedorModel extends ConnectDB
 
     private function executeUpdateContact(int $idContacto, string $telefono, ?int $estado)
     {
+        $tel = trim($telefono);
+        if (!self::validarTelefono($tel)) {
+            return false;
+        }
         try {
             $query = "UPDATE telefonos SET telefono = ?";
-            $params = [trim($telefono)];
+            $params = [$tel];
 
             if ($estado !== null) {
                 $query .= ", estado = ?";

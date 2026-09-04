@@ -16,9 +16,22 @@ require_once "app/config/session.php";
 
             if (isset($_POST['registerDependencia'])) {
                 if (isset($_POST['nombre_dep'])) {
-                    $result = $object->add($_POST['nombre_dep']);
+                    $nombre = trim($_POST['nombre_dep']);
+                    if ($nombre === '') {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'El nombre no puede estar vacío.']);
+                        die();
+                    }
+                    // Evitar duplicados por nombre (case-insensitive)
+                    $existe = $object->existsByName($nombre);
+                    if ($existe) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'Ya existe una dependencia con ese nombre.']);
+                        die();
+                    }
+                    $result = $object->add($nombre);
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'redirect' => '?url=dependencia&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Dependencia registrada' : 'Error al registrar', 'redirect' => '?url=dependencia&type=main']);
                     die();
                 }
             }

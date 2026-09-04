@@ -90,6 +90,19 @@ class responsableModel extends ConnectDB
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    // Validación pública para evitar duplicados por nombre
+    public function existsByName(string $nomRep): bool
+    {
+        return $this->executeExistsByName($nomRep);
+    }
+
+    private function executeExistsByName(string $nomRep): bool
+    {
+        $stmt = $this->conex->prepare("SELECT 1 FROM responsables WHERE LOWER(TRIM(nom_rep)) = LOWER(TRIM(?))");
+        $stmt->execute([$nomRep]);
+        return (bool)$stmt->fetchColumn();
+    }
+
     // CRUD básico
     public function add(string $nomRep, string $password, int $idRol, int $idDep)
     {

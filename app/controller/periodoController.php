@@ -46,8 +46,21 @@ if (isset($_GET['type'])) {
                     ]);
                 }
 
+                // Evitar solapamiento de periodos en el mismo año fiscal
+                if ($object->existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId)) {
+                    sendJsonResponse(['success' => false, 'message' => 'Ya existe un periodo que se solapa con esas fechas en el mismo año fiscal.']);
+                }
+
+                // Si ya hay un periodo activo en ese año, se desactivará automáticamente (lo hace el modelo)
+                // Avisamos al usuario para que lo sepa
+                $yaHabiaActivo = $object->hasActivePeriodForYear($anioFiscalId);
+
                 $result = $object->add($fechaInicio, $fechaFin, $anioFiscalId);
-                $payload = ['success' => (bool)$result, 'message' => $result ? 'Periodo registrado' : 'Error al guardar el periodo.'];
+                $msg = $result ? 'Periodo registrado' : 'Error al guardar el periodo (duplicado o error BD).';
+                if ($yaHabiaActivo && $result) {
+                    $msg .= ' (Se desactivó el periodo activo anterior de ese año fiscal).';
+                }
+                $payload = ['success' => (bool)$result, 'message' => $msg];
                 if ($result) $payload['redirect'] = '?url=periodo&type=main';
                 sendJsonResponse($payload);
             }
@@ -75,6 +88,14 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Fechas inválidas: la fecha de inicio debe ser anterior o igual a la fecha fin, y ambas deben corresponder al año fiscal seleccionado.']);
             }
 
+            // Evitar solapamiento (excluyendo el propio periodo que se edita)
+            if ($object->existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, $idItem)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe un periodo que se solapa con esas fechas en el mismo año fiscal.']);
+            }
+
+            // Si se cambia a un año fiscal que ya tiene periodo activo, se desactivará (lo hace el modelo en add, pero update no lo hace)
+            // Para consistencia, si el periodo que se edita va a quedar activo y hay otro activo en ese año, avisamos
+            // Nota: el modelo no tiene lógica de auto-desactivar en update, solo en add y activate
             $result = $object->update($idItem, $fechaInicio, $fechaFin, $anioFiscalId);
             sendJsonResponse(['success' => $result, 'message' => $result ? 'Periodo actualizado' : 'Error al actualizar el periodo.']);
         }

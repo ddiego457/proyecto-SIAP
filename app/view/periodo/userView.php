@@ -47,11 +47,17 @@ include_once 'app/view/layout/head.php';
                     <input type="date" id="edit_fecha_fin" name="fecha_fin" class="field-input" required>
                 </div>
                 <div class="field-group">
-                    <label class="field-label">AÃ±o Fiscal</label>
+                    <label class="field-label">Año Fiscal</label>
                     <select id="edit_anio_fiscal_id" name="anio_fiscal_id" class="field-input field-select" required>
-                        <?php foreach (($anioFiscales ?? []) as $af): ?>
-                            <option value="<?php echo (int)$af['id_anioFis']; ?>"><?php echo htmlspecialchars($af['anio_fiscal'], ENT_QUOTES, 'UTF-8'); ?></option>
-                        <?php endforeach; ?>
+                        <?php if (empty($anioFiscales)): ?>
+                            <option value="">No hay años fiscales disponibles</option>
+                        <?php else: ?>
+                            <?php foreach ($anioFiscales as $af): ?>
+                                <option value="<?php echo (int)$af['id_aniof']; ?>">
+                                    <?php echo htmlspecialchars($af['anio'] ?? $af['anio_fiscal'] ?? 'Año no disponible', ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </select>
                 </div>
                 <div class="field-group">

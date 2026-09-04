@@ -32,6 +32,19 @@ class tasaBCVModel extends ConnectDB
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    // Validación pública para evitar duplicados por fecha
+    public function existsByFecha(string $fechaRegistro): bool
+    {
+        return $this->executeExistsByFecha($fechaRegistro);
+    }
+
+    private function executeExistsByFecha(string $fechaRegistro): bool
+    {
+        $stmt = $this->conex->prepare("SELECT 1 FROM tasa_bcv WHERE fecha_reg = ?");
+        $stmt->execute([$fechaRegistro]);
+        return (bool)$stmt->fetchColumn();
+    }
+
     // [C] - CREAR
     public function add(float $valorUsd, string $fechaRegistro, int $estado = 1) {
         // Asegurar sólo 2 decimales al guardar
@@ -48,11 +61,8 @@ class tasaBCVModel extends ConnectDB
 
     private function executeInsert() {
         try {
-            // Evitar duplicados para la misma fecha de registro (según lógica habitual)
-            $check = $this->conex->prepare("SELECT COUNT(*) AS total FROM tasa_bcv WHERE fecha_reg = ?");
-            $check->execute([$this->fechaRegistro]);
-            $row = $check->fetch(\PDO::FETCH_ASSOC);
-            if ($row && (int)$row['total'] > 0) {
+            // Evitar duplicados para la misma fecha de registro
+            if ($this->existsByFecha($this->fechaRegistro)) {
                 return false;
             }
 

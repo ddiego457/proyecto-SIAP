@@ -57,6 +57,26 @@ class productosServiciosModel extends ConnectDB
         return $stmt->fetchAll();
     }
 
+    // Validación pública para evitar duplicados (misma partida + proveedor + nombre)
+    public function existsByKey(int $idPartida, int $idProveedor, string $nomItem, ?int $excludeId = null): bool
+    {
+        return $this->executeExistsByKey($idPartida, $idProveedor, $nomItem, $excludeId);
+    }
+
+    private function executeExistsByKey(int $idPartida, int $idProveedor, string $nomItem, ?int $excludeId = null): bool
+    {
+        $query = "SELECT 1 FROM productos
+                  WHERE id_partida = ? AND id_proveedor = ? AND LOWER(TRIM(nom_prod)) = LOWER(TRIM(?))";
+        $params = [$idPartida, $idProveedor, $nomItem];
+        if ($excludeId !== null) {
+            $query .= " AND id_prod <> ?";
+            $params[] = $excludeId;
+        }
+        $stmt = $this->conex->prepare($query);
+        $stmt->execute($params);
+        return (bool)$stmt->fetchColumn();
+    }
+
     public function add(int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
     {
         return $this->executeAdd($idPartida, $idProveedor, $nomItem, $precio);
@@ -65,6 +85,11 @@ class productosServiciosModel extends ConnectDB
     private function executeAdd(int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
     {
         try {
+            // Evitar duplicados por combinación única
+            if ($this->existsByKey($idPartida, $idProveedor, $nomItem)) {
+                return false;
+            }
+
             $stmt = $this->conex->prepare(
                 "INSERT INTO productos (id_partida, id_proveedor, nom_prod, precio, estado)
                  VALUES (?, ?, ?, ?, 1)"

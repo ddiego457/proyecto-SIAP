@@ -15,15 +15,25 @@ if (isset($_GET['type'])) {
 
         if (isset($_POST['registerAnioFiscal'])) {
             if (isset($_POST['anio_fiscal'])) {
-                $anio = (string)$_POST['anio_fiscal'];
+                $anio = trim((string)$_POST['anio_fiscal']);
+                if ($anio === '') {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => 'El año fiscal no puede estar vacío.']);
+                    die();
+                }
+                // Evitar duplicados por año
+                if ($object->existsByAnio($anio)) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => 'Ya existe un año fiscal con ese valor.']);
+                    die();
+                }
                 $estado = isset($_POST['estado']) ? 1 : 0;
                 $result = $object->add($anio, (int)$estado);
                 header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['success' => (bool)$result, 'redirect' => '?url=anioFiscal&type=main']);
+                echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Año fiscal registrado' : 'Error al registrar (duplicado o error BD).', 'redirect' => '?url=anioFiscal&type=main']);
                 die();
             }
         }
-
         include 'app/view/anioFiscal/registerView.php';
 
     } elseif ($_GET['type'] == 'main') {

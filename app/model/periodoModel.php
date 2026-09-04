@@ -110,9 +110,9 @@ class periodoModel extends ConnectDB
 
     private function executeGetAll() {
         try {
-            // Para que el DataTables (periodo.js) reciba las claves esperadas:
-            // id_periodo, id_aniof, per_ini, per_fin y activo.
-            $stmt = $this->conex->prepare("SELECT id_periodo, id_aniof, per_inicio AS per_ini, per_fin AS per_fin, activo FROM periodos_entrega WHERE activo = 1 OR activo = 0");
+            // Columnas que el JS (periodo.js) espera:
+            // id_periodo, anio_fiscal_id, fecha_inicio, fecha_fin, activo
+            $stmt = $this->conex->prepare("SELECT id_periodo, id_aniof AS anio_fiscal_id, per_inicio AS fecha_inicio, per_fin AS fecha_fin, activo FROM periodos_entrega WHERE activo = 1 OR activo = 0");
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
@@ -121,12 +121,53 @@ class periodoModel extends ConnectDB
     }
 
 
+    // Validación pública para evitar solapamiento de periodos en el mismo año fiscal
+    public function existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, ?int $excludeId = null): bool
+    {
+        return $this->executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, $excludeId);
+    }
+
+    private function executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, ?int $excludeId = null): bool
+    {
+        $query = "SELECT 1 FROM periodos_entrega
+                  WHERE id_aniof = ?
+                    AND per_inicio <= ?
+                    AND per_fin >= ?";
+        $params = [$anioFiscalId, $fechaFin, $fechaInicio];
+        if ($excludeId !== null) {
+            $query .= " AND id_periodo <> ?";
+            $params[] = $excludeId;
+        }
+        $stmt = $this->conex->prepare($query);
+        $stmt->execute($params);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    // Validación: ¿ya hay un periodo ACTIVO para este año fiscal?
+    public function hasActivePeriodForYear(int $anioFiscalId): bool
+    {
+        $stmt = $this->conex->prepare("SELECT 1 FROM periodos_entrega WHERE id_aniof = ? AND activo = 1 LIMIT 1");
+        $stmt->execute([$anioFiscalId]);
+        return (bool)$stmt->fetchColumn();
+    }
+
     public function add($fechaInicio, $fechaFin, $anioFiscalId) {
         return $this->executeAdd($fechaInicio, $fechaFin, $anioFiscalId);
     }
 
     private function executeAdd($fechaInicio, $fechaFin, $anioFiscalId) {
         try {
+            // Evitar solapamiento de periodos en el mismo año fiscal
+            if ($this->existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId)) {
+                return false;
+            }
+
+            // Si ya hay un periodo activo en ese año, desactivarlo antes de insertar el nuevo
+            if ($this->hasActivePeriodForYear($anioFiscalId)) {
+                $stmt = $this->conex->prepare("UPDATE periodos_entrega SET activo = 0 WHERE id_aniof = ? AND activo = 1");
+                $stmt->execute([$anioFiscalId]);
+            }
+
             // CORREGIDO: Los campos deben coincidir con tu tabla
             $query = "INSERT INTO periodos_entrega (per_inicio, per_fin, id_aniof, activo) VALUES (?, ?, ?, 1)";
             $stmt = $this->conex->prepare($query);

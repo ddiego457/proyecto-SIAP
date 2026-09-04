@@ -15,9 +15,21 @@
 
             if (isset($_POST['registerProveedor'])) {
                 if (isset($_POST['nombre']) && isset($_POST['descripcion'])) {
-                    $result = $object->add($_POST['nombre'], $_POST['descripcion']);
+                    $nombre = trim($_POST['nombre']);
+                    if ($nombre === '') {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'El nombre no puede estar vacío.']);
+                        die();
+                    }
+                    // Evitar duplicados por nombre (case-insensitive)
+                    if ($object->existsByNombre($nombre)) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'Ya existe un proveedor con ese nombre.']);
+                        die();
+                    }
+                    $result = $object->add($nombre, $_POST['descripcion']);
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'redirect' => '?url=proveedor&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).', 'redirect' => '?url=proveedor&type=main']);
                     die();
                 }
             }

@@ -20,10 +20,9 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'id_periodo' },
-            // compatibilidad con distintos alias de backend
-            { data: 'id_aniof', defaultContent: '—' },
-            { data: 'per_ini', defaultContent: '—' },
-            { data: 'per_fin', defaultContent: '—' },
+            { data: 'anio_fiscal_id', defaultContent: '—' },
+            { data: 'fecha_inicio', defaultContent: '—' },
+            { data: 'fecha_fin', defaultContent: '—' },
             { data: 'activo', defaultContent: 0, render: (d) => (d == 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>') },
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_periodo}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar">✏️</button>`;
@@ -47,12 +46,15 @@ $(document).ready(function() {
 
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
         const start = $('#fecha_inicio').val();
         const end = $('#fecha_fin').val();
         if (!validatePeriodoDates(start, end)) {
             alert('La fecha de inicio no puede ser posterior a la fecha fin.');
             return;
         }
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('registerPeriodo', true);
         console.log('Registrar periodo:', Array.from(formData.entries()));
@@ -70,11 +72,13 @@ $(document).ready(function() {
                     window.location.href = '?url=periodo&type=main';
                 } else {
                     alert(res.message || 'Error al registrar. Verifique los datos.');
+                    $btn.prop('disabled', false).text('✓ Registrar');
                 }
             },
             error: function(xhr, status, error) {
                 alert('Error en la petición de registro. Revise la consola para más detalles.');
                 console.error('AJAX register error:', status, error, xhr.responseText);
+                $btn.prop('disabled', false).text('✓ Registrar');
             }
         });
     });

@@ -37,6 +37,25 @@ class anioFiscalModel extends ConnectDB
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    // Validación pública para evitar duplicados por año
+    public function existsByAnio(string $anioFiscal, ?int $excludeId = null): bool
+    {
+        return $this->executeExistsByAnio($anioFiscal, $excludeId);
+    }
+
+    private function executeExistsByAnio(string $anioFiscal, ?int $excludeId = null): bool
+    {
+        $query = "SELECT 1 FROM anio_fiscal WHERE anio = ?";
+        $params = [$anioFiscal];
+        if ($excludeId !== null) {
+            $query .= " AND id_aniof <> ?";
+            $params[] = $excludeId;
+        }
+        $stmt = $this->conex->prepare($query);
+        $stmt->execute($params);
+        return (bool)$stmt->fetchColumn();
+    }
+
     // [C] - CREAR
     public function add(string $anioFiscal, int $activo = 1)
     {
@@ -49,10 +68,7 @@ class anioFiscalModel extends ConnectDB
     {
         try {
             // Evitar duplicados del mismo año fiscal (solo 1 registro por año)
-            $check = $this->conex->prepare("SELECT COUNT(*) AS total FROM anio_fiscal WHERE anio = ?");
-            $check->execute([$this->anio]);
-            $row = $check->fetch(\PDO::FETCH_ASSOC);
-            if ($row && (int)$row['total'] > 0) {
+            if ($this->existsByAnio($this->anio)) {
                 return false;
             }
 

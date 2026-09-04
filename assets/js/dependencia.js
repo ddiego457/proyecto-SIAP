@@ -30,6 +30,9 @@ $(document).ready(function() {
     // Registrar
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('registerDependencia', true);
         $.ajax({
@@ -50,10 +53,16 @@ $(document).ready(function() {
                         }
                     } else {
                         alert(res.message || 'Error al registrar. Verifique los datos.');
+                        $btn.prop('disabled', false).text('✓ Registrar');
                     }
                 } else {
                     alert('Error al registrar. Verifique los datos.');
+                    $btn.prop('disabled', false).text('✓ Registrar');
                 }
+            },
+            error: function() {
+                alert('Error de conexión.');
+                $btn.prop('disabled', false).text('✓ Registrar');
             }
         });
     });

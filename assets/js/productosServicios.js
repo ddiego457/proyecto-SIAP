@@ -52,6 +52,9 @@ $(document).ready(function() {
 
   $('#formRegistroPS').on('submit', function(e) {
     e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    if ($btn.prop('disabled')) return;
+    $btn.prop('disabled', true).text('Guardando…');
     const formData = new FormData(e.target);
     formData.append('registerProductosServicios', '1');
 
@@ -69,17 +72,20 @@ $(document).ready(function() {
               if (res.redirect) window.location.href = res.redirect; else window.location.href = '?url=productosServicios&type=main';
             } else {
               alert(res.message || 'Error al registrar el item.');
+              $btn.prop('disabled', false).text('✓ Registrar');
             }
           } else if (res === true) {
             alert('Registro guardado correctamente');
             window.location.href = '?url=productosServicios&type=main';
           } else {
             alert(res.message || 'Error al registrar el item.');
+            $btn.prop('disabled', false).text('✓ Registrar');
           }
       },
       error: function(xhr, status, error) {
         console.error('AJAX error:', status, error, xhr.responseText);
         alert('Error en la petición. Revise la consola.');
+        $btn.prop('disabled', false).text('✓ Registrar');
       }
     });
   });

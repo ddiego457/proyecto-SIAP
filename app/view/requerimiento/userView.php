@@ -1,6 +1,14 @@
 ﻿<?php
 $pageTitle = "Requerimientos - Gestionar";
 $jsFile    = "requerimiento.js";
+
+$prevReq = $prevReq ?? false;
+$perAct = $perAct ?? false;
+$timeLeft = $timeLeft ?? '';
+$dias = $dias ?? 0;
+$dependencias = $dependencias ?? [];
+$idReq = $idReq ?? 0;
+
 include_once 'app/view/layout/head.php';
 ?>
 
@@ -10,7 +18,7 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">&#128203; Requerimientos</div>
     <div class="topbar-actions">
-        <?php if($_SESSION['rol'] !== "Administrador" && $prevReq && $perAct){?>
+        <?php if((($_SESSION['rol'] ?? '') !== "Administrador") && !empty($prevReq) && !empty($perAct)){?>
         <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">&#43; Registrar</a>
         <?php }?>
     </div>
@@ -49,7 +57,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
         <div class="row mb-3"> 
             <!-- si es administrador carga las opciones del select para seleccionar la dependencia a revisar -->
             <!-- si seleciona todos, entoces va a buscar a todas las dependencias -->
-        <?php if($_SESSION['rol'] == "Administrador"){?>
+        <?php if(($_SESSION['rol'] ?? '') == "Administrador"){?>
             <div class="col-md-4">
                 <label>Seleccionar Dependencia:</label>
                 <select id="select-dependencia" class="form-control">
@@ -121,7 +129,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
 </div>
 <!-- este ecript atrapa en una variable el rol del usuario que ha entrado para usarlo en el archivo requerimiento.js -->
 <script>
-    const esAdmin = '<?php echo $_SESSION["rol"]; ?>' == 'Administrador';
+    const esAdmin = '<?php echo $_SESSION["rol"] ?? ""; ?>' == 'Administrador';
 </script>
 
 
