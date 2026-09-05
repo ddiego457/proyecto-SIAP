@@ -162,10 +162,19 @@ $(document).ready(function() {
             language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" }
         });
 
+        // Validación teléfono: solo dígitos, + y - (y espacios)
+        function validarTelefono(tel) {
+            return /^\+?[0-9][0-9\-\s]{6,}$/.test(tel.trim());
+        }
+
         $('#btnAgregarContacto').on('click', function() {
             const telefono = $('#contact_telefono').val().trim();
             if (!telefono) {
                 alert('Ingrese un teléfono válido.');
+                return;
+            }
+            if (!validarTelefono(telefono)) {
+                alert('Formato de teléfono inválido. Solo se permiten dígitos, "+" al inicio y "-". Ej: +58-212-5551234');
                 return;
             }
             $.ajax({
@@ -245,6 +254,15 @@ $(document).ready(function() {
 
         $('#formEditarContacto').on('submit', function(e) {
             e.preventDefault();
+            const telefono = $('#edit_telefono').val().trim();
+            if (!telefono) {
+                alert('Ingrese un teléfono válido.');
+                return;
+            }
+            if (!validarTelefono(telefono)) {
+                alert('Formato de teléfono inválido. Solo se permiten dígitos, "+" al inicio y "-". Ej: +58-212-5551234');
+                return;
+            }
             const formData = new FormData(e.target);
             formData.append('updateContact', true);
             $.ajax({

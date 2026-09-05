@@ -12,40 +12,43 @@ include_once 'app/view/layout/head.php';
 <div class="page-body">
     <div class="card" style="margin-bottom:16px;">
         <div class="card-header">
-            <span class="card-title">Exportar informes a Excel</span>
+            <span class="card-title">Exportar Informes</span>
         </div>
         <div class="card-body">
-            <p style="margin-bottom:18px; color: var(--text-muted);">Selecciona un botón para descargar el reporte en formato Excel. El sistema generará el archivo directamente desde el servidor.</p>
+            <p style="margin-bottom:18px; color: var(--text-muted);">
+                Selecciona un reporte y formato. Los archivos se generan y descargan directamente.
+            </p>
             <div class="report-grid">
                 <?php foreach ($buttons as $button): ?>
                     <div class="report-card">
                         <div class="report-card-title"><?php echo htmlspecialchars((string)$button['title']); ?></div>
                         <div class="report-card-text"><?php echo htmlspecialchars((string)$button['description']); ?></div>
-                        <button type="button" class="btn btn-success btn-full" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>')">
-                            <span>&#128190;</span> Exportar Excel
-                        </button>
+
+                        <?php if (!empty($button['requiresDep'])): ?>
+                            <div class="field-group" style="margin-bottom:12px;">
+                                <label class="field-label" style="font-size:.85rem;">Dependencia</label>
+                                <select id="selDepIndividual" class="field-input field-select" disabled>
+                                    <option value="">Cargando...</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-success btn-full" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'excel')" id="btnExpIndExcel">
+                                <span>&#128190;</span> Exportar Excel
+                            </button>
+                            <button type="button" class="btn btn-primary btn-full" style="margin-top:8px;" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'pdf')" id="btnExpIndPdf">
+                                <span>&#128221;</span> Exportar PDF
+                            </button>
+                        <?php else: ?>
+                            <div class="flex gap-10">
+                                <button type="button" class="btn btn-success" style="flex:1;" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'excel')">
+                                    <span>&#128190;</span> Excel
+                                </button>
+                                <button type="button" class="btn btn-primary" style="flex:1;" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'pdf')">
+                                    <span>&#128221;</span> PDF
+                                </button>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
-                <div class="card-body report-card-title">
-                    <form action='?url=reporte&type=descarga' method='post' id="requerimientoExc">
-                        <h3>Requerimientos</h3>
-                        <input type="hidden" name='requerimientoExc' id='requerimiento' > 
-                        <input type="hidden" name='plantilla' value='TOTAL_Todas_las_Dependencias.xlsx'>
-                        <!-- ======== INCORPORAR UN SELECT PARA ELEGIR EL TIPO DE ARCHIVO EXCEL ======== -->
-                        
-                        <!-- ====== Cambiar el valor del input plantilla para que contenga el tipo de plantilla que va a usar ====== -->
-                        <!--por defecto lo deje con la plantilla de consolidados, dependiendo de lo que elija el usuario puede ser una de las plantillas que existen en la carpeta "template" -->
-                        
-
-                        <button type="submit" id="btn-requerimiento-exc">exportar</button>
-                    </form>
-                    <form action='?url=reporte&type=descarga' method='post' id="productoExc">
-                        <h3>Productos</h3>
-                        <input type="hidden" name='productoExc' id='productos' > 
-                        
-                        <button type="submit" >exportar</button>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
@@ -54,7 +57,7 @@ include_once 'app/view/layout/head.php';
 <style>
 .report-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 18px;
 }
 .report-card {
@@ -63,7 +66,7 @@ include_once 'app/view/layout/head.php';
     padding: 18px;
     background: var(--white);
     box-shadow: var(--shadow-sm);
-    min-height: 175px;
+    min-height: 190px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -77,12 +80,39 @@ include_once 'app/view/layout/head.php';
     font-size: 0.95rem;
     margin-bottom: 16px;
 }
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 14px 20px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+}
+.toast-success { background: #28a745; }
+.toast-error { background: #dc3545; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<script>
-function exportReport(reportCode) {
-    window.location.href = '?url=informe&type=export&report=' + encodeURIComponent(reportCode);
-}
-</script>
-
 <?php include_once 'app/view/layout/foot.php'; ?>
+
+<script src="assets/js/reporte.js"></script>

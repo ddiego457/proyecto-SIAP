@@ -1,113 +1,126 @@
-/* $(function(){
-    const url = 'app/controller/reporteController.php';
-    const $dependenciaFilter = $('#dependenciaFilter');
-    const $btnClear = $('#btnClearFilter');
+(function() {
+    'use strict';
 
-    function getSelectedDependency() {
-        const val = $dependenciaFilter.length ? $dependenciaFilter.val() : '';
-        return val ? Number(val) : null;
+    const BASE_URL = window.location.pathname + window.location.search.replace(/[?&]type=[^&]*/, '').replace(/[?&]format=[^&]*/, '').replace(/[?&]report=[^&]*/, '');
+    const API_BASE = BASE_URL.includes('?') ? BASE_URL.replace('?', '&') : BASE_URL + '?';
+
+    let dependenciasCache = [];
+
+    function showToast(message, type = 'error') {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
 
-    function loadSummary() {
-        const dependenciaId = getSelectedDependency();
-        const payload = { action: 'getSummary' };
-        if (dependenciaId !== null) {
-            payload.dependenciaId = dependenciaId;
-        }
-
-        $.post(url, payload, function(res){
-            if (res.error) { alert('Error cargando reporte'); return; }
-            // Partidas
-            let htmlP = '<table class="siap-table"><thead><tr><th>Partida</th><th>Descripción</th><th>USD</th><th>BCV</th></tr></thead><tbody>';
-            res.partidas.forEach(p => {
-                htmlP += `<tr><td>${p.partida}</td><td>${p.descripcion}</td><td class="num">${Number(p.total_usd).toFixed(2)}</td><td class="num">${Number(p.total_bcv).toFixed(2)}</td></tr>`;
-            });
-            htmlP += '</tbody></table>';
-            $('#partidasWrap').html(htmlP);
-
-            // Dependencias
-            let htmlD = '<table class="siap-table"><thead><tr><th>Dependencia</th><th>USD</th><th>BCV</th></tr></thead><tbody>';
-            res.dependencias.forEach(d => {
-                htmlD += `<tr><td>${d.nom_dep}</td><td class="num">${Number(d.total_usd).toFixed(2)}</td><td class="num">${Number(d.total_bcv).toFixed(2)}</td></tr>`;
-            });
-            htmlD += '</tbody></table>';
-            $('#dependenciasWrap').html(htmlD);
-
-            // Global
-            $('#globalWrap').html(`<strong>USD:</strong> ${Number(res.global.total_usd).toFixed(2)} &nbsp; <strong>BCV:</strong> ${Number(res.global.total_bcv).toFixed(2)}`);
-        }, 'json');
-    }
-
-    function submitExport(actionType) {
-        const dependenciaId = getSelectedDependency();
-        const f = document.createElement('form');
-        f.method = 'POST';
-        f.action = url;
-        f.style.display = 'none';
-
-        const actionInput = document.createElement('input');
-        actionInput.name = 'action';
-        actionInput.value = actionType;
-        f.appendChild(actionInput);
-
-        if (dependenciaId !== null) {
-            const depInput = document.createElement('input');
-            depInput.name = 'dependenciaId';
-            depInput.value = dependenciaId.toString();
-            f.appendChild(depInput);
-        }
-
-        document.body.appendChild(f);
-        f.submit();
-        document.body.removeChild(f);
-    }
-
-    loadSummary();
-
-    $dependenciaFilter.on('change', function(){
-        loadSummary();
-    });
-
-    $btnClear.on('click', function(){
-        if ($dependenciaFilter.length) {
-            $dependenciaFilter.val('');
-            loadSummary();
-        }
-    });
-
-    $('#btnExportExcel').on('click', function(){
-        submitExport('exportExcel');
-    });
-
-    $('#btnExportPdf').on('click', function(){
-        submitExport('exportPdf');
-    });
-});*/
-
-/* ======== ultimo script utilizado para comprobar la consulta a la base de datos ========
-
-$('#btn-requerimiento-exc').on('click' , function (e){
-    e.preventDefault();
-    $.ajax({
-        url: "?url=reporte&type=descarga",
-        method: 'POST',
-        dataType: '',
-        dataSrc: '',
-        data: {
-            requerimientoExc: true,
-        },
-        success: function(respuesta){
-            if(respuesta.status === 'success') {
-                alert("Datos obtenidos correctamente.");
-                console.log(respuesta);
-            } else {
-                alert("Error: " + respuesta.message);
+    function setButtonLoading(btn, loading) {
+        if (loading) {
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Generando...';
+        } else {
+            btn.disabled = false;
+            if (btn.dataset.originalText) {
+                btn.innerHTML = btn.dataset.originalText;
             }
-        },
-        error: function(xhr, status, error) {
-            alert('Error en la petición de registro. Revise la consola para más detalles.');
-            console.error('AJAX register error:', status, error, xhr.responseText);
         }
+    }
+
+    async function loadDependencias() {
+        const select = document.getElementById('selDepIndividual');
+        if (!select) return;
+
+        try {
+            const res = await fetch('?url=reporte&type=get_dependencias');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            dependenciasCache = data.data || [];
+            select.innerHTML = '<option value="">-- Seleccione dependencia --</option>';
+            dependenciasCache.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id_dep;
+                opt.textContent = d.nom_dep;
+                select.appendChild(opt);
+            });
+            select.disabled = false;
+        } catch (err) {
+            select.innerHTML = '<option value="">Error al cargar</option>';
+            showToast('No se pudieron cargar las dependencias: ' + err.message);
+        }
+    }
+
+    async function exportReport(reportCode, format) {
+        const btnExcel = document.getElementById('btnExpIndExcel');
+        const btnPdf = document.getElementById('btnExpIndPdf');
+        const select = document.getElementById('selDepIndividual');
+
+        let idDep = 0;
+        if (reportCode === 'req_individual') {
+            idDep = select ? parseInt(select.value, 10) : 0;
+            if (!idDep) {
+                showToast('Debe seleccionar una dependencia.');
+                return;
+            }
+        }
+
+        const buttonsToDisable = [];
+        if (btnExcel) buttonsToDisable.push(btnExcel);
+        if (btnPdf) buttonsToDisable.push(btnPdf);
+        if (select) buttonsToDisable.push(select);
+
+        buttonsToDisable.forEach(b => { if (b) setButtonLoading(b, true); });
+
+        try {
+            let url = '?url=reporte&type=export&report=' + encodeURIComponent(reportCode) + '&format=' + encodeURIComponent(format);
+            const formData = new FormData();
+            if (idDep) formData.append('id_dep', idDep);
+
+            const res = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const contentType = res.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+                showToast('Respuesta inesperada del servidor', 'error');
+                return;
+            }
+
+            const blob = await res.blob();
+            if (blob.size === 0) throw new Error('Archivo vacío recibido');
+
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            const filename = res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] || (reportCode + '_' + format + '_' + Date.now() + '.' + format);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+
+            showToast('Descarga completada', 'success');
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        } finally {
+            buttonsToDisable.forEach(b => { if (b) setButtonLoading(b, false); });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDependencias();
+        window.exportReport = exportReport;
     });
-});
-*/
+})();
