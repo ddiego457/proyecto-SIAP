@@ -191,6 +191,7 @@ class reporteModel extends ConnectDB
                     COALESCE(SUM(CASE WHEN req_valido.mes = 11 THEN req_valido.cant_mes ELSE 0 END), 0) AS Nov,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 12 THEN req_valido.cant_mes ELSE 0 END), 0) AS Dic,
                     COALESCE(SUM(req_valido.cant_mes), 0) AS cantidad_Total,
+                    (prod.precio * req_valido.tasa_bcv_usd) as precio,
                     COALESCE(SUM(req_valido.cant_mes * prod.precio), 0) AS Total_precio_dolares,
                     COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
                 FROM productos prod
