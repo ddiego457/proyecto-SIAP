@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
+class ComposerStaticInit7d3bcaff4568d3c233af3c6c5376a071
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
@@ -16,16 +16,23 @@ class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
         array (
             'setasign\\Fpdi\\' => 14,
         ),
+        'Z' =>
+        array (
+            'ZipStream\\' => 10,
+        ),
         'P' =>
         array (
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+            'PhpOffice\\PhpSpreadsheet\\' => 25,
         ),
         'M' =>
         array (
             'Mpdf\\PsrLogAwareTrait\\' => 22,
             'Mpdf\\PsrHttpMessageShim\\' => 24,
             'Mpdf\\' => 5,
+            'Matrix\\' => 7,
         ),
         'E' =>
         array (
@@ -35,12 +42,25 @@ class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
         array (
             'DeepCopy\\' => 9,
         ),
+        'C' =>
+        array (
+            'Composer\\Pcre\\' => 14,
+            'Complex\\' => 8,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
         'setasign\\Fpdi\\' =>
         array (
             0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
+        'ZipStream\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/maennchen/zipstream-php/src',
+        ),
+        'Psr\\SimpleCache\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
         ),
         'Psr\\Log\\' =>
         array (
@@ -49,6 +69,10 @@ class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
         'Psr\\Http\\Message\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'PhpOffice\\PhpSpreadsheet\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
         ),
         'Mpdf\\PsrLogAwareTrait\\' =>
         array (
@@ -62,6 +86,10 @@ class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
         array (
             0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
         ),
+        'Matrix\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/matrix/classes/src',
+        ),
         'EquipoSiap\\Siap\\' =>
         array (
             0 => __DIR__ . '/../..' . '/app',
@@ -69,6 +97,14 @@ class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
         'DeepCopy\\' =>
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
+        ),
+        'Composer\\Pcre\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/composer/pcre/src',
+        ),
+        'Complex\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/complex/classes/src',
         ),
     );
 
@@ -79,9 +115,9 @@ class ComposerStaticInitd1d9bab4be21fdbcb324135902740e12
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitd1d9bab4be21fdbcb324135902740e12::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitd1d9bab4be21fdbcb324135902740e12::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitd1d9bab4be21fdbcb324135902740e12::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7d3bcaff4568d3c233af3c6c5376a071::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7d3bcaff4568d3c233af3c6c5376a071::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit7d3bcaff4568d3c233af3c6c5376a071::$classMap;
 
         }, null, ClassLoader::class);
     }

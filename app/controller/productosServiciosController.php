@@ -43,6 +43,10 @@ if (isset($_GET['type'])) {
             sendJsonResponse(['success' => (bool)$res, 'message' => $res ? 'Registro inhabilitado' : 'Error al inhabilitar']);
         }
 
+        if (isset($_POST['loadData'])) {
+            $res = $object->loadData();
+        }
+
         if (isset($_POST['updateItem'])) {
             $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
             $validProveedorIds = array_map('intval', array_column($proveedores, 'id_proveedor'));

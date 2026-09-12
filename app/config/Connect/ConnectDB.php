@@ -10,7 +10,7 @@
         private $host   = 'localhost';
         private $dbname = 'siap_db';
         private $user   = 'root';
-        private $pass   = '0000';
+        private $pass   = '';
         private $connection;
 
         public function __construct() {
