@@ -15,7 +15,7 @@ if (!function_exists('sidebarLink')) {
 <aside class="sidebar">
     <div class="sidebar-brand">
         <div class="sidebar-brand-logo">
-            <img src="assets/img/SIAPlogo.png" alt="SIAP" style="width:48px;height:48px;object-fit:contain;">
+            <img src="assets/img/SIAPlogo.png" alt="SIAP">
         </div>
         <div class="sidebar-brand-eyebrow">SIAP &bull; UPTAEB</div>
         <div class="sidebar-brand-name">Portal de Planificaci&oacute;n</div>
