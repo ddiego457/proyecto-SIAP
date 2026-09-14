@@ -1,5 +1,5 @@
 <?php
-// Diseño de Login responsivo (PHP para que el sistema lo renderice)si
+// Diseño de Login responsivo (PHP para que el sistema lo renderice)
 ?>
 <!doctype html>
 <html lang="es">
@@ -31,13 +31,14 @@
         <h1 class="welcome-title">Bienvenido</h1>
         <p class="welcome-subtitle">Ingrese sus credenciales para acceder al sistema</p>
 
+        <?php if (!empty($error)): ?>
+            <div class="error-message" style="color: #d9534f; background: #f2dede; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ebccd1;">
+                <strong>Error:</strong> <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
         <!-- Se mantiene navegación sin romper tu sistema -->
-        <form  method="post" autocomplete="off">
-            <?php if($error){ ?>
-                <div class="error-message" style="color: #d9534f; background: #f2dede; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ebccd1;">
-                    <strong>Error:</strong> Usuario o contraseña incorrectos. Por favor, intente nuevamente.
-                </div>
-            <?php } ?>
+        <form  method="post" autocomplete="off" id="loginForm">
             <div class="field">
             <span class="icon-left" aria-hidden="true">
                 <!-- user icon -->
@@ -80,5 +81,22 @@
     </main>
 
     <script src="assets/js/loginDesign.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('loginForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const usuario = form.querySelector('input[name="usuario"]').value.trim();
+                const contrasena = form.querySelector('input[name="contrasena"]').value;
+                
+                if (!usuario || !contrasena) {
+                    e.preventDefault();
+                    alert('Por favor complete todos los campos: usuario y contraseña.');
+                    return false;
+                }
+            });
+        }
+    }
+    </script>
 </body>
 </html>

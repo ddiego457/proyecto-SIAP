@@ -1,7 +1,7 @@
-    </div><!-- /main-content -->
+</div><!-- /main-content -->
 </div><!-- /app-layout -->
-<script src="assets\js\DataTables\jquery.js"></script>
-<script src="assets\js\DataTables\datatables.min.js"></script>
+<script src="assets/js/DataTables/jquery.js"></script>
+<script src="assets/js/DataTables/datatables.min.js"></script>
 <?php if(isset($jsFile)): ?>
 <script src="assets/js/<?php echo $jsFile; ?>?v=<?php echo file_exists("assets/js/{$jsFile}") ? filemtime("assets/js/{$jsFile}") : time(); ?>"></script>
 <?php endif; ?>
@@ -13,7 +13,7 @@
             var appLayout = document.querySelector('.app-layout');
             if (!appLayout) return;
 
-            var hidden = appLayout.classList.toggle('sidebar-hidden');
+            var hidden = appLayout.classList.toggle('sidebar-collapsed');
 
             // Cuando está oculto, quitamos tabIndex para que no quede "encima" manipulable
             var sidebar = document.querySelector('.sidebar');

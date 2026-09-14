@@ -1,9 +1,9 @@
- /* ============================================================
+/* ============================================================
   SIAP - Sistema Integrado de Anteproyecto Presupuestario
   Design System - Inspirado en el diseño institucional UPTAEB
    ============================================================ */
 
-/* @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
 
 /* ─── CSS VARIABLES ─────────────────────────────────────────── */
 :root {
@@ -280,14 +280,27 @@ a { text-decoration: none; color: inherit; }
   display: flex;
   flex-direction: column;
   position: fixed;
-  left: 0; top: 0;
+  left: 0; 
+  top: 0;
   z-index: 100;
   overflow: hidden;
   transition: width .22s ease;
 }
 .sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   padding: 20px 18px 16px;
   border-bottom: 1px solid var(--navy-border);
+}
+
+.sidebar-brand-logo {
+  margin-bottom: 8px;
+}
+.sidebar-brand-logo img {
+  display: block;
 }
 .sidebar-brand-eyebrow {
   font-size: 9px;
@@ -417,57 +430,31 @@ a { text-decoration: none; color: inherit; }
   padding: 16px 10px;
 }
 
-.sidebar-hidden .sidebar {
-  width: 0;
-  min-width: 0;
-  transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.sidebar-hidden .main-content {
-  margin-left: 0;
-}
-
-/* Cuando el sidebar está oculto, ubicamos el toggle pegado al borde izquierdo del contenido */
-.sidebar-hidden .sidebar-toggle-global {
-  left: 8px;
-}
-
-/* Cuando el sidebar está oculto, evitamos que el botón quede por encima del contenido/títulos */
-.sidebar-hidden #sidebarToggleBtn{
-  /* cuando el sidebar está oculto, mantenemos el botón por debajo del topbar */
-  z-index: 200;
-}
-
 .sidebar-toggle-global {
-  position: absolute;
-  top: 18px;
-  left: calc(var(--sidebar-w) - 22px);
-  z-index: 260;
-  width: 44px;
-  height: 44px;
+  position: fixed;
+  top: 14px;
+  left: calc(var(--sidebar-w) + 12px);
+  z-index: 350;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 10px;
-  background: rgba(255,255,255,.95);
-  color: var(--text-dark);
-  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  background: white;
+  color: black;
+  font-size: 20px;
   cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left .22s ease, background .15s;
 }
 
 .sidebar-toggle-global:hover {
-  transform: translateY(-1px);
+  background: rgba(255,255,255,.25);
 }
 
-@media (max-width: 900px) {
-  .sidebar-toggle-global {
-    top: 12px;
-    left: 12px;
-  }
+.sidebar-collapsed .sidebar-toggle-global {
+  left: calc(70px + 12px);
 }
 
 .sidebar-collapsed .sidebar-brand-eyebrow,
@@ -532,26 +519,28 @@ a { text-decoration: none; color: inherit; }
 }
 
 .topbar {
-  background: var(--white);
-  border-bottom: 1px solid var(--border-light);
-  padding: 14px 32px;
+  background: var(--navy);
+  border-bottom: 1px solid var(--navy-border);
+  padding: 19px 32px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   position: sticky;
   top: 0;
-  z-index: 300;
+  z-index: 1;
 }
 .topbar-title {
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--white);
+  text-align: center;
+  flex: 1;
 }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
 .topbar-actions { display: flex; gap: 10px; align-items: center; }
 
 .page-body {
   padding: 28px 32px;
-  flex: 1;
 }
 
 /* ─── ALERT BANNER ─────────────────────────────────────────── */
@@ -562,7 +551,6 @@ a { text-decoration: none; color: inherit; }
   padding: 14px 20px;
   border-radius: var(--radius);
   margin-bottom: 24px;
-  border-left: 4px solid;
 }
 .alert-warning {
   background: var(--warning-bg);
@@ -712,21 +700,15 @@ table.siap-table {
   color: var(--text-mid);
 }
 .siap-table tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
-.siap-table tfoot tr { background: var(--navy); }
+.siap-table tfoot tr { background: var(--white); }
 .siap-table tfoot td {
   padding: 11px 14px;
   font-weight: 700;
   font-size: 12.5px;
-  color: var(--white);
+  color: var(--text-dark);
+  border-top: 2px solid var(--border);
 }
 .siap-table tfoot td.num { text-align: right; }
-
-/* Class centered para centrar todas las celdas de la tabla */
-.centered thead th,
-.centered tbody td,
-.centered tfoot td {
-  text-align: center !important;
-}
 
 /* Month table variant (requerimiento) */
 .month-table { font-size: 12.5px; }
@@ -735,30 +717,6 @@ table.siap-table {
 .month-table tbody td { text-align: center; padding: 9px 8px; }
 .month-table tbody td:first-child { text-align: left; font-weight: 500; }
 .month-table .total-col { font-weight: 700; color: var(--blue); }
-
-/* ─── RESPONSIVE TABLES ─────────────────────────────────────────────────── */
-.responsive-table thead th { text-align: center; min-width: 140px; }
-.responsive-table tbody td { min-width: 120px; }
-.responsive-table input { max-width: 100%; width: auto; }
-
-/* Reducir el tamaño de fuentes en pantallas pequeñas */
-@media (max-width: 768px) {
-  .responsive-table thead th,
-  .responsive-table tbody td {
-    font-size: 11px;
-    padding: 6px 4px;
-  }
-  .responsive-table input {
-    font-size: 12px;
-    padding: 4px;
-  }
-  .responsive-table .dataTables_length,
-  .responsive-table .dataTables_info,
-  .responsive-table .dataTables_paginate {
-    text-align: center;
-    font-size: 12px;
-  }
-}
 
 /* ─── BADGES ─────────────────────────────────────────────────── */
 .badge {
@@ -937,10 +895,4 @@ table.siap-table {
 .paginate_button:hover:not(.current) {
   background: var(--bg) !important;
   color: var(--text-dark) !important;
-}
-
-
-/* Oculta cualquier elemento de la interfaz de forma definitiva */
-.d-none {
-  display: none !important;
 }

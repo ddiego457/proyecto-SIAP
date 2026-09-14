@@ -5,9 +5,10 @@ require_once "app/config/session.php";
 
 $model = new reporteModel();
 
-$type = isset($_GET['type']) ? trim((string)$_GET['type']) : 'dashboard';
+$type = isset($_GET['type']) ? trim((string)$_GET['type']) : 'main';
 
-if ($type === 'dashboard') {
+if(isset($_GET['type'])){
+if ($type === 'main') {
     $buttons = $model->getReportButtons();
     include 'app/view/reporte/dashboard.php';
     return;
@@ -85,5 +86,5 @@ if ($type === 'export') {
     }
     exit;
 }
-
+}
 echo 'Error: Tipo de vista no válido.';

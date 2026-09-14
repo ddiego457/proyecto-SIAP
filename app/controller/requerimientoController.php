@@ -46,7 +46,7 @@ if (isset($_GET['type'])) {
         
         // 2. NUEVO: Petición AJAX para guardar los detalles de la partida actual
         if(isset($_POST['guardarPartida'])){
-            $idReq = isset($_POST['id_req']) ? $_POST['id_req'] : null;
+            $idReq = isset($_POST['id_req']) ? $_POST['id_req'] : "";
             $partida = isset($_POST['partida_actual']) ? $_POST['partida_actual'] : '401';
             $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
             $idDep = $_SESSION['id_dep'];

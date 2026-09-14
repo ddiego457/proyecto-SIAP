@@ -42,6 +42,8 @@ class FrontController
             $failDescript = "Error: " . $e->getMessage() 
                             . " en " . $e->getFile() 
                             . " línea " . $e->getLine();
+            // Pasar la excepción a la vista para mostrar detalles
+            $e = $e;
             require_once dirname(__DIR__) . '/view/errorView.php';
         }
     }

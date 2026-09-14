@@ -9,11 +9,11 @@ $error = false;
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
-        $nombre =  trim($_POST['usuario']);
-        $contra = $_POST['contrasena'];
+        $nombre =  isset($_POST['usuario']) ? $_POST['usuario'] : '';
+        $contra = isset($_POST['contrasena']) ?$_POST['contrasena'] : '';
 
         if (empty($nombre) || empty($contra)) {
-            $error = true;
+            $error = "usuario o contraseña incorrectos";
             include 'app/view/loginDesign.php';
             die();
         }
@@ -28,7 +28,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             die();
         }
         else{
-            $error = true;
+            $error = "usuario o contraseña incorrectos";
         }
         
 }

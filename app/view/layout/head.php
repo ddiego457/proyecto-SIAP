@@ -7,8 +7,8 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo $pageTitle; ?></title>
-    <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
-    <link rel="stylesheet" href="assets/css/siap.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="assets/css/siap.css?v=<?php echo file_exists('assets/css/siap.css') ? filemtime('assets/css/siap.css') : time(); ?>">
     <link rel="stylesheet" href="assets/js/DataTables/datatables.min.css">
 </head>
 <body>

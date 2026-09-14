@@ -34,7 +34,7 @@ include_once 'app/view/layout/head.php';
             <?php endif; ?>
             
             <form id="form-registro">
-                <input type="hidden" id="id_req" name="id_req" value="<?php echo $id_req; ?>">
+                <input type="hidden" id="id_req" name="id_req" value="<?php echo $idReq; ?>">
                 <input type="hidden" id="partida_actual" name="partida_actual" value="401">
 
                 <div class="table-wrap">

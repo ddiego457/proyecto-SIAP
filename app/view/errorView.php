@@ -72,6 +72,23 @@ if (!isset($failDescript) || empty(trim($failDescript))) {
             text-align: left;
         }
 
+        .error-detail {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 13px;
+            margin: 15px 0;
+            word-wrap: break-word;
+            text-align: left;
+        }
+
+        .error-detail strong {
+            color: var(--siap-primary);
+        }
+
         .btn-back {
             display: inline-block;
             background-color: var(--siap-primary);
@@ -100,6 +117,14 @@ if (!isset($failDescript) || empty(trim($failDescript))) {
             <!-- Aquí se imprime estrictamente tu variable -->
             <?php echo htmlspecialchars($failDescript); ?>
         </div>
+
+        <?php if (isset($e) && $e instanceof Exception): ?>
+            <div class="error-detail">
+                <strong>Archivo:</strong> <?php echo htmlspecialchars($e->getFile()); ?><br>
+                <strong>Línea:</strong> <?php echo (int)$e->getLine(); ?><br>
+                <strong>Código:</strong> <?php echo htmlspecialchars($e->getCode()); ?>
+            </div>
+        <?php endif; ?>
 
         <a href="javascript:history.back()" class="btn-back">Regresar a la página anterior</a>
     </div>
