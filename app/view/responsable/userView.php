@@ -81,40 +81,6 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
-<!-- MODAL ASIGNAR -->
-<div id="modalAsignar" class="modal-backdrop" style="display:none;">
-    <div class="modal-panel">
-        <div class="modal-header">
-            <h3>Asignar Responsable</h3>
-            <button id="btnCerrarModalAsignar" class="modal-close">&times;</button>
-        </div>
-        <form id="formAsignar">
-            <input type="hidden" id="assign_id_responsable" name="id_responsable">
-            <div class="modal-body">
-                <div class="field-group">
-                    <label class="field-label">Dependencia</label>
-                    <div class="field-select-wrap">
-                        <select id="assign_id_dep" name="id_dep" class="field-input field-select" required>
-                            <option value="">— Seleccione dependencia —</option>
-                            <?php foreach ($dependencias as $dep): ?>
-                                <option value="<?php echo $dep['id_dep']; ?>"><?php echo htmlspecialchars($dep['nom_dep']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Fecha Inicio</label>
-                    <input type="date" id="assign_fecha_inicio" name="fecha_inicio" class="field-input" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="btnCerrarModalAsignar2" class="btn btn-outline">Cancelar</button>
-                <button type="submit" class="btn btn-success">Asignar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- MODAL ROLES (listado) -->
 <div id="modalRoles" class="modal-backdrop" style="display:none; z-index:210;">
     <div class="modal-panel" style="max-width:720px;">
