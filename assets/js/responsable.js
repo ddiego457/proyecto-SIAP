@@ -35,7 +35,6 @@ $(document).ready(function() {
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_responsable}" class="btn btn-warning btn-sm btn-toggle-estado" data-new-state="0" aria-label="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                     actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
                 } else {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
@@ -93,6 +92,7 @@ $(document).ready(function() {
     $(document).on('click', '.btn-toggle-estado', function() {
         const id = this.value;
         const newState = $(this).data('new-state');
+        if (Number(newState) !== 1) return;
         $.ajax({
             url: currentUrl,
             method: 'POST',
@@ -142,6 +142,38 @@ $(document).ready(function() {
         $('#edit_email').val(data.email || '');
         $('#edit_id_rol').val(data.id_rol);
         $('#edit_contrasena').val('');
+        $('#edit_id_dep').val('');
+        $('#editDependenciaGroup').hide();
+
+        const sinDependencia = !data.dependencia_actual || data.dependencia_actual === 'Sin asignar';
+        const activo = Number(data.estado) === 1;
+
+        if (activo && sinDependencia) {
+            $('#editDependenciaGroup').show();
+            $('#edit_id_dep').prop('disabled', true).html('<option value="">Cargando dependencias disponibles...</option>');
+            $.ajax({
+                url: currentUrl,
+                method: 'POST',
+                dataType: 'json',
+                data: { getAvailableDependenciasJson: true },
+                success: function(deps) {
+                    let options = '<option value="">-- Seleccione una dependencia disponible --</option>';
+                    if (Array.isArray(deps)) {
+                        deps.forEach(function(dep) {
+                            options += `<option value="${dep.id_dep}">${dep.nom_dep}</option>`;
+                        });
+                    }
+                    $('#edit_id_dep').html(options).prop('disabled', false);
+                    if (deps && deps.length === 0) {
+                        $('#edit_id_dep').html('<option value="">No hay dependencias disponibles</option>').prop('disabled', true);
+                    }
+                },
+                error: function() {
+                    $('#edit_id_dep').html('<option value="">Error al cargar dependencias</option>').prop('disabled', true);
+                }
+            });
+        }
+
         $('#modalEditar').show();
     });
 
@@ -150,7 +182,20 @@ $(document).ready(function() {
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
-        formData.append('updateItem', true);
+        const idDepSeleccionada = $('#edit_id_dep').val();
+
+        if (idDepSeleccionada) {
+            const idResponsable = $('#edit_idItem').val();
+            const hoy = new Date().toISOString().slice(0, 10);
+            formData.delete('updateItem');
+            formData.append('assignDepToResponsable', true);
+            formData.append('id_responsable', idResponsable);
+            formData.append('id_dep', idDepSeleccionada);
+            formData.append('fecha_inicio', hoy);
+        } else {
+            formData.append('updateItem', true);
+        }
+
         $.ajax({
             url: currentUrl,
             method: 'POST',

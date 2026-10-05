@@ -63,6 +63,15 @@ include_once 'app/view/layout/head.php';
                         </select>
                     </div>
                 </div>
+                <div class="field-group" id="editDependenciaGroup" style="display:none; margin-top:15px;">
+                    <label class="field-label">Asignar Dependencia</label>
+                    <div class="field-select-wrap">
+                        <select class="field-input field-select" id="edit_id_dep" name="id_dep">
+                            <option value="">-- Seleccione una dependencia disponible --</option>
+                        </select>
+                    </div>
+                    <small class="text-muted">Solo disponible para responsables activos sin dependencia asignada.</small>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModal2" class="btn btn-outline">Cancelar</button>

@@ -22,12 +22,7 @@
 
     if (isset($_GET['type'])) {
 
-        if ($_GET['type'] == 'list') {
-
-            $result = $object->getAll();
-            include 'app/view/responsable/listView.php';
-
-        } elseif ($_GET['type'] == 'register') {
+        if ($_GET['type'] == 'register') {
 
             $roles = $object->getRoles();
             $dependenciasDisponibles = $object->getAvailableDependencias();
@@ -104,7 +99,6 @@
                 $id = (int)$_POST['idItem'];
                 $nom = (string)($_POST['nom_rep'] ?? '');
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
-                $estado = null; // estado se maneja solo desde el botón de activar/inactivar
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
                 if ($email !== null && $email !== '') {
@@ -120,18 +114,21 @@
                         die();
                     }
                 }
-                $result = $object->update($id, $nom, $pass, $estado, $idRol, $email);
+                $result = $object->update($id, $nom, $pass, $idRol, $email);
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable actualizado' : 'Error al actualizar']);
                 die();
             }
-if (isset($_POST['toggleEstado'])) {
+            if (isset($_POST['toggleEstado'])) {
                 $id = (int)$_POST['idItem'];
                 $newEstado = isset($_POST['newState']) ? (int)$_POST['newState'] : null;
                 $result = false;
-                if ($newEstado !== null) {
-                    $result = $object->update($id, (string)($_POST['nom_rep'] ?? ''), null, $newEstado, null);
+                if ($newEstado !== 1) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => 'Para dar de baja un responsable utilice la opción Eliminar, que cierra su cargo y libera la dependencia.']);
+                    die();
                 }
+                $result = $object->activate($id);
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Estado actualizado' : 'Error al cambiar estado']);
                 die();
@@ -152,6 +149,53 @@ if (isset($_POST['toggleEstado'])) {
             }
             if (isset($_POST['getCargosByDep'])) {
                 echo json_encode($object->getCargosByDependencia((int)$_POST['id_dep']));
+                die();
+            }
+
+            if (isset($_POST['getAvailableDependenciasJson'])) {
+                echo json_encode($object->getAvailableDependencias());
+                die();
+            }
+
+            if (isset($_POST['assignDepToResponsable'])) {
+                $idResponsable = isset($_POST['id_responsable']) ? (int)$_POST['id_responsable'] : 0;
+                $idDep = isset($_POST['id_dep']) ? (int)$_POST['id_dep'] : 0;
+                $fechaInicio = isset($_POST['fecha_inicio']) ? trim((string)$_POST['fecha_inicio']) : date('Y-m-d');
+
+                if ($idResponsable <= 0 || $idDep <= 0) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => 'Datos inválidos para asignar dependencia.']);
+                    die();
+                }
+
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaInicio)) {
+                    $fechaInicio = date('Y-m-d');
+                }
+
+                // Actualizar datos básicos si vienen
+                $nom = (string)($_POST['nom_rep'] ?? '');
+                $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
+                $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
+                $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
+                if ($email !== null && $email !== '') {
+                    $email = strtolower($email);
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($object->expEmail, $email)) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'El correo electrónico no es válido.']);
+                        die();
+                    }
+                    if ($object->existsByEmail($email, $idResponsable)) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
+                        die();
+                    }
+                }
+                $object->update($idResponsable, $nom, $pass, $idRol, $email);
+
+                // Asignar dependencia
+                $res = $object->assignToDependencia($idResponsable, $idDep, $fechaInicio);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => (bool)$res, 'message' => $res ? 'Responsable actualizado y dependencia asignada.' : 'Error al asignar la dependencia.']);
                 die();
             }
 

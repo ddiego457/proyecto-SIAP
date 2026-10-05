@@ -296,12 +296,12 @@ class responsableModel extends ConnectDB
         }
     }
 
-    public function update(int $id, ?string $nomRep, ?string $password, ?int $estado, ?int $idRol, ?string $email = null)
+    public function update(int $id, ?string $nomRep, ?string $password, ?int $idRol, ?string $email = null)
     {
-        return $this->executeUpdate($id, $nomRep, $password, $estado, $idRol, $email);
+        return $this->executeUpdate($id, $nomRep, $password, $idRol, $email);
     }
 
-    private function executeUpdate(int $id, ?string $nomRep, ?string $password, ?int $estado, ?int $idRol, ?string $email = null)
+    private function executeUpdate(int $id, ?string $nomRep, ?string $password, ?int $idRol, ?string $email = null)
     {
         try {
             $query = "UPDATE responsables SET ";
@@ -319,10 +319,6 @@ class responsableModel extends ConnectDB
             if ($idRol !== null) {
                 $parts[] = "id_rol = ?";
                 $params[] = $idRol;
-            }
-            if ($estado !== null) {
-                $parts[] = "estado = ?";
-                $params[] = $estado;
             }
             if ($email !== null && trim($email) !== '') {
                 $parts[] = "email = ?";
@@ -344,6 +340,21 @@ class responsableModel extends ConnectDB
         }
     }
 
+    public function activate(int $idResponsable): bool
+    {
+        return $this->executeActivate($idResponsable);
+    }
+
+    private function executeActivate(int $idResponsable): bool
+    {
+        try {
+            $stmt = $this->conex->prepare("UPDATE responsables SET estado = 1 WHERE id_responsable = ?");
+            return $stmt->execute([$idResponsable]);
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
 
 
     // Eliminar responsable: primero cierra su cargo activo (si existe), luego elimina el responsable
@@ -355,19 +366,22 @@ class responsableModel extends ConnectDB
     private function executeDelete(int $idResponsable)
     {
         try {
+            $this->conex->beginTransaction();
             $fechaDeSalida = date("Y-m-d");
             // 1. Primero, cerrar cargo activo para este responsable (setear estado a 0)
             $stmt = $this->conex->prepare("UPDATE cargo SET estado = 0, fecha_fin = ? WHERE id_responsable = ? AND estado = 1");
-            $result = $stmt->execute([$fechaDeSalida, $idResponsable]);
+            $stmt->execute([$fechaDeSalida, $idResponsable]);
 
             // 2. Eliminar el responsable
             $stmt2 = $this->conex->prepare("UPDATE responsables SET estado = 0 WHERE id_responsable = ?;");
             $stmt2->bindValue(1, $idResponsable, \PDO::PARAM_INT);
             $res = $stmt2->execute();
 
+            $this->conex->commit();
             // 3. Retornar éxito (el cargo ya fue cerrado en paso 1, la dependencia quedará disponible)
-            return ($res && $result);
+            return $res;
         } catch (\PDOException $e) {
+            $this->conex->rollBack();
             return false;
         }
     }
@@ -384,11 +398,17 @@ class responsableModel extends ConnectDB
         try {
             $this->conex->beginTransaction();
 
-            // Cerrar cargo actual activo para la dependencia
-            $stmt = $this->conex->prepare("UPDATE cargo SET estado = 0, fecha_fin = ? WHERE id_dep = ? AND estado = 1");
-            $stmt->bindValue(1, $fechaInicio);
-            $stmt->bindValue(2, $idDep, \PDO::PARAM_INT);
-            $stmt->execute();
+            // Cerrar cargos activos del responsable (garantiza un único cargo activo por responsable)
+            $stmtResp = $this->conex->prepare("UPDATE cargo SET estado = 0, fecha_fin = ? WHERE id_responsable = ? AND estado = 1");
+            $stmtResp->bindValue(1, $fechaInicio);
+            $stmtResp->bindValue(2, $idResponsable, \PDO::PARAM_INT);
+            $stmtResp->execute();
+
+            // Cerrar cargo actual activo para la dependencia (libera a quien la ocupe)
+            $stmtDep = $this->conex->prepare("UPDATE cargo SET estado = 0, fecha_fin = ? WHERE id_dep = ? AND estado = 1");
+            $stmtDep->bindValue(1, $fechaInicio);
+            $stmtDep->bindValue(2, $idDep, \PDO::PARAM_INT);
+            $stmtDep->execute();
 
             // Insertar nuevo cargo
             $stmt2 = $this->conex->prepare("INSERT INTO cargo (id_responsable, id_dep, fecha_inicio, estado) VALUES (?, ?, ?, 1)");
