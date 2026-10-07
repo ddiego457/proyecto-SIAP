@@ -446,30 +446,9 @@ a { text-decoration: none; color: inherit; }
   padding: 16px 10px;
 }
 
-.sidebar-toggle-global {
-  position: fixed;
-  top: 14px;
-  left: calc(var(--sidebar-w) + 12px);
-  z-index: 100;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 10px;
-  background: white;
-  color: black;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: left .22s ease, background .15s;
-}
 
-.sidebar-toggle-global:hover {
-  background: rgba(255,255,255,.25);
-}
 
-.sidebar-collapsed .sidebar-toggle-global {
+.sidebar-collapsed {
   left: calc(70px + 12px);
 }
 
@@ -667,7 +646,7 @@ a { text-decoration: none; color: inherit; }
   padding: 18px 24px;
   border-bottom: 1px solid var(--border-light);
   display: flex;
-  align-items: center;
+  align-items: self-start;
   justify-content: space-between;
 }
 .card-title {
@@ -923,157 +902,1238 @@ table.siap-table {
 
 /* ─── TOGGLE SWITCH ──────────────────────────────────────────── */
 .field-switch {
-   position: relative;
-   display: inline-flex;
-   align-items: center;
-   cursor: pointer;
-   user-select: none;
-   -webkit-user-select: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
 }
 .field-switch input {
-   position: absolute;
-   opacity: 0;
-   width: 0;
-   height: 0;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 .switch-slider {
-   position: relative;
-   width: 44px;
-   height: 24px;
-   background: var(--border);
-   border-radius: 24px;
-   transition: background .25s ease;
-   top: 10px;
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 24px;
+    transition: background .25s ease;
+    top: 10px;
 }
 .switch-slider::after {
-   content: '';
-   position: absolute;
-   top: 2px;
-   left: 2px;
-   width: 20px;
-   height: 20px;
-   background: var(--white);
-   border-radius: 50%;
-   transition: transform .25s ease;
-   box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--white);
+    border-radius: 50%;
+    transition: transform .25s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
 
 }
 .field-switch input:checked + .switch-slider {
-   background: var(--blue);
+    background: var(--blue);
 }
 .field-switch input:checked + .switch-slider::after {
-   transform: translateX(20px);
+    transform: translateX(20px);
 }
 .field-switch:hover .switch-slider {
-   box-shadow: 0 0 0 3px rgba(42,112,194,.15);
+    box-shadow: 0 0 0 3px rgba(42,112,194,.15);
 }
 
 /* ─── MODAL CANTIDADES ──────────────────────────────────── */
 #modalHeaderCantidades {
-   position: sticky;
-   top: 0;
-   z-index: 10;
-   background: var(--white);
-   box-shadow: 0 1px 4px rgba(13,27,46,.08);
-   border-radius: 0;
-}
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--white);
+    box-shadow: 0 1px 4px rgba(13,27,46,.08);
+    border-radius: 0;
+  }
 #modalHeaderCantidades h3 {
-   margin: 0;
-   font-size: 15px;
-   font-weight: 700;
-   color: var(--text-dark);
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dark);
 }
 /* Ventana de cantidades: sin bordes ni esquinas redondeadas */
 #modalCantidades .modal-panel {
-   border: none;
-   border-radius: 0;
-   box-shadow: var(--shadow-lg);
+    border: none;
+    border-radius: 0;
+    box-shadow: var(--shadow-lg);
 }
 /* Margen interno para que la tabla no pegue contra el borde de la ventana */
 #modalBodyCantidades {
-   padding: 18px 22px 22px;
+    padding: 18px 22px 22px;
 }
 .modal-body {
-   padding: 20px 24px;
+    padding: 20px 24px;
 }
 .modal-body[style*="padding: 0"] {
-   padding: 0;
+    padding: 0;
 }
 #tablaModalCantidades thead th {
-   background: var(--navy);
-   color: rgba(255,255,255,.8);
-   font-size: 11px;
-   font-weight: 600;
-   padding: 7px 5px;
-   text-align: center;
+    background: var(--navy);
+    color: rgba(255,255,255,.8);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 7px 5px;
+    text-align: center;
 }
 #tablaModalCantidades thead th:first-child {
-   text-align: left;
-   min-width: 130px;
+    text-align: left;
+    min-width: 130px;
 }
 #tablaModalCantidades tbody td {
-   padding: 6px 5px;
-   text-align: center;
-   font-size: 12px;
-   color: var(--text-mid);
+    padding: 6px 5px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-mid);
 }
 #tablaModalCantidades tbody td:first-child {
-   text-align: left;
-   font-weight: 500;
+    text-align: left;
+    font-weight: 500;
 }
 /* Inputs de cantidades dentro de la tabla del modal */
 #tablaModalCantidades input[type="number"] {
-   width: 50px;
-   padding: 4px 3px;
-   text-align: center;
-   border: 1px solid var(--border-light);
-   border-radius: 4px;
-   font-size: 12px;
-   outline: none;
-   transition: border-color .15s;
+    width: 50px;
+    padding: 4px 3px;
+    text-align: center;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s;
 }
 #tablaModalCantidades input[type="number"]:focus {
-   border-color: var(--blue);
+    border-color: var(--blue);
 }
 /* Controles de DataTable dentro del modal
-   Nota: en DataTables 2 el wrapper y .dt-container son el mismo elemento,
-   por eso el selector usa el signo de unión en vez de espacio. */
+    Nota: en DataTables 2 el wrapper y .dt-container son el mismo elemento,
+    por eso el selector usa el signo de unión en vez de espacio. */
 #tablaModalCantidades_wrapper.dt-container {
-   font-size: 13px;
-   padding: 0;
+    font-size: 13px;
+    padding: 0;
 }
 /* Números de paginación (DataTables 2 usa .dt-paging-button, no .paginate_button).
-   El color necesita !important porque DataTables impone color: inherit !important,
-   y sin él el texto queda oscuro sobre el fondo navy de la página actual. */
+    El color necesita !important porque DataTables impone color: inherit !important,
+    y sin él el texto queda oscuro sobre el fondo navy de la página actual. */
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button {
-   padding: 4px 10px !important;
-   min-width: auto;
-   margin: 0 2px !important;
-   border: 1px solid var(--border-light) !important;
-   border-radius: 4px !important;
-   background: var(--white) !important;
-   color: var(--text-dark) !important;
-   font-size: 13px;
-   cursor: pointer;
+    padding: 4px 10px !important;
+    min-width: auto;
+    margin: 0 2px !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 4px !important;
+    background: var(--white) !important;
+    color: var(--text-dark) !important;
+    font-size: 13px;
+    cursor: pointer;
 }
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button:hover:not(.current):not(.disabled) {
-   background: var(--bg) !important;
-   border-color: var(--blue) !important;
-   color: var(--text-dark) !important;
+    background: var(--bg) !important;
+    border-color: var(--blue) !important;
+    color: var(--text-dark) !important;
 }
 /* Página actual: fondo navy con texto blanco */
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button.current,
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button.current:hover {
-   background: var(--navy) !important;
-   border-color: var(--navy) !important;
-   color: #ffffff !important;
+    background: var(--navy) !important;
+    border-color: var(--navy) !important;
+    color: #ffffff !important;
 }
 /* Botones deshabilitados (extremos de la paginación) */
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button.disabled,
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button.disabled:hover,
 #tablaModalCantidades_wrapper .dt-paging .dt-paging-button.disabled:active {
-   background: var(--white) !important;
-   border-color: var(--border-light) !important;
-   color: var(--text-muted) !important;
-   cursor: default;
+    background: var(--white) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-muted) !important;
+    cursor: default;
+}
+
+/* ============================================================
+    SIAP — SIDEBAR MODERNA / FLUIDA
+    Override visual
+    No modifica HTML, PHP ni JavaScript
+   ============================================================ */
+
+/* ------------------------------------------------------------
+    VARIABLES DE SIDEBAR
+   ------------------------------------------------------------ */
+
+:root {
+    --sidebar-expanded: 248px;
+    --sidebar-collapsed: 68px;
+
+    --sidebar-transition:
+        width .22s cubic-bezier(.4, 0, .2, 1),
+        min-width .22s cubic-bezier(.4, 0, .2, 1);
+
+    --content-transition:
+        margin-left .22s cubic-bezier(.4, 0, .2, 1);
+
+    --sidebar-item-transition:
+        background .16s ease,
+        color .16s ease,
+        border-color .16s ease,
+        transform .16s ease;
+
+    --sidebar-bg: #0d1b2e;
+    --sidebar-bg-2: #101f34;
+
+    --sidebar-text: rgba(255,255,255,.62);
+    --sidebar-text-hover: rgba(255,255,255,.95);
+
+    --sidebar-border: rgba(255,255,255,.075);
+
+    --sidebar-active-bg: rgba(42,112,194,.16);
+    --sidebar-active: #3b9eff;
+}
+
+
+/* ============================================================
+   SIDEBAR BASE
+   ============================================================ */
+
+.sidebar {
+    width: var(--sidebar-expanded);
+    min-width: var(--sidebar-expanded);
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--sidebar-bg) 0%,
+            var(--sidebar-bg-2) 100%
+        );
+
+    border-right: 1px solid rgba(255,255,255,.045);
+
+    box-shadow:
+        5px 0 24px rgba(0,0,0,.08);
+
+    transition: var(--sidebar-transition);
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    scrollbar-width: thin;
+    scrollbar-color:
+        rgba(255,255,255,.14)
+        transparent;
+}
+
+
+/* Scrollbar */
+
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,.12);
+    border: 0;
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,.20);
+}
+
+
+/* ============================================================
+   BRAND
+   ============================================================ */
+
+.sidebar-brand {
+    min-height: 155px;
+
+    padding:
+        20px
+        18px
+        18px;
+
+    border-bottom:
+        1px solid var(--sidebar-border);
+
+    transition:
+        padding .22s cubic-bezier(.4,0,.2,1),
+        min-height .22s ease;
+}
+
+.sidebar-brand-logo {
+    width: 62px;
+    height: 62px;
+
+    margin-bottom: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255,255,255,.055);
+
+    border:
+        1px solid rgba(255,255,255,.07);
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.12);
+
+    transition:
+        width .22s ease,
+        height .22s ease,
+        margin .22s ease,
+        border-radius .22s ease;
+}
+
+.sidebar-brand-logo img {
+    width: 54px;
+    height: 54px;
+
+    object-fit: contain;
+
+    transition:
+        width .22s ease,
+        height .22s ease;
+}
+
+
+/* SIAP */
+
+.sidebar-brand-eyebrow {
+    color: var(--accent);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: .14em;
+
+    margin-bottom: 3px;
+
+    white-space: nowrap;
+}
+
+.sidebar-brand-name {
+    color: #fff;
+
+    font-size: 13.5px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+.sidebar-brand-sub {
+    color: rgba(255,255,255,.38);
+
+    font-size: 10.5px;
+
+    margin-top: 3px;
+
+    white-space: nowrap;
+}
+
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+
+.sidebar-nav {
+    flex: 1;
+    padding:8px 9px 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* Título "Módulos" */
+
+.sidebar-section-title {
+    padding:16px 10px 7px;
+    color: rgba(255,255,255,.30);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: opacity .14s ease,padding .22s ease;
+}
+
+
+/* ============================================================
+   ITEMS
+   ============================================================ */
+
+.sidebar-link {
+    position: relative;
+    min-height: 43px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin:3px 0;
+    padding:10px 12px;
+    color: var(--sidebar-text);
+    border:1px solid transparent;
+    border-left:3px solid transparent;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: var(--sidebar-item-transition);
+}
+
+
+/* Hover */
+
+.sidebar-link:hover {
+    color: var(--sidebar-text-hover);
+
+    background:
+        rgba(255,255,255,.055);
+
+    border-color:
+        rgba(255,255,255,.035);
+
+    transform:
+        translateX(2px);
+}
+
+
+/* Active */
+
+.sidebar-link.active {
+    color: #fff;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(42,112,194,.20),
+            rgba(42,112,194,.09)
+        );
+
+    border-left-color:
+        var(--sidebar-active);
+
+    border-top-color:
+        rgba(59,158,255,.08);
+
+    border-bottom-color:
+        rgba(59,158,255,.08);
+
+    box-shadow:
+        0 5px 16px rgba(0,0,0,.08);
+}
+
+
+/* Pequeño brillo del activo */
+
+.sidebar-link.active::after {
+    content: "";
+
+    position: absolute;
+
+    left: -1px;
+    top: 50%;
+
+    width: 3px;
+    height: 18px;
+
+    transform:
+        translateY(-50%);
+
+    background:
+        var(--sidebar-active);
+
+    border-radius:
+        0 4px 4px 0;
+
+    box-shadow:
+        0 0 10px rgba(59,158,255,.45);
+}
+
+
+/* Iconos */
+
+.sidebar-link .icon {
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,.55);
+    font-size: 15px;
+    opacity: .9;
+    transition:color .16s ease,opacity .16s ease,transform .16s ease;
+}
+
+.sidebar-link:hover .icon {
+    color: #fff;
+    opacity: 1;
+    transform:scale(1.05);
+}
+
+.sidebar-link.active .icon {
+    color: #6bb4ff;
+    opacity: 1;
+}
+
+
+/* Texto */
+
+.sidebar-link-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition:
+        opacity .13s ease,
+        transform .18s ease;
+}
+
+
+/* ============================================================
+   USUARIO
+   ============================================================ */
+
+.sidebar-user {
+    min-height: 67px;
+    padding:12px;
+    margin:0 9px 9px;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:10px;
+    background:rgba(255,255,255,.035);
+    gap: 10px;
+    transition:padding .22s ease,margin .22s ease,background .18s ease;
+}
+
+.sidebar-user:hover {
+    background:
+        rgba(255,255,255,.055);
+}
+
+
+/* Avatar */
+
+.sidebar-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 10px;
+    background:linear-gradient(135deg,var(--blue),var(--accent));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow:0 5px 14px rgba(42,112,194,.24);
+    transition:width .22s ease,height .22s ease,min-width .22s ease,border-radius .22s ease;
+}
+
+.sidebar-user-info {
+    min-width: 0;
+    transition:opacity .13s ease,transform .18s ease;
+}
+
+.sidebar-user-name {
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.sidebar-user-role {
+    margin-top: 1px;
+    color:rgba(255,255,255,.38);
+    font-size: 9.5px;
+}
+
+/* ============================================================
+   BOTÓN DE COLAPSAR SIDEBAR — FLECHA
+   ============================================================ */
+
+.sidebar-toggle-btn-global {
+    position: fixed;
+    top: 18px;
+    left: calc(var(--sidebar-expanded) - 14px);
+
+    z-index: 300;
+
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    background: var(--navy);
+    color: rgba(255,255,255,.72);
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 3px 12px rgba(0,0,0,.18);
+
+    transition:
+        left .22s cubic-bezier(.4,0,.2,1),
+        background .16s ease,
+        color .16s ease,
+        border-color .16s ease,
+        transform .16s ease,
+        box-shadow .16s ease;
+        align-items: flex-start;
+}
+
+
+/* Flecha */
+
+.sidebar-toggle-btn-global::before {
+    content: '‹';
+
+    font-family: Arial, sans-serif;
+    font-size: 21px;
+    font-weight: 300;
+
+    line-height: 1;
+
+    transform: translateX(-1px);
+
+    transition:
+        transform .2s ease;
+}
+
+
+/* Hover */
+
+.sidebar-toggle-btn-global:hover {
+    background: var(--blue);
+    color: var(--white);
+
+    border-color: rgba(255,255,255,.18);
+
+    box-shadow:
+        0 4px 14px rgba(42,112,194,.28);
+
+    transform: scale(1.05);
+}
+
+
+/* Click */
+
+.sidebar-toggle-btn-global:active {
+    transform: scale(.94);
+}
+
+
+/* Accesibilidad */
+
+.sidebar-toggle-btn-global:focus-visible {
+    outline: 2px solid rgba(59,158,255,.45);
+    outline-offset: 3px;
+}
+
+/* ============================================================
+   FLECHA — ESTADO COLAPSADO
+   ============================================================ */
+
+.sidebar-collapsed .sidebar-toggle-btn-global {
+    left: calc(var(--sidebar-collapsed) - 14px);
+}
+
+.sidebar-collapsed .sidebar-toggle-btn-global::before {
+    content: '›';
+    transform: translateX(1px);
+}
+
+/* ============================================================
+   CONTENIDO PRINCIPAL
+   ============================================================ */
+
+.main-content {
+    margin-left:
+        var(--sidebar-expanded);
+
+    min-width: 0;
+
+    transition:
+        var(--content-transition);
+}
+
+
+/* ============================================================
+   SIDEBAR COLAPSADA
+   ============================================================ */
+
+.sidebar-collapsed .sidebar {
+    width:
+        var(--sidebar-collapsed);
+
+    min-width:
+        var(--sidebar-collapsed);
+}
+
+
+/* Contenido */
+
+.sidebar-collapsed .main-content {
+    margin-left:
+        var(--sidebar-collapsed);
+}
+
+
+/* Botón */
+
+.sidebar-collapsed {
+    left:
+        calc(var(--sidebar-collapsed) + 14px);
+}
+
+
+/* ------------------------------------------------------------
+   BRAND COLAPSADO
+   ------------------------------------------------------------ */
+
+.sidebar-collapsed .sidebar-brand {
+    min-height: 94px;
+
+    padding:
+        15px 8px;
+}
+
+.sidebar-collapsed .sidebar-brand-logo {
+    width: 46px;
+    height: 46px;
+
+    margin-bottom: 0;
+
+    border-radius: 12px;
+}
+
+.sidebar-collapsed .sidebar-brand-logo img {
+    width: 40px;
+    height: 40px;
+}
+
+
+/* Ocultar información */
+
+.sidebar-collapsed .sidebar-brand-eyebrow,
+.sidebar-collapsed .sidebar-brand-name,
+.sidebar-collapsed .sidebar-brand-sub,
+.sidebar-collapsed .sidebar-section-title {
+    opacity: 0;
+
+    width: 0;
+    height: 0;
+
+    overflow: hidden;
+
+    margin: 0;
+    padding: 0;
+
+    pointer-events: none;
+}
+
+
+/* ------------------------------------------------------------
+   LINKS COLAPSADOS
+   ------------------------------------------------------------ */
+
+.sidebar-collapsed .sidebar-nav {
+    padding:
+        8px 7px 14px;
+}
+
+.sidebar-collapsed .sidebar-link {
+    width: 54px;
+
+    min-height: 45px;
+
+    justify-content: center;
+
+    gap: 0;
+
+    margin:
+        3px auto;
+
+    padding:
+        10px 0;
+
+    border-left:
+        0 solid transparent;
+
+    border-radius:
+        10px;
+
+    transform: none;
+}
+
+.sidebar-collapsed .sidebar-link:hover {
+    transform:
+        translateX(0);
+}
+
+.sidebar-collapsed .sidebar-link.active {
+    border-left:
+        0 solid transparent;
+
+    background:
+        rgba(42,112,194,.18);
+}
+
+.sidebar-collapsed .sidebar-link.active::after {
+    left: 0;
+
+    width: 3px;
+    height: 20px;
+}
+
+
+/* Iconos centrados */
+
+.sidebar-collapsed .sidebar-link .icon {
+    width: 26px;
+    min-width: 26px;
+
+    height: 26px;
+
+    font-size: 17px;
+}
+
+
+/* Ocultar texto */
+
+.sidebar-collapsed .sidebar-link-label {
+    opacity: 0;
+
+    width: 0;
+
+    overflow: hidden;
+
+    transform:
+        translateX(-5px);
+
+    pointer-events: none;
+}
+
+
+/* ------------------------------------------------------------
+   USUARIO COLAPSADO
+   ------------------------------------------------------------ */
+
+.sidebar-collapsed .sidebar-user {
+    justify-content: center;
+
+    margin:
+        0 7px 8px;
+
+    padding:
+        10px 5px;
+
+    border-color:
+        transparent;
+
+    background:
+        transparent;
+}
+
+.sidebar-collapsed .sidebar-avatar {
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+
+    border-radius: 11px;
+}
+
+.sidebar-collapsed .sidebar-user-info {
+    opacity: 0;
+
+    width: 0;
+
+    overflow: hidden;
+
+    transform:
+        translateX(-5px);
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   ANIMACIÓN DE APARICIÓN DEL TEXTO
+   ============================================================ */
+
+.sidebar:not(.sidebar-collapsed) .sidebar-link-label,
+.sidebar:not(.sidebar-collapsed) .sidebar-user-info {
+    animation:
+        sidebarTextIn .18s ease both;
+}
+
+@keyframes sidebarTextIn {
+    from {
+        opacity: 0;
+        transform:
+            translateX(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateX(0);
+    }
+}
+
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+
+.topbar {
+    transition:
+        padding .2s ease;
+}
+
+
+/* ============================================================
+   RESPONSIVE — TABLET
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    :root {
+        --sidebar-expanded: 230px;
+    }
+
+    .sidebar {
+        box-shadow:
+            4px 0 22px rgba(0,0,0,.12);
+    }
+
+    .page-body {
+        padding:
+            24px;
+    }
+
+}
+
+
+/* ============================================================
+   RESPONSIVE — MÓVIL
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    :root {
+        --sidebar-expanded: 250px;
+    }
+
+    /*
+       En móvil la sidebar funciona como panel lateral.
+       El contenido ocupa toda la pantalla cuando está cerrada.
+    */
+
+    .sidebar {
+        width:
+            var(--sidebar-expanded);
+
+        min-width:
+            var(--sidebar-expanded);
+
+        transform:
+            translateX(-100%);
+
+        box-shadow:
+            8px 0 30px rgba(0,0,0,.20);
+
+        transition:
+            transform .24s cubic-bezier(.4,0,.2,1);
+    }
+
+    /*
+       Cuando NO está colapsada = abierta.
+    */
+
+    .app-layout:not(.sidebar-collapsed) .sidebar {
+        transform:
+            translateX(0);
+    }
+
+
+    /* El contenido siempre ocupa toda la pantalla */
+
+    .main-content,
+    .sidebar-collapsed .main-content {
+        margin-left:
+            0;
+
+        width:
+            100%;
+    }
+
+
+    /* Botón */
+    .sidebar-collapsed{
+        left:
+            14px;
+
+        top:
+            14px;
+
+        width:
+            40px;
+
+        height:
+            40px;
+
+        z-index:
+            300;
+    }
+
+
+    /*
+       En móvil no usamos el estado de 68px.
+       La clase collapsed significa sidebar cerrada.
+    */
+
+    .sidebar-collapsed .sidebar {
+        width:
+            var(--sidebar-expanded);
+
+        min-width:
+            var(--sidebar-expanded);
+
+        transform:
+            translateX(-100%);
+    }
+
+
+    /*
+       Al abrir en móvil recuperamos todo el contenido
+       visual de la sidebar.
+    */
+
+    .app-layout:not(.sidebar-collapsed) .sidebar-brand {
+        min-height:
+            155px;
+
+        padding:
+            20px 18px 18px;
+    }
+
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-brand-eyebrow,
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-brand-name,
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-brand-sub,
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-section-title,
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-link-label,
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-user-info {
+        opacity:
+            1;
+
+        width:
+            auto;
+
+        height:
+            auto;
+
+        overflow:
+            visible;
+
+        pointer-events:
+            auto;
+    }
+
+    .app-layout:not(.sidebar-collapsed) .sidebar-link {
+        width:
+            auto;
+
+        min-height:
+            43px;
+
+        justify-content:
+            flex-start;
+
+        gap:
+            12px;
+
+        margin:
+            3px 0;
+
+        padding:
+            10px 12px;
+
+        border-left:
+            3px solid transparent;
+    }
+
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-link.active {
+        border-left-color:
+            var(--sidebar-active);
+    }
+
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-link.active::after {
+        left:
+            -1px;
+    }
+
+    .app-layout:not(.sidebar-collapsed)
+    .sidebar-user {
+        justify-content:
+            flex-start;
+
+        margin:
+            0 9px 9px;
+
+        padding:
+            12px;
+    }
+
+
+    /*
+       Overlay visual.
+       No requiere HTML adicional.
+    */
+
+    .app-layout:not(.sidebar-collapsed)::after {
+        content: "";
+
+        position: fixed;
+
+        inset: 0;
+
+        z-index: 90;
+
+        background:
+            rgba(5,13,24,.46);
+
+        backdrop-filter:
+            blur(1.5px);
+
+        pointer-events:
+            none;
+
+        animation:
+            mobileOverlayIn .2s ease both;
+    }
+
+    @keyframes mobileOverlayIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /*
+       El sidebar y botón permanecen por encima del overlay.
+    */
+
+    .app-layout:not(.sidebar-collapsed) .sidebar {
+        z-index:
+            200;
+    }
+
+    .app-layout:not(.sidebar-collapsed){
+        z-index:
+            300;
+    }
+
+}
+
+
+/* ============================================================
+   MÓVILES PEQUEÑOS
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+    :root {
+        --sidebar-expanded: min(280px, 86vw);
+    }
+
+    .sidebar {
+        width:
+            var(--sidebar-expanded);
+
+        min-width:
+            var(--sidebar-expanded);
+    }
+    .sidebar-collapsed .sidebar {
+      width:var(--sidebar-expanded);
+      min-width:
+    var(--sidebar-expanded);}
+    .page-body {padding:18px 14px;}
+    .topbar {padding:16px 18px 16px 68px;}
+    .topbar-title {font-size:16px;}
+}
+
+
+/* ============================================================
+    REDUCIR MOVIMIENTO
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar *,
+    .main-content
+    {transition:none !important;animation:none !important;}
+}
+
+/* =========================================================
+    SIDEBAR COLAPSADO — PERMITIR NAVEGACIÓN POR ICONOS
+   ========================================================= */
+
+/* Aunque el sidebar esté colapsado, sus enlaces siguen siendo
+   completamente interactivos */
+.sidebar-collapsed .sidebar {
+  pointer-events: auto !important;
+}
+
+/* Los enlaces permanecen clickeables */
+.sidebar-collapsed .sidebar-link {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Mejor área de clic para cada icono */
+.sidebar-collapsed .sidebar-link {
+  min-height: 42px;
+}
+
+/* Efecto visual al pasar sobre un icono */
+.sidebar-collapsed .sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Mantener claramente visible el apartado activo */
+.sidebar-collapsed .sidebar-link.active {
+  background: rgba(42, 112, 194, 0.22);
+  border-left-color: var(--blue);
+}
+
+/* El icono ocupa visualmente el centro */
+.sidebar-collapsed .sidebar-link .icon {
+  margin: 0;
+  font-size: 17px;
 }

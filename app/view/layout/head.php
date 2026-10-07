@@ -14,8 +14,12 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
 </head>
 <body>
 <div class="app-layout">
-    <button id="sidebarToggleBtn" class="sidebar-toggle-global" aria-expanded="true" title="Mostrar u ocultar menú">
-        &#9776;
+    <button
+        id="sidebarToggleBtn"
+        class="sidebar-toggle-btn-global"
+        type="button"
+        aria-label="Colapsar menú"
+        aria-expanded="true">
     </button>
     <?php include_once 'app/view/layout/sidebar.php'; ?>
     <div class="main-content">
