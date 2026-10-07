@@ -215,44 +215,6 @@ $(document).ready(function() {
         });
     });
 
-    // Asignar
-    $(document).on('click', '.btn-asignar', function() {
-        const id = this.value;
-        $('#assign_id_responsable').val(id);
-        $('#assign_fecha_inicio').val(new Date().toISOString().slice(0,10));
-        $('#modalAsignar').show();
-    });
-
-    $('#btnCerrarModalAsignar, #btnCerrarModalAsignar2').on('click', function() { $('#modalAsignar').hide(); });
-
-    $('#formAsignar').on('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        formData.append('assignCargo', true);
-        $.ajax({
-            url: currentUrl,
-            method: 'POST',
-            data: formData,
-            dataType: 'json',
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                if (res && typeof res === 'object') {
-                    if (res.success) {
-                        alert(res.message || 'Asignado');
-                        $('#modalAsignar').hide();
-                        tabla.ajax.reload();
-                    } else {
-                        alert(res.message || 'Error al asignar');
-                    }
-                } else {
-                    alert('Error al asignar');
-                }
-            }
-        });
-    });
-
-
     // ─── Roles: alta, edición y eliminación lógica ───────────────────
     const ROL_PROTEGIDO = 'Administrador';
 

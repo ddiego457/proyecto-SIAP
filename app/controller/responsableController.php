@@ -87,7 +87,6 @@
 
         } elseif ($_GET['type'] == 'main') {
 
-            $dependencias = $object->getDependencias();
             $roles = $object->getRoles();
 
             if (isset($_POST['getAll'])) {
@@ -141,12 +140,6 @@
                 die();
             }
 
-            if (isset($_POST['assignCargo'])) {
-                $res = $object->assignToDependencia((int)$_POST['id_responsable'], (int)$_POST['id_dep'], (string)$_POST['fecha_inicio']);
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['success' => (bool)$res, 'message' => $res ? 'Responsable asignado' : 'Error al asignar dependencia']);
-                die();
-            }
             if (isset($_POST['getCargosByDep'])) {
                 echo json_encode($object->getCargosByDependencia((int)$_POST['id_dep']));
                 die();
@@ -190,7 +183,11 @@
                         die();
                     }
                 }
-                $object->update($idResponsable, $nom, $pass, $idRol, $email);
+                if (!$object->update($idResponsable, $nom, $pass, $idRol, $email)) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => 'No se pudo actualizar el responsable. Verifique los datos e intente de nuevo.']);
+                    die();
+                }
 
                 // Asignar dependencia
                 $res = $object->assignToDependencia($idResponsable, $idDep, $fechaInicio);
