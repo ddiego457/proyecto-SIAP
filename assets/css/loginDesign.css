@@ -20,7 +20,7 @@
 }
 
 /* =========================================================
-   RESET
+    RESET
    ========================================================= */
 
 * {
@@ -31,59 +31,41 @@ html,
 body {
     width: 100%;
     min-height: 100%;
+
 }
 
 body {
     margin: 0;
     min-height: 100vh;
-
-    font-family:
-        "Open Sans",
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Arial,
-        sans-serif;
-
-    background:
-        radial-gradient(
-            circle at 50% 45%,
-            var(--bg-center) 0%,
-            #e8edf3 45%,
-            var(--bg-edge) 100%
-        );
-
+    font-family:"Open Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background-color: var(--bg-edge);
+    background-image:
+        linear-gradient(rgba(7, 26, 45, 0.38), rgba(7, 26, 45, 0.38)),
+        url("../img/img/images.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
-
     padding: 30px;
 }
 
-
 /* =========================================================
-   LOGIN CARD
+    LOGIN CARD
    ========================================================= */
 
 .card {
     position: relative;
-
     width: min(900px, 100%);
     min-height: 560px;
-
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto auto;
-
     overflow: hidden;
-
     background: var(--card);
-
     border: 8px solid #ffffff;
     border-radius: 26px;
-
     box-shadow:
         0 25px 70px rgba(15, 23, 42, 0.16),
         0 8px 25px rgba(15, 23, 42, 0.08);
@@ -91,106 +73,55 @@ body {
 
 
 /* =========================================================
-   PANEL DERECHO
-   Se crea exclusivamente con CSS.
-   No modifica tu HTML.
+    PANEL DERECHO
+    Se crea exclusivamente con CSS.
+    No modifica tu HTML.
    ========================================================= */
 
 .card::before {
     content: "";
-
     grid-column: 2;
     grid-row: 1 / 4;
-
     position: relative;
     z-index: 0;
-
     min-width: 0;
     min-height: 100%;
-
     border-radius: 18px;
-
-    background:
+    background-image:
         linear-gradient(
-            135deg,
-            rgba(4, 17, 37, 0.94),
-            rgba(7, 34, 55, 0.86)
+            rgba(7, 26, 45, 0.38),
+            rgba(7, 26, 45, 0.38)
         ),
-        url("../img/SIAPlogo.png") center 72% / 190px auto no-repeat;
-
-    box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        url("../img/img/2.png");
+    background-size: cover;
+    background-position: 65% center;
+    background-repeat: no-repeat;
 }
-
-
-/*
-   Texto decorativo del panel derecho.
-   Es solamente visual; no tiene ninguna función.
-*/
-
-.card::after {
-    content:
-        "Bienvenido\A"
-        "al sistema SIAP\A\A"
-        "Gestión institucional\A"
-        "presupuestaria";
-
-    grid-column: 2;
-    grid-row: 1 / 4;
-
-    position: relative;
-    z-index: 1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 40px;
-
-    color: #ffffff;
-
-    text-align: center;
-    white-space: pre-line;
-
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.65;
-
-    letter-spacing: 0.2px;
-
-    pointer-events: none;
-}
-
 
 /* =========================================================
-   CONTENIDO IZQUIERDO
+    CONTENIDO IZQUIERDO
    ========================================================= */
 
 .header,
 .form,
 .footer {
     grid-column: 1;
-
     position: relative;
     z-index: 3;
-
     width: 100%;
 }
 
 
 /* =========================================================
-   HEADER / LOGO
+    HEADER / LOGO
    ========================================================= */
 
 .header {
     grid-row: 1;
-
     display: flex;
     flex-direction: column;
     align-items: center;
-
     gap: 7px;
-
     padding:
         32px
         40px
@@ -261,7 +192,7 @@ body {
 
 
 /* =========================================================
-   FORMULARIO
+    FORMULARIO
    ========================================================= */
 
 .form {
@@ -275,90 +206,61 @@ body {
 
 .welcome-title {
     margin: 0 0 5px;
-
     color: var(--text-main);
-
-    font-family:
-        "Playfair Display",
-        Georgia,
-        "Times New Roman",
-        serif;
-
+    font-family:"Playfair Display",Georgia,"Times New Roman",serif;
     font-size: 29px;
     font-weight: 700;
-
     line-height: 1.2;
-
     text-align: center;
 }
 
 .welcome-subtitle {
     margin: 0 0 22px;
-
     color: var(--text-gray-2);
-
     font-size: 12.5px;
     font-weight: 400;
-
     line-height: 1.5;
-
     text-align: center;
 }
 
 
 /* =========================================================
-   ERROR PHP
+    ERROR PHP
    ========================================================= */
 
 .error-message {
     margin-bottom: 14px !important;
-
     padding: 10px 12px !important;
-
     color: #b42318 !important;
     background: #fff1f0 !important;
-
     border: 1px solid #fecdca !important;
     border-radius: 10px !important;
-
     font-size: 12px;
-
     line-height: 1.4;
 }
 
 
 /* =========================================================
-   INPUTS
+    INPUTS
    ========================================================= */
 
 .field {
     position: relative;
-
     margin-bottom: 13px;
 }
 
 .field input {
     width: 100%;
     height: 50px;
-
-    padding:
-        13px
-        46px
-        13px
-        46px;
-
+    padding:13px 46px 13px 46px;
     color: #1d2939;
     background: var(--field-bg);
-
     border: 1px solid var(--field-border);
     border-radius: 13px;
-
     outline: none;
-
     font-family: inherit;
     font-size: 13px;
     font-weight: 400;
-
     transition:
         background 0.25s ease,
         border-color 0.25s ease,
@@ -368,78 +270,59 @@ body {
 
 .field input::placeholder {
     color: #a4acb9;
-
     font-weight: 300;
 }
 
 .field input:hover {
     background: #f4f6f8;
-
     border-color: #d5d9df;
 }
 
 .field input:focus {
     background: #ffffff;
-
     border-color: var(--field-focus);
-
     box-shadow:
         0 0 0 4px rgba(10, 37, 64, 0.08);
 }
 
 
 /* =========================================================
-   ICONOS
+    ICONOS
    ========================================================= */
 
 .icon-left {
     position: absolute;
-
     left: 15px;
     top: 50%;
-
     width: 18px;
     height: 18px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     color: #7b8491;
-
     transform: translateY(-50%);
-
     pointer-events: none;
 }
 
 .icon-left svg {
     width: 18px;
     height: 18px;
-
     display: block;
 }
 
 .icon-right {
     position: absolute;
-
     right: 13px;
     top: 50%;
-
     width: 24px;
     height: 24px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     color: #7b8491;
-
     transform: translateY(-50%);
-
     cursor: pointer;
-
     border-radius: 50%;
-
     transition:
         color 0.2s ease,
         background 0.2s ease;
@@ -447,7 +330,6 @@ body {
 
 .icon-right:hover {
     color: var(--btn);
-
     background: rgba(10, 37, 64, 0.06);
 }
 
@@ -458,101 +340,70 @@ body {
 
 
 /* =========================================================
-   BOTÓN
+    BOTÓN
    ========================================================= */
 
 .btn {
     width: 100%;
     min-height: 50px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     margin-top: 4px;
-
     padding: 13px 18px;
-
     color: #ffffff;
     background: var(--btn);
-
     border: 0;
     border-radius: 13px;
-
     font-family: inherit;
     font-size: 13.5px;
     font-weight: 600;
-
     letter-spacing: 0.15px;
-
     cursor: pointer;
-
-    box-shadow:
-        0 8px 18px rgba(10, 37, 64, 0.16);
-
-    transition:
-        background 0.25s ease,
-        box-shadow 0.25s ease,
-        transform 0.15s ease;
+    box-shadow:0 8px 18px rgba(10, 37, 64, 0.16);
+    transition:background 0.25s ease,box-shadow 0.25s ease,transform 0.15s ease;
 }
 
 .btn:hover {
     background: var(--btn-hover);
-
-    box-shadow:
-        0 12px 25px rgba(10, 37, 64, 0.22);
-
+    box-shadow:0 12px 25px rgba(10, 37, 64, 0.22);
     transform: translateY(-1px);
 }
 
 .btn:active {
     transform: translateY(1px);
-
-    box-shadow:
-        0 5px 12px rgba(10, 37, 64, 0.15);
+    box-shadow:0 5px 12px rgba(10, 37, 64, 0.15);
 }
 
 .btn:focus-visible {
     outline: none;
-
-    box-shadow:
-        0 0 0 4px rgba(10, 37, 64, 0.14),
-        0 8px 18px rgba(10, 37, 64, 0.16);
+    box-shadow:0 0 0 4px rgba(10, 37, 64, 0.14),0 8px 18px rgba(10, 37, 64, 0.16);
 }
 
 
 /* =========================================================
-   FOOTER
+    FOOTER
    ========================================================= */
 
 .footer {
     grid-row: 3;
-
-    padding:
-        14px
-        40px
-        24px;
-
+    padding:14px 40px 24px;
     color: var(--text-gray-2);
-
     font-size: 10.5px;
     font-weight: 300;
-
     line-height: 1.5;
-
     text-align: center;
 }
 
 .footer div {
     max-width: 360px;
-
     margin-left: auto;
     margin-right: auto;
 }
 
 
 /* =========================================================
-   ANIMACIONES SUAVES
+    ANIMACIONES SUAVES
    ========================================================= */
 
 .header {
@@ -597,73 +448,47 @@ body {
 
 
 /* =========================================================
-   TABLET
+    TABLET
    ========================================================= */
 
 @media (max-width: 760px) {
-
     body {
         padding: 22px;
     }
-
     .card {
         width: min(620px, 100%);
-
         min-height: 0;
-
         display: block;
-
         border-radius: 24px;
     }
-
     /*
-       En pantallas pequeñas ocultamos el panel decorativo
-       para conservar una experiencia cómoda.
+        En pantallas pequeñas ocultamos el panel decorativo
+        para conservar una experiencia cómoda.
     */
-
     .card::before,
     .card::after {
         display: none;
     }
-
     .header {
-        padding:
-            30px
-            35px
-            8px;
+        padding:30px 35px 8px;
     }
-
     .form {
-        padding:
-            10px
-            35px
-            0;
+        padding:10px 35px 0;
     }
-
     .footer {
-        padding:
-            14px
-            35px
-            24px;
+        padding:14px 35px 24px;
     }
 }
 
 
 /* =========================================================
-   MÓVIL
+    MÓVIL
    ========================================================= */
 
 @media (max-width: 480px) {
 
     body {
         padding: 14px;
-
-        background:
-            radial-gradient(
-                circle at center,
-                #f3f6f9 0%,
-                #e5eaf0 100%
-            );
     }
 
     .card {
@@ -740,7 +565,7 @@ body {
 
 
 /* =========================================================
-   MÓVILES MUY PEQUEÑOS
+    MÓVILES MUY PEQUEÑOS
    ========================================================= */
 
 @media (max-width: 350px) {
@@ -779,7 +604,7 @@ body {
 
 
 /* =========================================================
-   ACCESIBILIDAD
+    ACCESIBILIDAD
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -791,5 +616,19 @@ body {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* Pantallas grandes */
+@media (min-width: 1400px) {
+    .card::before {
+        background-position: 62% center;
+    }
+}
+
+/* Laptop */
+@media (min-width: 761px) and (max-width: 1200px) {
+    .card::before {
+        background-position: 68% center;
     }
 }
