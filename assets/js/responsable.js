@@ -33,11 +33,11 @@ $(document).ready(function() {
             { data: 'dependencia_actual' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
                 } else {
-                    actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
                 return actions;
             }}
@@ -228,13 +228,13 @@ $(document).ready(function() {
             { data: 'responsables' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_rol}" class="btn btn-sm btn-editar-rol text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar">✏️</button>`;
+                let actions = `<button value="${d.id_rol}" class="btn btn-sm btn-edit btn-editar-rol" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (d.descripcion === ROL_PROTEGIDO) {
                     actions += ` <span class="badge badge-gray">protegido</span>`;
                 } else if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-danger btn-sm btn-inactivar-rol" aria-label="Eliminar">🗑️</button>`;
+                    actions += ` <button value="${d.id_rol}" class="btn btn-danger btn-sm btn-inactivar-rol" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
                 } else {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar">✅</button>`;
+                    actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
                 return actions;
             }}

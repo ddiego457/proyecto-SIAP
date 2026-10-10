@@ -9,7 +9,7 @@ include_once 'app/view/layout/head.php';
     <div class="topbar-title">Responsables</div>
     <div class="topbar-actions">
         <a href="?url=responsable&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
-        <button type="button" id="btnRoles" class="btn btn-outline btn-sm">&#128101; Roles</button>
+        <button type="button" id="btnRoles" class="btn btn-outline btn-sm"><i class="fa-solid fa-users" aria-hidden="true"></i> Roles</button>
     </div>
 </div>
 

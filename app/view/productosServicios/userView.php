@@ -8,7 +8,7 @@ include_once 'app/view/layout/head.php';
     <div class="topbar-title">Productos y Servicios</div>
     <div class="topbar-actions">
         <a href="?url=productosServicios&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
-        <button type="button" id="btnPartidas" class="btn btn-outline btn-sm">&#128203; Partidas presupuestaria</button>
+        <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
     </div>
 </div>
 

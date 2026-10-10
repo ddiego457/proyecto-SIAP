@@ -14,11 +14,11 @@ $(document).ready(function() {
             { data: 'anio_fiscal' },
             { data: 'activo', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_anioFis}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                let actions = `<button value="${d.id_anioFis}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.activo) === 1) {
-                    actions += ` <button value="${d.id_anioFis}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_anioFis}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                 } else {
-                    actions += ` <button value="${d.id_anioFis}" class="btn btn-success btn-sm btn-activar" aria-label="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_anioFis}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
                 // Eliminación removida: delete e inactivate hacían lo mismo
                 return actions;

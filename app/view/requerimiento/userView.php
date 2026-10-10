@@ -76,7 +76,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                 <span style="font-size: 13px; color: var(--text-muted); margin: 0 8px;">Ver cantidades en modal</span>
             </div>
             <button id="btn-ver-cantidades" class="btn btn-blue" style="display: none;">
-                &#128202; Ver Cantidades
+                <i class="fa-solid fa-chart-column" aria-hidden="true"></i> Ver Cantidades
             </button>
         <?php } ?>
         </div>
@@ -129,7 +129,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                         <button  id="btn-eliminar" class="btn btn-danger" style="display: none;">
                             Eliminar
                         </button>
-                        <button  id="btn-cambiar-estado" class="btn" style="display: none;">
+                        <button  id="btn-cambiar-estado" class="btn btn-primary" style="display: none;">
                             Enviar Definitivo
                         </button>
                     </div>

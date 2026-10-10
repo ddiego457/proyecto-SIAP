@@ -361,7 +361,7 @@ body {
     letter-spacing: 0.15px;
     cursor: pointer;
     box-shadow:0 8px 18px rgba(10, 37, 64, 0.16);
-    transition:background 0.25s ease,box-shadow 0.25s ease,transform 0.15s ease;
+    transition:background 0.2s ease,box-shadow 0.2s ease,transform 0.15s ease;
 }
 
 .btn:hover {

@@ -14,13 +14,13 @@ $(document).ready(function() {
             { data: 'descripcion' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_proveedor}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                let actions = `<button value="${d.id_proveedor}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {
-                    actions += ` <button value="${d.id_proveedor}" class="btn btn-sm btn-secondary btn-contactos" aria-label="Contactos">☎️</button>`;
-                    actions += ` <button value="${d.id_proveedor}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_proveedor}" class="btn btn-sm btn-secondary btn-contactos" aria-label="Contactos" title="Contactos"><i class="fa-solid fa-phone" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_proveedor}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                 } else {
-                    actions += ` <button value="${d.id_proveedor}" class="btn btn-sm btn-secondary btn-contactos" aria-label="Contactos">☎️</button>`;
-                    actions += ` <button value="${d.id_proveedor}" class="btn btn-success btn-sm btn-activar" aria-label="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_proveedor}" class="btn btn-sm btn-secondary btn-contactos" aria-label="Contactos" title="Contactos"><i class="fa-solid fa-phone" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_proveedor}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
 
                 return actions;
@@ -157,13 +157,13 @@ $(document).ready(function() {
                 { data: 'telefono' },
                 { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
                 { data: null, render: (d) => {
-                    let actions = `<button value="${d.id_telf}" class="btn btn-sm btn-modificar-contacto text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                    let actions = `<button value="${d.id_telf}" class="btn btn-sm btn-edit btn-modificar-contacto" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                     if ((d.estado|0) === 1) {
-                        actions += ` <button value="${d.id_telf}" class="btn btn-warning btn-sm btn-inactivar-contacto" aria-label="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                        actions += ` <button value="${d.id_telf}" class="btn btn-warning btn-sm btn-inactivar-contacto" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                     } else {
-                        actions += ` <button value="${d.id_telf}" class="btn btn-success btn-sm btn-activar-contacto" aria-label="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                        actions += ` <button value="${d.id_telf}" class="btn btn-success btn-sm btn-activar-contacto" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                     }
-                    actions += ` <button value="${d.id_telf}" class="btn btn-danger btn-sm btn-eliminar-contacto" aria-label="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_telf}" class="btn btn-danger btn-sm btn-eliminar-contacto" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
                     return actions;
                 }}
             ],

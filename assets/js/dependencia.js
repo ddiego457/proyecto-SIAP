@@ -12,11 +12,11 @@ $(document).ready(function() {
             { data: 'id_dep' },
             { data: 'nombre_dep' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_dep}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                let actions = `<button value="${d.id_dep}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {
-                    actions += ` <button value="${d.id_dep}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_dep}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                 } else {
-                    actions += ` <button value="${d.id_dep}" class="btn btn-success btn-sm btn-activar" aria-label="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_dep}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
                 return actions;
             }}

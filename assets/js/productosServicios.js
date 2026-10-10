@@ -34,8 +34,8 @@ $(document).ready(function() {
       },
       { data: null, render: (d) => {
           return `
-            <button value="${d.id_prod}" class="btn btn-sm btn-modificar text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
-            <button value="${d.id_prod}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+            <button value="${d.id_prod}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+            <button value="${d.id_prod}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
           `;
         }
       }
@@ -206,11 +206,11 @@ $(document).ready(function() {
         }
       },
       { data: null, render: function(d) {
-          let acciones = `<button value="${d.id_partida}" class="btn btn-sm btn-modificar-partida text-white" style="margin-right:6px; background-color:#5bc0de; border-color:#46b8da;" aria-label="Editar">✏️</button>`;
+          let acciones = `<button value="${d.id_partida}" class="btn btn-sm btn-edit btn-modificar-partida" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
           if (parseInt(d.estado, 10) === 1) {
-            acciones += `<button value="${d.id_partida}" class="btn btn-warning btn-sm btn-inactivar-partida" aria-label="Inhabilitar">🚫</button>`;
+            acciones += `<button value="${d.id_partida}" class="btn btn-warning btn-sm btn-inactivar-partida" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
           } else {
-            acciones += `<button value="${d.id_partida}" class="btn btn-success btn-sm btn-activar-partida" aria-label="Activar">✅</button>`;
+            acciones += `<button value="${d.id_partida}" class="btn btn-success btn-sm btn-activar-partida" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
           }
           return acciones;
         }

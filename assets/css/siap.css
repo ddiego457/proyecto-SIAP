@@ -36,6 +36,16 @@
   --orange:      #ea580c;
   --orange-bg:   #ffedd5;
 
+  /* Solid Refined - paleta de botones (solo botones, no globales) */
+  --btn-edit:      #2878b9;
+  --btn-edit-hover:#1e6399;
+  --btn-ok:        #218653;
+  --btn-ok-hover:  #1c7246;
+  --btn-off:       #c94343;
+  --btn-off-hover: #ab3939;
+  --btn-deep:      #0a2540;
+  --btn-deep-hover:#081e33;
+
   --sidebar-w:   220px;
   --radius:      8px;
   --radius-lg:   12px;
@@ -217,7 +227,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 12px;
 }
 
-/* ─── BUTTONS ──────────────────────────────────────────────── */
+/* ─── BUTTONS (Solid Refined) ───────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -229,53 +239,72 @@ a { text-decoration: none; color: inherit; }
   border-radius: var(--radius);
   border: 1.5px solid transparent;
   cursor: pointer;
-  transition: background .18s, border-color .18s, box-shadow .18s, opacity .18s;
+  color: var(--text-dark);
   white-space: nowrap;
 }
 .btn-primary {
-  background: var(--navy);
+  background: var(--btn-deep);
   color: var(--white);
-  border-color: var(--navy);
+  border-color: var(--btn-deep);
 }
-.btn-primary:hover { background: var(--navy-light); border-color: var(--navy-light); }
 .btn-blue {
-  background: var(--blue);
+  background: var(--btn-deep);
   color: var(--white);
-  border-color: var(--blue);
+  border-color: var(--btn-deep);
 }
-.btn-blue:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+.btn-secondary {
+  background: var(--btn-deep);
+  color: var(--white);
+  border-color: var(--btn-deep);
+}
 .btn-success {
-  background: var(--success);
+  background: var(--btn-ok);
   color: var(--white);
-  border-color: var(--success);
+  border-color: var(--btn-ok);
 }
-.btn-success:hover { opacity: .88; }
 .btn-danger {
-  background: var(--danger);
+  background: var(--btn-off);
   color: var(--white);
-  border-color: var(--danger);
+  border-color: var(--btn-off);
 }
-.btn-danger:hover { opacity: .88; }
 .btn-warning {
-  background: var(--orange);
+  background: var(--btn-off);
   color: var(--white);
-  border-color: var(--orange);
+  border-color: var(--btn-off);
 }
-.btn-warning:hover { opacity: .88; }
+.btn-edit {
+  background: var(--btn-edit);
+  color: var(--white);
+  border-color: var(--btn-edit);
+}
 .btn-outline {
   color: var(--text-mid);
   border-color: var(--border);
 }
-.btn-outline:hover { background: var(--bg); border-color: #b0bbcc; }
 .btn-ghost {
   background: transparent;
   color: var(--text-muted);
   border-color: transparent;
 }
-.btn-ghost:hover { background: var(--bg); color: var(--text-dark); }
 .btn-full { width: 100%; justify-content: center; }
 .btn-sm { padding: 6px 12px; font-size: 12.5px; }
 .btn-lg { padding: 13px 28px; font-size: 15px; }
+
+/* Acciones de tabla: botón-icono cuadrado 36x36 */
+.siap-table .btn-sm {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 9px;
+  justify-content: center;
+}
+.siap-table .btn-sm i {
+  font-size: 16px;
+  line-height: 1;
+}
+.siap-table .btn-sm + .btn-sm {
+  margin-left: 3px;
+}
 
 /* ============================================================
    MAIN LAYOUT (sidebar + content)
@@ -778,9 +807,11 @@ table.siap-table {
   color: var(--text-muted);
   font-size: 18px;
   display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
+  transition: background .15s, color .15s, transform .15s;
 }
 .modal-close:hover { background: var(--bg); color: var(--text-dark); }
+.modal-close:active { transform: scale(.92); }
+.modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .modal-body { padding: 20px 24px; }
 .modal-footer {
   padding: 16px 14px;
@@ -2063,4 +2094,101 @@ table.siap-table {
 .sidebar-collapsed .sidebar-link .icon {
   margin: 0;
   font-size: 17px;
+}
+
+/* Transiciones para botones del sistema */
+.btn,
+button.btn,
+a.btn,
+input[type="button"].btn,
+input[type="submit"].btn {
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease,
+        opacity 180ms ease;
+}
+
+/* Hover: elevación + oscurecimiento, solo en dispositivos con mouse */
+@media (hover: hover) and (pointer: fine) {
+    .btn:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(10, 37, 64, .18);
+    }
+    .btn-primary:not(:disabled):hover,
+    .btn-blue:not(:disabled):hover,
+    .btn-secondary:not(:disabled):hover {
+        background: var(--btn-deep-hover);
+        border-color: var(--btn-deep-hover);
+    }
+    .btn-success:not(:disabled):hover {
+        background: var(--btn-ok-hover);
+        border-color: var(--btn-ok-hover);
+    }
+    .btn-danger:not(:disabled):hover,
+    .btn-warning:not(:disabled):hover {
+        background: var(--btn-off-hover);
+        border-color: var(--btn-off-hover);
+    }
+    .btn-edit:not(:disabled):hover {
+        background: var(--btn-edit-hover);
+        border-color: var(--btn-edit-hover);
+    }
+    .btn-outline:not(:disabled):hover {
+        background: var(--bg);
+        border-color: #b0bbcc;
+    }
+    .btn-ghost:not(:disabled):hover {
+        background: var(--bg);
+        color: var(--text-dark);
+    }
+}
+
+/* Pulsación: presión breve sin rebote (misma especificidad que hover, gana por orden) */
+.btn:not(:disabled):active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 1px 3px rgba(10, 37, 64, .12);
+}
+
+/* Navegación accesible por teclado */
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Botones deshabilitados */
+.btn:disabled,
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+    opacity: .55;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Respetar preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    button.btn,
+    a.btn,
+    input[type="button"].btn,
+    input[type="submit"].btn {
+        transition: none;
+        animation: none;
+    }
+    .btn:not(:disabled):hover,
+    button.btn:not(:disabled):hover,
+    a.btn:not(:disabled):hover {
+        transform: none;
+        box-shadow: none;
+    }
+    .btn:not(:disabled):active,
+    button.btn:not(:disabled):active,
+    a.btn:not(:disabled):active {
+        transform: none;
+        box-shadow: none;
+    }
 }
