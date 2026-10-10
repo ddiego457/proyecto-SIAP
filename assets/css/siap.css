@@ -685,6 +685,44 @@ a { text-decoration: none; color: inherit; }
 }
 .card-body { padding: 24px; }
 
+/* ==========================================================
+    SIAP — CONTROLES DE REQUERIMIENTOS
+    Ajustes visuales locales; no modifica la lógica
+   ========================================================== */
+
+/* Encabezado de la tarjeta */
+.card-header {
+    align-items: flex-start;
+    gap: 20px;
+}
+
+/* Título: evitar que se comprima */
+.card-header > .card-title {
+    flex: 0 0 auto;
+    padding-top: 3px;
+}
+
+.card-header > .row {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 14px;
+    margin: 0;
+    flex-wrap: wrap-reverse;
+    flex-direction: row-reverse;
+}
+
+/* Columnas de los controles */
+.card-header > .row > .col-md-4 {
+    width: auto;
+    max-width: 100%;
+    flex: 0 1 250px;
+    min-width: 210px;
+    padding: 0;
+}
+
 /* ─── INFO GRID (fields) ────────────────────────────────────── */
 .info-grid {
   display: grid;
@@ -1751,6 +1789,17 @@ table.siap-table {
     }
 }
 
+/* Botón Ver Cantidades */
+#btn-ver-cantidades {
+    flex: 0 0 auto;
+    min-height: 42px;
+    align-self: flex-end;
+    justify-content: center;
+    padding: 10px 17px;
+    border-radius: 9px;
+    font-size: 13px;
+}
+
 
 /* ============================================================
     TOPBAR
@@ -1785,7 +1834,47 @@ table.siap-table {
         padding:
             24px;
     }
+    
+    .card-header {
+        flex-wrap: wrap;
+    }
 
+    .card-header > .card-title {
+        flex-basis: 100%;
+    }
+
+    .card-header > .row {
+        justify-content: flex-start;
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .card-header {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .card-header > .row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .card-header > .row > .col-md-4 {
+        width: 100%;
+        min-width: 0;
+        flex-basis: auto;
+    }
+
+    .card-header > .row > .col-md-4:has(#modalViewToggle) {
+        align-self: stretch;
+        justify-content: flex-start;
+    }
+
+    #btn-ver-cantidades {
+        width: 100%;
+    }
 }
 
 
