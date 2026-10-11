@@ -270,6 +270,7 @@ class requerimientoModel extends ConnectDB {
             " . $idReqActivo . " as id_req,
             COALESCE(req_data.nom_dep, 'Sin solicitar') AS dependencia,
             p.cod_partida AS partida,
+            p.descripcion AS partida_nombre,
             pro.nom_prod AS producto,
             pro.id_prod as id_prod,
             COALESCE(req_data.Ene, 0) AS Ene, COALESCE(req_data.Feb, 0) AS Feb,

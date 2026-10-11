@@ -18,7 +18,28 @@ $(document).ready(function() {
             return seleccion !== '' && seleccion !== undefined && seleccion !== 'todos';
         }
 
-        const tabla = $('#tablaMain').DataTable({
+        // Variable de instancia del DataTable; se reasigna al alternar entre
+        // la vista de detalle y la vista agregada por partida.
+        let tabla;
+
+        // Estructura original de la tabla, para restaurarla al salir del modo partida
+        var theadMainHTML = $('#tablaMain thead').html();
+        var tfootMainHTML = $('#tablaMain tfoot').html();
+
+        // Bandera de modo: false = detalle, true = agregado por partida
+        var modoPartidas = false;
+
+        function initTablaMain() {
+        if ($.fn.DataTable.isDataTable('#tablaMain')) {
+            $('#tablaMain').DataTable().destroy();
+        }
+        // destroy() reinserta las filas previas en el tbody; hay que limpiarlas
+        // para que DataTables no detecte un número de columnas distinto al nuevo.
+        $('#tablaMain tbody').empty();
+        $('#tablaMain thead').html(theadMainHTML);
+        $('#tablaMain tfoot').html(tfootMainHTML);
+
+        tabla = $('#tablaMain').DataTable({
             ajax: {
                 url: "?url=requerimiento&type=main",
                 method: 'POST',
@@ -58,11 +79,20 @@ $(document).ready(function() {
                         } else {
                             $('#btn-cambiar-estado').show(); // El usuario normal SÍ lo ve
                         }
+                        // Botón de vista agregada por partida (solo admin).
+                        // No se muestra mientras el slider de cantidades en modal
+                        // esté activo (de lo contrario, un reload lo re-mostraría).
+                        if (esAdmin && !$('#modalViewToggle').is(':checked')) {
+                            $('#btn-vista-partidas').show();
+                        } else {
+                            $('#btn-vista-partidas').hide();
+                        }
                     } else {
                         // Si no hay datos, ocultar el botón modificar
                         $('#btn-modificar').hide();
                         $('#btn-eliminar').hide();
                         $('#btn-cambiar-estado').hide();
+                        $('#btn-vista-partidas').hide();
                     }
                     
                     return json.data;
@@ -144,7 +174,9 @@ $(document).ready(function() {
             }
             
         });
-        
+        }
+
+        initTablaMain();
 
         $('#select-dependencia').on('input change', function() {
             var selectedName = $(this).val();
@@ -156,6 +188,14 @@ $(document).ready(function() {
                 }
             });
             $('#id_dep_seleccionado').val(selectedId);
+
+            // Si estamos en la vista por partida, volvemos al detalle.
+            // initTablaMain() recargará usando el filtro ya actualizado.
+            if (modoPartidas) {
+                mostrarDetalle();
+                return;
+            }
+
             // Si se elige "todos" o se limpia el datalist, el consolidado no es modificable
             if (!hayDependenciaElegida()) {
                 $('#btn-modificar-modal').hide().prop('disabled', true);
@@ -165,6 +205,13 @@ $(document).ready(function() {
             } else {
                 // Si no hay nada seleccionado, limpiamos la tabla
                 tabla.clear().draw();
+                // clear().draw() NO ejecuta dataSrc, así que los botones que se
+                // muestran/ocultan ahí conservarían su estado anterior. Aquí no hay
+                // datos, por lo que los ocultamos todos.
+                $('#btn-vista-partidas').hide();
+                $('#btn-eliminar').hide();
+                $('#btn-modificar').hide();
+                $('#btn-cambiar-estado').hide();
             }
         })
 
@@ -182,6 +229,9 @@ $(document).ready(function() {
                 }
                 // Ocultar botón modificar de la vista principal
                 $('#btn-modificar').hide();
+                // Al accionar el slider (modo cantidades en modal) se oculta
+                // el botón de Totales POA; vuelve solo si se desactiva el slider.
+                $('#btn-vista-partidas').hide();
                 $('#btn-ver-cantidades').show();
                 // Ocultar modal si estaba abierto
                 $('#modalCantidades').hide();
@@ -469,6 +519,174 @@ $(document).ready(function() {
                     btn.prop('disabled', false).text(textoOriginal);
                 }
             });
+        });
+
+        // =========================================================================
+        // VISTA POR PARTIDA (Admin) - agregado por partida presupuestaria
+        // =========================================================================
+
+        var MESES_PARTIDA = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                             'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+        // Convierte un valor (posiblemente formateado como moneda) a número
+        function numeroPartida(valor) {
+            return typeof valor === 'string'
+                ? valor.replace(/[^\d.-]/g, '') * 1
+                : (typeof valor === 'number' ? valor : 0);
+        }
+
+        // Agrupa las filas del detalle por código de partida, sumando meses y totales
+        function agregarPorPartida(rows) {
+            var mapa = {};
+            rows.forEach(function(row) {
+                var key = row.partida;
+                if (!mapa.hasOwnProperty(key)) {
+                    mapa[key] = {
+                        partida: row.partida,
+                        partida_nombre: row.partida_nombre || '',
+                        Total_Cantidad: 0,
+                        total_usd: 0,
+                        total_bs: 0
+                    };
+                    MESES_PARTIDA.forEach(function(m) { mapa[key][m] = 0; });
+                }
+                var agg = mapa[key];
+                MESES_PARTIDA.forEach(function(m) {
+                    agg[m] += numeroPartida(row[m]);
+                });
+                agg.Total_Cantidad += numeroPartida(row.Total_Cantidad);
+                agg.total_usd += numeroPartida(row.total_usd);
+                agg.total_bs += numeroPartida(row.total_bs);
+            });
+
+            return Object.keys(mapa).sort(function(a, b) {
+                return a.localeCompare(b, undefined, { numeric: true });
+            }).map(function(k) { return mapa[k]; });
+        }
+
+        function cabeceraPartidasHTML() {
+            var ths = MESES_PARTIDA.map(function(m) {
+                return '<th>' + m + '</th>';
+            }).join('');
+            return '<tr><th>Partida</th>' + ths +
+                '<th class="bg-success">Cantidad Total</th>' +
+                '<th class="bg-primary">Total USD</th>' +
+                '<th class="bg-info">Total BS</th></tr>';
+        }
+
+        function footerPartidasHTML() {
+            return '<tr>' +
+                '<th style="text-align:right">Gran Total:</th>' +
+                '<th></th>'.repeat(12) +
+                '<th></th><th></th><th></th>' +
+                '</tr>';
+        }
+
+        function initTablaPartidas() {
+            var datos = agregarPorPartida(tabla.rows().data().toArray());
+
+            if ($.fn.DataTable.isDataTable('#tablaMain')) {
+                $('#tablaMain').DataTable().destroy();
+            }
+            // destroy() reinserta las filas previas (con inputs y 19 columnas);
+            // se limpian para evitar el warning "Incorrect column count" y el desalineado.
+            $('#tablaMain tbody').empty();
+            $('#tablaMain thead').html(cabeceraPartidasHTML());
+            $('#tablaMain tfoot').html(footerPartidasHTML());
+
+            tabla = $('#tablaMain').DataTable({
+                data: datos,
+                columns: [
+                    {
+                        data: 'partida',
+                        render: function(data, type, row) {
+                            return row.partida_nombre ? (data + ' - ' + row.partida_nombre) : data;
+                        }
+                    },
+                    { data: 'Ene' }, { data: 'Feb' }, { data: 'Mar' }, { data: 'Abr' },
+                    { data: 'May' }, { data: 'Jun' }, { data: 'Jul' }, { data: 'Ago' },
+                    { data: 'Sep' }, { data: 'Oct' }, { data: 'Nov' }, { data: 'Dic' },
+                    { data: 'Total_Cantidad' },
+                    { data: 'total_usd', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                    { data: 'total_bs', render: $.fn.dataTable.render.number(',', '.', 2, 'Bs ') }
+                ],
+                order: [[0, 'asc']],
+                autoWidth: false,
+                responsive: true,
+                pageLength: 25,
+                language: {
+                    url: "assets/js/DataTables/spanish.json"
+                },
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+                    var formatoMoneda = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
+                    // Subtotal por cada mes (columnas 1 a 12)
+                    for (var i = 0; i < 12; i++) {
+                        var totalMes = api.column(i + 1).data().reduce(function (a, b) {
+                            return numeroPartida(a) + numeroPartida(b);
+                        }, 0);
+                        $(api.column(i + 1).footer()).html(totalMes.toLocaleString('es-CO'));
+                    }
+
+                    // Suma de Cantidad Total (col 13) y totales monetarios (col 14, 15)
+                    var totalCant = api.column(13).data().reduce(function (a, b) {
+                        return numeroPartida(a) + numeroPartida(b);
+                    }, 0);
+                    var totalUsd = api.column(14).data().reduce(function (a, b) {
+                        return numeroPartida(a) + numeroPartida(b);
+                    }, 0);
+                    var totalBs = api.column(15).data().reduce(function (a, b) {
+                        return numeroPartida(a) + numeroPartida(b);
+                    }, 0);
+
+                    $(api.column(13).footer()).html(totalCant.toLocaleString('es-CO'));
+                    $(api.column(14).footer()).html('$' + totalUsd.toLocaleString('en-US', formatoMoneda));
+                    $(api.column(15).footer()).html('Bs ' + totalBs.toLocaleString('en-US', formatoMoneda));
+                }
+            });
+        }
+
+        function mostrarPartidas() {
+            if (modoPartidas) return;
+            var rows = tabla.rows().data().toArray();
+            if (!rows.length) return;
+
+            // Desactivamos edición y el toggle de modal mientras se ve el agregado
+            $('#btn-modificar').hide();
+            $('#btn-eliminar').hide();
+            $('#modalViewToggle').prop('checked', false).prop('disabled', true);
+            // Se oculta el contenedor completo (no solo slider/label) para liberar
+            // su slot en el flex y que el botón ocupe ese hueco.
+            $('#modalViewToggle').closest('.col-md-4').hide();
+            $('#btn-ver-cantidades').hide();
+            $('#modalCantidades').hide();
+            $('#btn-modificar-modal').hide().prop('disabled', true);
+
+            initTablaPartidas();
+
+            modoPartidas = true;
+            $('#btn-vista-partidas').html('<i class="fa-solid fa-table-list" aria-hidden="true"></i> Ver Detalle');
+        }
+
+        function mostrarDetalle() {
+            if (!modoPartidas) return;
+
+            initTablaMain();
+
+            modoPartidas = false;
+            $('#modalViewToggle').prop('disabled', false);
+            // Se restaura el display flex inline del contenedor (ver userView.php)
+            $('#modalViewToggle').closest('.col-md-4').css('display', 'flex');
+            $('#btn-vista-partidas').html('<i class="fa-solid fa-table-list" aria-hidden="true"></i> Ver por Partida');
+        }
+
+        $('#btn-vista-partidas').on('click', function() {
+            if (modoPartidas) {
+                mostrarDetalle();
+            } else {
+                mostrarPartidas();
+            }
         });
     }
     // Lógica para cambiar estado de 1 a 0

@@ -73,11 +73,13 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                     <input type="checkbox" id="modalViewToggle">
                     <span class="switch-slider"></span>
                 </label>
-                <span style="font-size: 13px; color: var(--text-muted); margin: 0 8px;">Ver cantidades en modal</span>
+                <span id="verCant"  style="font-size: 13px; color: var(--text-muted); margin: 0 8px;">Ver cantidades mensuales</span>
             </div>
             <button id="btn-ver-cantidades" class="btn btn-blue" style="display: none;">
                 <i class="fa-solid fa-chart-column" aria-hidden="true"></i> Ver Cantidades
             </button>
+            <button id="btn-vista-partidas" class="btn btn-blue" style="display: none;">
+                <i class="fa-solid fa-table-list" aria-hidden="true"></i> Totales POA</button>
         <?php } ?>
         </div>
         </div>
