@@ -270,7 +270,6 @@ $(document).ready(function() {
         const data = tablaAnios.row($(this).closest('tr')).data();
         $('#editAniof_id').val(data.id_anioFis);
         $('#editAniof_anio').val(data.anio_fiscal);
-        $('#editAniof_estado').prop('checked', Number(data.activo) === 1);
         $('#modalEditarAnioFiscal').show();
     });
 

@@ -546,7 +546,9 @@ $(document).ready(function() {
                         partida_nombre: row.partida_nombre || '',
                         Total_Cantidad: 0,
                         total_usd: 0,
-                        total_bs: 0
+                        precio_unit_usd: 0,
+                        total_bs: 0,
+                        precio_unit_bs: 0
                     };
                     MESES_PARTIDA.forEach(function(m) { mapa[key][m] = 0; });
                 }
@@ -557,6 +559,17 @@ $(document).ready(function() {
                 agg.Total_Cantidad += numeroPartida(row.Total_Cantidad);
                 agg.total_usd += numeroPartida(row.total_usd);
                 agg.total_bs += numeroPartida(row.total_bs);
+                // Precio unitario: suma de los precios unitarios de los productos
+                // realmente pedidos (Total_Cantidad > 0), no la cantidad.
+                var cantFila = numeroPartida(row.Total_Cantidad);
+                if (cantFila > 0) {
+                    var pUnitUsd = numeroPartida(row.precio_unit_usd);
+                    agg.precio_unit_usd += pUnitUsd;
+                    // Tasa derivada de la propia fila: total_bs / total_usd
+                    var totalUsdFila = numeroPartida(row.total_usd);
+                    var tasaFila = totalUsdFila > 0 ? numeroPartida(row.total_bs) / totalUsdFila : 0;
+                    agg.precio_unit_bs += pUnitUsd * tasaFila;
+                }
             });
 
             return Object.keys(mapa).sort(function(a, b) {
@@ -569,8 +582,10 @@ $(document).ready(function() {
                 return '<th>' + m + '</th>';
             }).join('');
             return '<tr><th>Partida</th>' + ths +
-                '<th class="bg-success">Cantidad Total</th>' +
+            '<th class="bg-success">Cantidad Total</th>' +
+            '<th class="bg-primary">P. Unit USD</th>' +
                 '<th class="bg-primary">Total USD</th>' +
+                '<th class="bg-info">P. Unit BS</th>' +
                 '<th class="bg-info">Total BS</th></tr>';
         }
 
@@ -578,7 +593,7 @@ $(document).ready(function() {
             return '<tr>' +
                 '<th style="text-align:right">Gran Total:</th>' +
                 '<th></th>'.repeat(12) +
-                '<th></th><th></th><th></th>' +
+                '<th></th><th></th><th></th><th></th><th></th>' +
                 '</tr>';
         }
 
@@ -607,7 +622,9 @@ $(document).ready(function() {
                     { data: 'May' }, { data: 'Jun' }, { data: 'Jul' }, { data: 'Ago' },
                     { data: 'Sep' }, { data: 'Oct' }, { data: 'Nov' }, { data: 'Dic' },
                     { data: 'Total_Cantidad' },
+                    { data: 'precio_unit_usd', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
                     { data: 'total_usd', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                    { data: 'precio_unit_bs', render: $.fn.dataTable.render.number(',', '.', 2, 'Bs ') },
                     { data: 'total_bs', render: $.fn.dataTable.render.number(',', '.', 2, 'Bs ') }
                 ],
                 order: [[0, 'asc']],
@@ -629,20 +646,21 @@ $(document).ready(function() {
                         $(api.column(i + 1).footer()).html(totalMes.toLocaleString('es-CO'));
                     }
 
-                    // Suma de Cantidad Total (col 13) y totales monetarios (col 14, 15)
-                    var totalCant = api.column(13).data().reduce(function (a, b) {
+                    // Suma de Cantidad Total (col 15) y totales monetarios (col 16, 17)
+                    // Los precios unitarios (cols 13, 14) NO se suman en el pie.
+                    var totalCant = api.column(15).data().reduce(function (a, b) {
                         return numeroPartida(a) + numeroPartida(b);
                     }, 0);
-                    var totalUsd = api.column(14).data().reduce(function (a, b) {
+                    var totalUsd = api.column(16).data().reduce(function (a, b) {
                         return numeroPartida(a) + numeroPartida(b);
                     }, 0);
-                    var totalBs = api.column(15).data().reduce(function (a, b) {
+                    var totalBs = api.column(17).data().reduce(function (a, b) {
                         return numeroPartida(a) + numeroPartida(b);
                     }, 0);
 
-                    $(api.column(13).footer()).html(totalCant.toLocaleString('es-CO'));
-                    $(api.column(14).footer()).html('$' + totalUsd.toLocaleString('en-US', formatoMoneda));
-                    $(api.column(15).footer()).html('Bs ' + totalBs.toLocaleString('en-US', formatoMoneda));
+                    $(api.column(15).footer()).html(totalCant.toLocaleString('es-CO'));
+                    $(api.column(16).footer()).html('$' + totalUsd.toLocaleString('en-US', formatoMoneda));
+                    $(api.column(17).footer()).html('Bs ' + totalBs.toLocaleString('en-US', formatoMoneda));
                 }
             });
         }

@@ -340,12 +340,12 @@ class periodoModel extends ConnectDB
         }
     }
 
-    // [U] - ACTUALIZAR AÑO FISCAL
-    public function updateAnioFiscal(int $id, string $anioFiscal, int $activo) {
+    // [U] - ACTUALIZAR AÑO FISCAL ($activo = null conserva el estado actual)
+    public function updateAnioFiscal(int $id, string $anioFiscal, ?int $activo = null) {
         return $this->executeUpdateAnioFiscal($id, $anioFiscal, $activo);
     }
 
-    private function executeUpdateAnioFiscal(int $id, string $anioFiscal, int $activo): bool
+    private function executeUpdateAnioFiscal(int $id, string $anioFiscal, ?int $activo): bool
     {
         try {
             $this->conex->beginTransaction();
@@ -357,10 +357,16 @@ class periodoModel extends ConnectDB
                 $stmt->execute();
             }
 
-            $stmt2 = $this->conex->prepare("UPDATE anio_fiscal SET anio = ?, activo = ? WHERE id_aniof = ?");
-            $stmt2->bindValue(1, $anioFiscal);
-            $stmt2->bindValue(2, $activo, \PDO::PARAM_INT);
-            $stmt2->bindValue(3, $id, \PDO::PARAM_INT);
+            if ($activo === null) {
+                $stmt2 = $this->conex->prepare("UPDATE anio_fiscal SET anio = ? WHERE id_aniof = ?");
+                $stmt2->bindValue(1, $anioFiscal);
+                $stmt2->bindValue(2, $id, \PDO::PARAM_INT);
+            } else {
+                $stmt2 = $this->conex->prepare("UPDATE anio_fiscal SET anio = ?, activo = ? WHERE id_aniof = ?");
+                $stmt2->bindValue(1, $anioFiscal);
+                $stmt2->bindValue(2, $activo, \PDO::PARAM_INT);
+                $stmt2->bindValue(3, $id, \PDO::PARAM_INT);
+            }
             $result = $stmt2->execute();
 
             $this->conex->commit();

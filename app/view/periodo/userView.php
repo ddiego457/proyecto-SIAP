@@ -150,11 +150,7 @@ include_once 'app/view/layout/head.php';
                 </div>
 
                 <div class="field-group">
-                    <label class="field-label">Activo</label>
-                    <label class="field-switch">
-                        <input type="checkbox" id="editAniof_estado" name="estado">
-                        <span class="switch-slider"></span>
-                    </label>
+                    <p class="field-note">El estado activo no se puede modificar desde este formulario.</p>
                 </div>
             </div>
 

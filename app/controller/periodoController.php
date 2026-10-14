@@ -130,9 +130,9 @@ if (isset($_GET['type'])) {
             if ($object->existsAnioFiscalByAnio($anio, $idItem)) {
                 sendJsonResponse(['success' => false, 'message' => 'Ya existe un año fiscal con ese valor.']);
             }
-            $estado = isset($_POST['estado']) ? 1 : 0;
-            // Si se marca como activo, el modelo desactiva los demás automáticamente
-            $result = $object->updateAnioFiscal($idItem, $anio, (int)$estado);
+            // El estado activo ya no se envía desde el formulario de edición; se conserva el actual
+            $estado = isset($_POST['estado']) ? 1 : null;
+            $result = $object->updateAnioFiscal($idItem, $anio, $estado);
             sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Año fiscal actualizado' : 'Error al actualizar el año fiscal.']);
         }
 
