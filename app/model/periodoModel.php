@@ -259,5 +259,155 @@ class periodoModel extends ConnectDB
         }
     }
 
+    // ════════════════════════════════════════════════════════════════════
+    // AÑOS FISCALES (antes en anioFiscalModel; gestionados desde el modal
+    // de Periodos: ?url=periodo&type=main)
+    // ════════════════════════════════════════════════════════════════════
+
+    public function getAllAniosFiscales() {
+        return $this->executeGetAllAniosFiscales();
+    }
+
+    private function executeGetAllAniosFiscales() {
+        try {
+            // Mantener compatibilidad con el JS: el JS espera 'id_anioFis' y 'anio_fiscal'
+            $stmt = $this->conex->prepare(
+                "SELECT id_aniof AS id_anioFis, anio AS anio_fiscal, activo
+                 FROM anio_fiscal
+                 ORDER BY anio DESC"
+            );
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return [];
+        }
+    }
+
+    // Validación pública para evitar duplicados por año
+    public function existsAnioFiscalByAnio(string $anioFiscal, ?int $excludeId = null): bool
+    {
+        return $this->executeExistsAnioFiscalByAnio($anioFiscal, $excludeId);
+    }
+
+    private function executeExistsAnioFiscalByAnio(string $anioFiscal, ?int $excludeId = null): bool
+    {
+        try {
+            $query = "SELECT 1 FROM anio_fiscal WHERE anio = ?";
+            $params = [$anioFiscal];
+            if ($excludeId !== null) {
+                $query .= " AND id_aniof <> ?";
+                $params[] = $excludeId;
+            }
+            $stmt = $this->conex->prepare($query);
+            $stmt->execute($params);
+            return (bool)$stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    // [C] - CREAR AÑO FISCAL
+    // El nuevo año fiscal se crea SIEMPRE como activo y se desactivan los demás.
+    public function addAnioFiscal(string $anioFiscal) {
+        return $this->executeAddAnioFiscal($anioFiscal);
+    }
+
+    private function executeAddAnioFiscal(string $anioFiscal): bool
+    {
+        try {
+            // Evitar duplicados del mismo año fiscal (solo 1 registro por año)
+            if ($this->existsAnioFiscalByAnio($anioFiscal)) {
+                return false;
+            }
+
+            $this->conex->beginTransaction();
+
+            // El nuevo año fiscal queda como el único activo: se desactivan los demás
+            $stmt = $this->conex->prepare("UPDATE anio_fiscal SET activo = 0 WHERE activo = 1");
+            $stmt->execute();
+
+            $stmt2 = $this->conex->prepare("INSERT INTO anio_fiscal (anio, activo) VALUES (?, 1)");
+            $stmt2->bindValue(1, $anioFiscal);
+            $result = $stmt2->execute();
+
+            $this->conex->commit();
+            return $result;
+        } catch (\PDOException $e) {
+            if ($this->conex->inTransaction()) {
+                $this->conex->rollBack();
+            }
+            return false;
+        }
+    }
+
+    // [U] - ACTUALIZAR AÑO FISCAL
+    public function updateAnioFiscal(int $id, string $anioFiscal, int $activo) {
+        return $this->executeUpdateAnioFiscal($id, $anioFiscal, $activo);
+    }
+
+    private function executeUpdateAnioFiscal(int $id, string $anioFiscal, int $activo): bool
+    {
+        try {
+            $this->conex->beginTransaction();
+
+            // Si se marca como activo, quita el activo a los demás (solo 1 activo a la vez)
+            if ($activo === 1) {
+                $stmt = $this->conex->prepare("UPDATE anio_fiscal SET activo = 0 WHERE activo = 1 AND id_aniof <> ?");
+                $stmt->bindValue(1, $id, \PDO::PARAM_INT);
+                $stmt->execute();
+            }
+
+            $stmt2 = $this->conex->prepare("UPDATE anio_fiscal SET anio = ?, activo = ? WHERE id_aniof = ?");
+            $stmt2->bindValue(1, $anioFiscal);
+            $stmt2->bindValue(2, $activo, \PDO::PARAM_INT);
+            $stmt2->bindValue(3, $id, \PDO::PARAM_INT);
+            $result = $stmt2->execute();
+
+            $this->conex->commit();
+            return $result;
+        } catch (\PDOException $e) {
+            if ($this->conex->inTransaction()) {
+                $this->conex->rollBack();
+            }
+            return false;
+        }
+    }
+
+    // Activar un año fiscal (desactiva los demás)
+    public function activateAnioFiscal(int $id) {
+        return $this->executeActivateAnioFiscal($id);
+    }
+
+    private function executeActivateAnioFiscal(int $id): bool
+    {
+        try {
+            // Desactivar todos
+            $stmt = $this->conex->prepare("UPDATE anio_fiscal SET activo = 0 WHERE activo = 1");
+            $stmt->execute();
+            // Activar el seleccionado
+            $stmt2 = $this->conex->prepare("UPDATE anio_fiscal SET activo = 1 WHERE id_aniof = ?");
+            $stmt2->bindValue(1, $id, \PDO::PARAM_INT);
+            return $stmt2->execute();
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    // Inhabilitar un año fiscal (marcar activo = 0)
+    public function inactivateAnioFiscal(int $id) {
+        return $this->executeInactivateAnioFiscal($id);
+    }
+
+    private function executeInactivateAnioFiscal(int $id): bool
+    {
+        try {
+            $stmt = $this->conex->prepare("UPDATE anio_fiscal SET activo = 0 WHERE id_aniof = ?");
+            $stmt->bindValue(1, $id, \PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
 }
 ?>

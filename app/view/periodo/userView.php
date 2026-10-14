@@ -8,6 +8,7 @@ include_once 'app/view/layout/head.php';
     <div class="topbar-title">Periodos</div>
     <div class="topbar-actions">
         <a href="?url=periodo&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+        <button type="button" id="btnAniosFiscales" class="btn btn-outline btn-sm"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> A&ntilde;os fiscales</button>
     </div>
 </div>
 
@@ -67,6 +68,99 @@ include_once 'app/view/layout/head.php';
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModal2" class="btn btn-outline">Cancelar</button>
                 <button type="submit" class="btn btn-success">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL LISTADO AÑOS FISCALES -->
+<div id="modalAniosFiscales" class="modal-backdrop" style="display:none; z-index:210;">
+    <div class="modal-panel" style="max-width:760px;">
+        <div class="modal-header">
+            <h3>A&ntilde;os fiscales</h3>
+            <button id="btnCerrarModalAnios" class="modal-close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="table-wrap">
+                <table id="tablaAniosFiscales" class="siap-table" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Año Fiscal</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" id="btnNuevoAnioFiscal" class="btn btn-outline" style="margin-right:auto;">&#43; Nuevo a&ntilde;o fiscal</button>
+            <button type="button" id="btnCerrarModalAnios2" class="btn btn-success">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NUEVO AÑO FISCAL -->
+<div id="modalAnioFiscal" class="modal-backdrop" style="display:none; z-index:220;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nuevo a&ntilde;o fiscal</h3>
+            <button id="btnCerrarModalAnioFiscal" class="modal-close">&times;</button>
+        </div>
+
+        <form id="formAnioFiscal">
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Año Fiscal</label>
+                    <input type="number" id="aniof_anio" name="anio_fiscal" class="field-input" min="1900" max="2100" placeholder="Ej. 2026" required>
+                </div>
+
+                <div class="field-group">
+                    <p class="field-note">El a&ntilde;o fiscal se creará como activo y se desactivarán los dem&aacute;s autom&aacute;ticamente.</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalAnioFiscal2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Guardar a&ntilde;o fiscal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EDITAR AÑO FISCAL -->
+<div id="modalEditarAnioFiscal" class="modal-backdrop" style="display:none; z-index:230;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Editar a&ntilde;o fiscal</h3>
+            <button id="btnCerrarModalEditarAnioFiscal" class="modal-close">&times;</button>
+        </div>
+
+        <form id="formAnioFiscalEditar">
+            <input type="hidden" id="editAniof_id" name="idItem">
+
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Año Fiscal</label>
+                    <input type="number" id="editAniof_anio" name="anio_fiscal" class="field-input" min="1900" max="2100" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Activo</label>
+                    <label class="field-switch">
+                        <input type="checkbox" id="editAniof_estado" name="estado">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalEditarAnioFiscal2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Guardar cambios</button>
             </div>
         </form>
     </div>

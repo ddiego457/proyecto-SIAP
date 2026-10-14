@@ -25,7 +25,6 @@ if (!function_exists('sidebarLink')) {
     <nav class="sidebar-nav">
         <?php if ($esAdmin): ?>
             <div class="sidebar-section-title">M&oacute;dulos</div>
-            <?php sidebarLink('anioFiscal',         '&#128197;', 'A&ntilde;o Fiscal',           $urlActual); ?>
             <?php sidebarLink('dependencia',         '&#127970;', 'Dependencias',               $urlActual); ?>
             <?php sidebarLink('responsable',        '&#128100;', 'Responsables',               $urlActual); ?>
             <?php sidebarLink('proveedor',           '&#128230;', 'Proveedores',                $urlActual); ?>

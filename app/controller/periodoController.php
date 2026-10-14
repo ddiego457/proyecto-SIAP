@@ -100,6 +100,52 @@ if (isset($_GET['type'])) {
             $result = $object->update($idItem, $fechaInicio, $fechaFin, $anioFiscalId);
             sendJsonResponse(['success' => $result, 'message' => $result ? 'Periodo actualizado' : 'Error al actualizar el periodo.']);
         }
+
+        // ─── CRUD de Años Fiscales (gestionado desde el modal en Periodos) ───
+        if (isset($_POST['getAllAniosFiscales'])) {
+            sendJsonResponse($object->getAllAniosFiscales());
+        }
+
+        if (isset($_POST['registerAnioFiscal'])) {
+            $anio = isset($_POST['anio_fiscal']) ? trim((string)$_POST['anio_fiscal']) : '';
+            if ($anio === '') {
+                sendJsonResponse(['success' => false, 'message' => 'El año fiscal no puede estar vacío.']);
+            }
+            // Evitar duplicados por año
+            if ($object->existsAnioFiscalByAnio($anio)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe un año fiscal con ese valor.']);
+            }
+            // El modelo crea el año fiscal activo y desactiva los demás automáticamente
+            $result = $object->addAnioFiscal($anio);
+            sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Año fiscal registrado y activado' : 'Error al registrar (duplicado o error BD).']);
+        }
+
+        if (isset($_POST['updateAnioFiscal'])) {
+            $idItem = (int)$_POST['idItem'];
+            $anio = isset($_POST['anio_fiscal']) ? trim((string)$_POST['anio_fiscal']) : '';
+            if ($anio === '') {
+                sendJsonResponse(['success' => false, 'message' => 'El año fiscal no puede estar vacío.']);
+            }
+            // Evitar duplicados por año (excluyendo el propio registro)
+            if ($object->existsAnioFiscalByAnio($anio, $idItem)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe un año fiscal con ese valor.']);
+            }
+            $estado = isset($_POST['estado']) ? 1 : 0;
+            // Si se marca como activo, el modelo desactiva los demás automáticamente
+            $result = $object->updateAnioFiscal($idItem, $anio, (int)$estado);
+            sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Año fiscal actualizado' : 'Error al actualizar el año fiscal.']);
+        }
+
+        if (isset($_POST['activateAnioFiscal'])) {
+            $result = $object->activateAnioFiscal((int)$_POST['idItem']);
+            sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Año fiscal activado' : 'Error al activar el año fiscal.']);
+        }
+
+        if (isset($_POST['inactivateAnioFiscal'])) {
+            $result = $object->inactivateAnioFiscal((int)$_POST['idItem']);
+            sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Año fiscal inhabilitado' : 'Error al inhabilitar el año fiscal.']);
+        }
+
         $anioFiscales = $object->getAniosFiscalesActivos();
         include 'app/view/periodo/userView.php';
     } else {
