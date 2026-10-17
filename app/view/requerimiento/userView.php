@@ -45,6 +45,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                 <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo $timeLeft; ?></div>
                 <div class="alert-banner-sub">Complete todas las partidas de su dependencia antes del cierre</div>
             <?php endif; ?>
+        <div class="alert-banner-title"> Año activo: <strong> <?php  echo $anioFiscal  ?> </strong> </div>
         </div>
         <div class="alert-banner-badge">  <?php echo $dias > 0 ? $dias : '0' ?> <span>días</span></div>
 </div>
@@ -73,7 +74,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                     <input type="checkbox" id="modalViewToggle">
                     <span class="switch-slider"></span>
                 </label>
-                <span id="verCant"  style="font-size: 13px; color: var(--text-muted); margin: 0 8px;">Ver cantidades mensuales</span>
+                <span id="verCant"  style="font-size: 13px; color: var(--text-muted); margin: 0 8px;">Ver resumen</span>
             </div>
             <button id="btn-ver-cantidades" class="btn btn-blue" style="display: none;">
                 <i class="fa-solid fa-chart-column" aria-hidden="true"></i> Ver Cantidades

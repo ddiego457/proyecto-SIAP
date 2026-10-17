@@ -696,7 +696,7 @@ $(document).ready(function() {
             $('#modalViewToggle').prop('disabled', false);
             // Se restaura el display flex inline del contenedor (ver userView.php)
             $('#modalViewToggle').closest('.col-md-4').css('display', 'flex');
-            $('#btn-vista-partidas').html('<i class="fa-solid fa-table-list" aria-hidden="true"></i> Ver por Partida');
+            $('#btn-vista-partidas').html('<i class="fa-solid fa-table-list" aria-hidden="true"></i> Totales POA');
         }
 
         $('#btn-vista-partidas').on('click', function() {

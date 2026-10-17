@@ -418,6 +418,17 @@ class requerimientoModel extends ConnectDB {
         return $resultado;
     }
 
+    public function getAnioFiscal(){
+        return $this->executeGetAnioFiscal();
+    }
+
+    private function executeGetAnioFiscal(){
+        $stmt = $this->conex->prepare("SELECT anio FROM anio_fiscal WHERE activo = 1");
+        $stmt->execute();
+        $anio = $stmt->fetch();
+        return $anio["anio"];
+    }
+
     private function deleteAllDetailsFromReq($idReq) {
         $del = "DELETE FROM detalle_req WHERE id_req = :id_req";
         $stmtDel = $this->conex->prepare($del);

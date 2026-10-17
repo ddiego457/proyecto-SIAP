@@ -14,6 +14,20 @@ include_once 'app/view/layout/head.php';
 
 <!-- BODY -->
 <div class="page-body">
+
+    <!-- INFO PORTAL -->
+    <div class="alert-banner alert-info">
+        <div class="alert-banner-left">
+            <div class="alert-banner-title"> <strong>¿Qué puedo hacer en este portal?</strong></div>
+            <div class="alert-banner-sub">
+                Aqu&iacute; usted registra la tasa del d&oacute;lar (USD) publicada por el Banco Central de Venezuela (BCV)
+                para la fecha en curso. El sistema tomar&aacute; autom&aacute;ticamente la &uacute;ltima tasa registrada
+                para convertir los montos en d&oacute;lares de los requerimientos a bol&iacute;vares (VES),
+                calculando el presupuesto de forma actualizada y sin necesidad de conversi&oacute;n manual.
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <span class="card-title">Tasas BCV</span>

@@ -79,6 +79,8 @@ if (isset($_GET['type'])) {
             $perAct = 0;
         }
 
+        $anioFiscal = $object->getAnioFiscal();
+
         $idDep = $_SESSION['id_dep'];
 
         $prevReq = !$object->verifyPreviusReq($idDep);

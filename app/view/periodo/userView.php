@@ -13,6 +13,20 @@ include_once 'app/view/layout/head.php';
 </div>
 
 <div class="page-body">
+
+    <!-- INFO PORTAL -->
+    <div class="alert-banner alert-info">
+        <div class="alert-banner-left">
+            <div class="alert-banner-title"> <strong>&iquest;Qu&eacute; puedo hacer en este portal?</strong></div>
+            <div class="alert-banner-sub">
+                En esta secci&oacute;n usted define el periodo de env&iacute;o de los requerimientos: las fechas de
+                inicio y fin durante las cuales cada dependencia puede registrar y enviar sus solicitudes. Cada
+                periodo se asocia a un a&ntilde;o fiscal, por lo que debe existir al menos un a&ntilde;o fiscal
+                registrado  antes de crear un periodo.
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <span class="card-title">Periodos</span>

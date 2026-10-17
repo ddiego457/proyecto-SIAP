@@ -15,6 +15,19 @@ include_once 'app/view/layout/head.php';
 
 <!-- BODY -->
 <div class="page-body">
+
+    <!-- INFO PORTAL -->
+    <div class="alert-banner alert-info">
+        <div class="alert-banner-left">
+            <div class="alert-banner-title"> <strong>&iquest;Qu&eacute; puedo hacer en este portal?</strong></div>
+            <div class="alert-banner-sub">
+                En esta secci&oacute;n usted registra a la persona responsable de una dependencia: es el usuario
+                encargado de administrar los requerimientos de esa dependencia. Para poder asignar un responsable,
+                la dependencia debe existir previamente en el sistema y no puede tener ya otra persona a cargo.
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <span class="card-title">Responsables</span>

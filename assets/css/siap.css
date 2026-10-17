@@ -582,9 +582,15 @@ a { text-decoration: none; color: inherit; }
   border-left-color: #f59e0b;
   color: var(--warning);
 }
+.alert-info {
+  background: var(--blue-light);
+  border-left : 1px solid  var(--blue);
+  color: var(--text-dark);
+}
+.alert-info .alert-banner-title strong { color: var(--blue-hover); }
 .alert-banner-left { display: flex; flex-direction: column; gap: 3px; }
 .alert-banner-title { font-size: 14px; font-weight: 700; }
-.alert-banner-sub { font-size: 12.5px; opacity: .75; }
+.alert-banner-sub { font-size: 13.5px; opacity: .80; }
 .alert-banner-badge {
   font-size: 22px;
   font-weight: 800;
