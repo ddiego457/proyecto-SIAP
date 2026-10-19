@@ -7,6 +7,7 @@ require_once dirname(__DIR__) . '/helpers/SessionTrait.php';
 use EquipoSiap\Siap\helpers\SessionTrait;
 
 // Traits de validación por módulo (expresiones regulares de cada formulario)
+require_once dirname(__DIR__) . '/helpers/UserValidationTrait.php';
 require_once dirname(__DIR__) . '/helpers/DependenciaValidationTrait.php';
 require_once dirname(__DIR__) . '/helpers/ResponsableValidationTrait.php';
 require_once dirname(__DIR__) . '/helpers/ProveedorValidationTrait.php';
@@ -16,6 +17,7 @@ require_once dirname(__DIR__) . '/helpers/TasaBCVValidationTrait.php';
 require_once dirname(__DIR__) . '/helpers/RequerimientoValidationTrait.php';
 require_once dirname(__DIR__) . '/helpers/ReporteValidationTrait.php';
 
+use EquipoSiap\Siap\helpers\UserValidationTrait;
 use EquipoSiap\Siap\helpers\DependenciaValidationTrait;
 use EquipoSiap\Siap\helpers\ResponsableValidationTrait;
 use EquipoSiap\Siap\helpers\ProveedorValidationTrait;
@@ -29,6 +31,7 @@ class FrontController
 {
     // se inyecta el Trait dentro de la clase
     use SessionTrait;
+    use UserValidationTrait;
     use DependenciaValidationTrait;
     use ResponsableValidationTrait;
     use ProveedorValidationTrait;

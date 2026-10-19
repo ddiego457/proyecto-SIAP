@@ -3,12 +3,13 @@ namespace EquipoSiap\Siap\helpers;
 
 trait ResponsableValidationTrait {
 
+    // Contraseña: definida una sola vez en UserValidationTrait
+    use UserValidationTrait;
+
     // Nombre completo del responsable: letras (con acentos), espacios, apóstrofes y puntos
     public $expNomRep = '/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\'\-]{3,100}$/';
-    // Correo electrónico (misma expresión que responsableModel)
+    // Correo electrónico
     public $expEmail = '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/';
-    // Contraseña (misma expresión que UserModel)
-    public $expPassword = '/^[a-zA-Z0-9_\.\-]{4,}$/';
     // Fecha ISO (asignación de dependencia)
     public $expFechaISO = '/^\d{4}-\d{2}-\d{2}$/';
     // Descripción de rol: texto corto, máximo 70 caracteres
@@ -34,17 +35,6 @@ trait ResponsableValidationTrait {
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($this->expEmail, $email)) {
             return 'El correo electrónico no es válido.';
-        }
-        return null;
-    }
-
-    public function validarPassword($password): ?string
-    {
-        if ((string)$password === '') {
-            return 'La contraseña no puede estar vacía.';
-        }
-        if (!preg_match($this->expPassword, $password)) {
-            return 'La contraseña solo puede contener letras, números y los caracteres _ . - (mínimo 4 caracteres).';
         }
         return null;
     }

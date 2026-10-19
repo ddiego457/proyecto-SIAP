@@ -12,8 +12,6 @@ class responsableModel extends ConnectDB
     private $nom_rep;
     private $password;
     private $estado;
-    // Expresión regular de correo (acepta dominios como .com.ve)
-    public $expEmail = '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/';
 
     public function __construct()
     {

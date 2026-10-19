@@ -19,9 +19,8 @@ if (isset($_GET['type']) && $_GET['type'] == 'recuperar') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim(isset($_POST['email']) ? $_POST['email'] : '');
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = "El correo electrónico no es válido.";
-        } else {
+        $error = $this->validarEmail($email);
+        if ($error === null) {
             $user = $userModel->getByEmail($email);
 
             if ($user === null) {
@@ -79,8 +78,8 @@ if (isset($_GET['type']) && $_GET['type'] == 'reset') {
 
         if ($pass1 === '' || $pass2 === '') {
             $error = "Complete ambos campos de contraseña.";
-        } else if (!preg_match($userModel->expPassword, $pass1)) {
-            $error = "La contraseña debe tener al menos 4 caracteres (letras, números, punto, guion o guion bajo).";
+        } else if (($error = $this->validarPassword($pass1)) !== null) {
+            // El mensaje del trait ya quedó asignado en $error
         } else if ($pass1 !== $pass2) {
             $error = "Las contraseñas no coinciden.";
         } else if ($userModel->resetPassword($idResponsable, $pass1, $token)) {
