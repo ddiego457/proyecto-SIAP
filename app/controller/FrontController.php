@@ -6,10 +6,37 @@ namespace EquipoSiap\Siap\controller;
 require_once dirname(__DIR__) . '/helpers/SessionTrait.php';
 use EquipoSiap\Siap\helpers\SessionTrait;
 
+// Traits de validación por módulo (expresiones regulares de cada formulario)
+require_once dirname(__DIR__) . '/helpers/DependenciaValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/ResponsableValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/ProveedorValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/ProductosValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/PeriodoValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/TasaBCVValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/RequerimientoValidationTrait.php';
+require_once dirname(__DIR__) . '/helpers/ReporteValidationTrait.php';
+
+use EquipoSiap\Siap\helpers\DependenciaValidationTrait;
+use EquipoSiap\Siap\helpers\ResponsableValidationTrait;
+use EquipoSiap\Siap\helpers\ProveedorValidationTrait;
+use EquipoSiap\Siap\helpers\ProductosValidationTrait;
+use EquipoSiap\Siap\helpers\PeriodoValidationTrait;
+use EquipoSiap\Siap\helpers\TasaBCVValidationTrait;
+use EquipoSiap\Siap\helpers\RequerimientoValidationTrait;
+use EquipoSiap\Siap\helpers\ReporteValidationTrait;
+
 class FrontController
 {
     // se inyecta el Trait dentro de la clase
     use SessionTrait;
+    use DependenciaValidationTrait;
+    use ResponsableValidationTrait;
+    use ProveedorValidationTrait;
+    use ProductosValidationTrait;
+    use PeriodoValidationTrait;
+    use TasaBCVValidationTrait;
+    use RequerimientoValidationTrait;
+    use ReporteValidationTrait;
 
     private $url;
     private $dir = __DIR__ . '/';

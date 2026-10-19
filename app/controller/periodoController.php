@@ -27,6 +27,14 @@ if (isset($_GET['type'])) {
                 $fechaFin = $_POST['fecha_fin'];
                 $anioFiscalId = (int)$_POST['anio_fiscal_id'];
 
+                $errorValidacion = $this->validarFechaPeriodo($fechaInicio, 'La fecha de inicio');
+                if ($errorValidacion === null) {
+                    $errorValidacion = $this->validarFechaPeriodo($fechaFin, 'La fecha de fin');
+                }
+                if ($errorValidacion !== null) {
+                    sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+                }
+
                 if (!$object->isValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin)) {
                     // Añadir diagnóstico para entender por qué falla la validación
                     $startYear = null;
@@ -85,6 +93,14 @@ if (isset($_GET['type'])) {
             $fechaFin = $_POST['fecha_fin'];
             $anioFiscalId = (int)$_POST['anio_fiscal_id'];
 
+            $errorValidacion = $this->validarFechaPeriodo($fechaInicio, 'La fecha de inicio');
+            if ($errorValidacion === null) {
+                $errorValidacion = $this->validarFechaPeriodo($fechaFin, 'La fecha de fin');
+            }
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+
             if (!$object->isValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin)) {
                 sendJsonResponse(['success' => false, 'message' => 'Fechas inválidas: la fecha de inicio debe ser anterior o igual a la fecha fin, y ambas deben corresponder al año fiscal seleccionado.']);
             }
@@ -108,8 +124,9 @@ if (isset($_GET['type'])) {
 
         if (isset($_POST['registerAnioFiscal'])) {
             $anio = isset($_POST['anio_fiscal']) ? trim((string)$_POST['anio_fiscal']) : '';
-            if ($anio === '') {
-                sendJsonResponse(['success' => false, 'message' => 'El año fiscal no puede estar vacío.']);
+            $errorValidacion = $this->validarAnioFiscal($anio);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
             // Evitar duplicados por año
             if ($object->existsAnioFiscalByAnio($anio)) {
@@ -123,8 +140,9 @@ if (isset($_GET['type'])) {
         if (isset($_POST['updateAnioFiscal'])) {
             $idItem = (int)$_POST['idItem'];
             $anio = isset($_POST['anio_fiscal']) ? trim((string)$_POST['anio_fiscal']) : '';
-            if ($anio === '') {
-                sendJsonResponse(['success' => false, 'message' => 'El año fiscal no puede estar vacío.']);
+            $errorValidacion = $this->validarAnioFiscal($anio);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
             // Evitar duplicados por año (excluyendo el propio registro)
             if ($object->existsAnioFiscalByAnio($anio, $idItem)) {

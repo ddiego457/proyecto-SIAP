@@ -30,29 +30,28 @@
             if (isset($_POST['registerResponsable'])) {
                 if (isset($_POST['nom_rep']) && isset($_POST['contrasena']) && isset($_POST['id_rol']) && isset($_POST['email'])) {
                     $nombre = trim($_POST['nom_rep']);
-                    if ($nombre === '') {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'El nombre no puede estar vacío.']);
-                        die();
+                    $errorValidacion = $this->validarNombreResponsable($nombre);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                     // Evitar duplicados por nombre (case-insensitive)
                     if ($object->existsByName($nombre)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Ya existe un responsable con ese nombre.']);
-                        die();
+                        sendJson(['success' => false, 'message' => 'Ya existe un responsable con ese nombre.']);
                     }
                     // Validar correo electrónico
                     $email = strtolower(trim((string)$_POST['email']));
-                    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($object->expEmail, $email)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'El correo electrónico no es válido.']);
-                        die();
+                    $errorValidacion = $this->validarEmail($email);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                     // Evitar duplicados por correo
                     if ($object->existsByEmail($email)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
-                        die();
+                        sendJson(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
+                    }
+                    // Validar contraseña
+                    $errorValidacion = $this->validarPassword($_POST['contrasena']);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                     $idDep = isset($_POST['id_dep']) ? (int)$_POST['id_dep'] : 0;
                     // Respaldo: si el navegador tiene la página vieja en caché (datalist),
@@ -100,17 +99,25 @@
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
+
+                $errorValidacion = $this->validarNombreResponsable($nom);
+                if ($errorValidacion !== null) {
+                    sendJson(['success' => false, 'message' => $errorValidacion]);
+                }
+                if ($pass !== null && $pass !== '') {
+                    $errorValidacion = $this->validarPassword($pass);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
+                    }
+                }
                 if ($email !== null && $email !== '') {
                     $email = strtolower($email);
-                    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($object->expEmail, $email)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'El correo electrónico no es válido.']);
-                        die();
+                    $errorValidacion = $this->validarEmail($email);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                     if ($object->existsByEmail($email, $id)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
-                        die();
+                        sendJson(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
                     }
                 }
                 $result = $object->update($id, $nom, $pass, $idRol, $email);
@@ -161,8 +168,11 @@
                     die();
                 }
 
-                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaInicio)) {
-                    $fechaInicio = date('Y-m-d');
+                $errorValidacion = $this->validarFechaAsignacion($fechaInicio);
+                if ($errorValidacion !== null) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                    die();
                 }
 
                 // Actualizar datos básicos si vienen
@@ -170,17 +180,26 @@
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
+                if ($nom !== '') {
+                    $errorValidacion = $this->validarNombreResponsable($nom);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
+                    }
+                }
+                if ($pass !== null && $pass !== '') {
+                    $errorValidacion = $this->validarPassword($pass);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
+                    }
+                }
                 if ($email !== null && $email !== '') {
                     $email = strtolower($email);
-                    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($object->expEmail, $email)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'El correo electrónico no es válido.']);
-                        die();
+                    $errorValidacion = $this->validarEmail($email);
+                    if ($errorValidacion !== null) {
+                        sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                     if ($object->existsByEmail($email, $idResponsable)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
-                        die();
+                        sendJson(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
                     }
                 }
                 if (!$object->update($idResponsable, $nom, $pass, $idRol, $email)) {
@@ -204,12 +223,9 @@
             if (isset($_POST['registerRol'])) {
                 $descripcion = isset($_POST['descripcion']) ? trim((string)$_POST['descripcion']) : '';
 
-                if ($descripcion === '') {
-                    sendJson(['success' => false, 'message' => 'La descripción del rol no puede estar vacía.']);
-                }
-
-                if (mb_strlen($descripcion) > 70) {
-                    sendJson(['success' => false, 'message' => 'La descripción del rol excede el máximo de 70 caracteres.']);
+                $errorValidacion = $this->validarDescripcionRol($descripcion);
+                if ($errorValidacion !== null) {
+                    sendJson(['success' => false, 'message' => $errorValidacion]);
                 }
 
                 if ($object->existsRol($descripcion)) {
@@ -228,12 +244,9 @@
                     sendJson(['success' => false, 'message' => 'Rol no válido.']);
                 }
 
-                if ($descripcion === '') {
-                    sendJson(['success' => false, 'message' => 'La descripción del rol no puede estar vacía.']);
-                }
-
-                if (mb_strlen($descripcion) > 70) {
-                    sendJson(['success' => false, 'message' => 'La descripción del rol excede el máximo de 70 caracteres.']);
+                $errorValidacion = $this->validarDescripcionRol($descripcion);
+                if ($errorValidacion !== null) {
+                    sendJson(['success' => false, 'message' => $errorValidacion]);
                 }
 
                 if ($object->existsRol($descripcion, $idRol)) {

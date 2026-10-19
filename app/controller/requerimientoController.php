@@ -52,6 +52,18 @@ if (isset($_GET['type'])) {
             $partida = isset($_POST['partida_actual']) ? $_POST['partida_actual'] : '401';
             $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
             $idDep = $_SESSION['id_dep'];
+
+            $errorValidacion = $this->validarPartidaActual($partida);
+            if ($errorValidacion === null) {
+                $errorValidacion = $this->validarCantidades($cantidades);
+            }
+            if ($idReq > 0 && $errorValidacion === null) {
+                $errorValidacion = $this->validarIdRequerimiento($idReq);
+            }
+            if ($errorValidacion !== null) {
+                echo json_encode(["status" => "error", "message" => $errorValidacion]);
+                die();
+            }
             
             $respuesta = $object->saveReq($idReq, $partida, $cantidades,$idDep);
             if ($respuesta['status'] === 'success' && $respuesta['id_req']) {
@@ -112,6 +124,15 @@ if (isset($_GET['type'])) {
         $idReq = (int)($_SESSION['id_req'] ?? ($_POST['id_req'] ?? 0));
         
         $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
+
+        $errorValidacion = $this->validarCantidades($cantidades);
+        if ($errorValidacion === null && $idReq > 0) {
+            $errorValidacion = $this->validarIdRequerimiento($idReq);
+        }
+        if ($errorValidacion !== null) {
+            echo json_encode(["status" => "error", "message" => $errorValidacion]);
+            die();
+        }
         
         if ($idReq > 0) {
             $respuesta = $object->actualizarMatriz($idReq, $cantidades);

@@ -17,9 +17,16 @@
                 if (isset($_POST['tasa_bcv_usd']) && isset($_POST['fecha_reg'])) {
                     // El formulario usa los nombres exactos de columnas de tasa_bcv
                     $fecha = trim((string)$_POST['fecha_reg']);
-                    if ($fecha === '') {
+                    $errorValidacion = $this->validarFechaRegistro($fecha);
+                    if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'La fecha no puede estar vacía.']);
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                        die();
+                    }
+                    $errorValidacion = $this->validarTasa($_POST['tasa_bcv_usd']);
+                    if ($errorValidacion !== null) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
                         die();
                     }
                     // Evitar duplicados por fecha
@@ -58,6 +65,14 @@
                 $estado = 1;
                 if (isset($_POST['estado'])) {
                     $estado = (int)$_POST['estado'];
+                }
+                $errorValidacion = $this->validarTasa($_POST['tasa_bcv_usd'] ?? '');
+                if ($errorValidacion === null) {
+                    $errorValidacion = $this->validarFechaRegistro($_POST['fecha_reg'] ?? '');
+                }
+                if ($errorValidacion !== null) {
+                    echo json_encode(false);
+                    die();
                 }
                 $result = $object->update(
                     (int)$_POST['id_tasa'],
