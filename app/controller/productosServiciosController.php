@@ -52,12 +52,13 @@ if (isset($_GET['type'])) {
             $codPartida = isset($_POST['cod_partida']) ? trim((string)$_POST['cod_partida']) : '';
             $descripcion = isset($_POST['descripcion']) ? trim((string)$_POST['descripcion']) : '';
 
-            if ($codPartida === '' || $descripcion === '') {
-                sendJsonResponse(['success' => false, 'message' => 'El codigo y la descripcion de la partida son obligatorios.']);
+            $errorValidacion = $this->validarCodigoPartida($codPartida);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
-
-            if (mb_strlen($codPartida) > 10 || mb_strlen($descripcion) > 150) {
-                sendJsonResponse(['success' => false, 'message' => 'El codigo (max. 10) o la descripcion (max. 150) exceden el largo permitido.']);
+            $errorValidacion = $this->validarDescripcionPartida($descripcion);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
 
             // Evitar partidas duplicadas por codigo
@@ -82,12 +83,13 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Partida presupuestaria no valida.']);
             }
 
-            if ($codPartida === '' || $descripcion === '') {
-                sendJsonResponse(['success' => false, 'message' => 'El codigo y la descripcion de la partida son obligatorios.']);
+            $errorValidacion = $this->validarCodigoPartida($codPartida);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
-
-            if (mb_strlen($codPartida) > 10 || mb_strlen($descripcion) > 150) {
-                sendJsonResponse(['success' => false, 'message' => 'El codigo (max. 10) o la descripcion (max. 150) exceden el largo permitido.']);
+            $errorValidacion = $this->validarDescripcionPartida($descripcion);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
 
             // El código no puede pertenecer a otra partida
@@ -136,12 +138,23 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Proveedor inválido.']);
             }
 
+            $nomItemUpdate = isset($_POST['nom_item']) ? trim((string)$_POST['nom_item']) : '';
+            $precioUpdate = isset($_POST['precio']) ? trim((string)$_POST['precio']) : '';
+            $errorValidacion = $this->validarNombreProducto($nomItemUpdate);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+            $errorValidacion = $this->validarPrecio($precioUpdate);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+
             $result = $object->update(
                 (int)$_POST['idItem'],
                 (int)$_POST['id_partida'],
                 $idProveedor,
-                trim((string)$_POST['nom_item']),
-                (float)$_POST['precio']
+                $nomItemUpdate,
+                (float)$precioUpdate
             );
             sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Registro actualizado' : 'Error al actualizar']);
         }
@@ -160,10 +173,18 @@ if (isset($_GET['type'])) {
             $validPartidaIds = array_map('intval', array_column($partidas, 'id_partida'));
             $validProveedorIds = array_map('intval', array_column($proveedores, 'id_proveedor'));
             if ($idPartida <= 0 || !in_array($idPartida, $validPartidaIds, true) ||
-                $idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true) ||
-                $nombre === '' || $precio === null
+                $idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true)
             ) {
                 sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida o proveedor inválido.']);
+            }
+
+            $errorValidacion = $this->validarNombreProducto($nombre);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+            $errorValidacion = $this->validarPrecio((string)($_POST['precio'] ?? ''));
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
 
             // Evitar duplicados (misma partida + proveedor + nombre)

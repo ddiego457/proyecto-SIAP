@@ -2,17 +2,17 @@
 
 namespace EquipoSiap\Siap\model;
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\UserValidationTrait;
 use PDO;
 use Exception;
 
 class UserModel extends ConnectDB {
+    use UserValidationTrait;
+
     private $conex;
     private $id;
     private $usuario;
     private $password;
-    // Expresiones regulares
-    private $expUsuario = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ_\.\-\s]{2,100}$/';
-    public $expPassword = '/^[a-zA-Z0-9_\.\-]{4,}$/';
 
     public function __construct() {
         parent::__construct();
@@ -23,11 +23,11 @@ class UserModel extends ConnectDB {
         $usuario = trim((string)$usuario);
         $password = (string)$password;
 
-        if (!preg_match($this->expUsuario, $usuario)) {
+        if ($this->validarUsuario($usuario) !== null) {
             return 0;
         }
 
-        if (!preg_match($this->expPassword, $password)) {
+        if ($this->validarPassword($password) !== null) {
             return 0;
         }
 

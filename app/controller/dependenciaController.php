@@ -18,9 +18,10 @@
             if (isset($_POST['registerDependencia'])) {
                 if (isset($_POST['nombre_dep'])) {
                     $nombre = trim($_POST['nombre_dep']);
-                    if ($nombre === '') {
+                    $errorValidacion = $this->validarNombreDependencia($nombre);
+                    if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'El nombre no puede estar vacío.']);
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
                         die();
                     }
                     // Evitar duplicados por nombre (case-insensitive)
@@ -66,6 +67,13 @@
                 $idItem = (string)($_POST['idItem'] ?? '');
                 $nombreDep = (string)($_POST['nombre_dep'] ?? '');
                 $nuevoEstado = isset($_POST['estado']) ? (int)$_POST['estado'] : null;
+
+                $errorValidacion = $this->validarNombreDependencia($nombreDep);
+                if ($errorValidacion !== null) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                    die();
+                }
 
                 $result = $object->update($idItem, $nombreDep, $nuevoEstado);
                 header('Content-Type: application/json; charset=utf-8');

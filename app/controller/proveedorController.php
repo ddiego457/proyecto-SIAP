@@ -17,9 +17,16 @@
             if (isset($_POST['registerProveedor'])) {
                 if (isset($_POST['nombre']) && isset($_POST['descripcion'])) {
                     $nombre = trim($_POST['nombre']);
-                    if ($nombre === '') {
+                    $errorValidacion = $this->validarNombreProveedor($nombre);
+                    if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'El nombre no puede estar vacío.']);
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                        die();
+                    }
+                    $errorValidacion = $this->validarDescripcionProveedor($_POST['descripcion']);
+                    if ($errorValidacion !== null) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
                         die();
                     }
                     // Evitar duplicados por nombre (case-insensitive)
@@ -42,10 +49,20 @@
                 die();
             }
             if (isset($_POST['addContact'])) {
+                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                if ($errorValidacion !== null) {
+                    echo json_encode(false);
+                    die();
+                }
                 echo json_encode($object->addContact((int)$_POST['idProveedor'], (string)$_POST['telefono']));
                 die();
             }
             if (isset($_POST['updateContact'])) {
+                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                if ($errorValidacion !== null) {
+                    echo json_encode(false);
+                    die();
+                }
                 echo json_encode($object->updateContact((int)$_POST['idContacto'], (string)$_POST['telefono'], isset($_POST['estado']) ? (int)$_POST['estado'] : null));
                 die();
             }
@@ -85,9 +102,18 @@
             }
 
             if (isset($_POST['updateItem'])) {
+                $nombreUpdate = isset($_POST['nombre']) ? (string)$_POST['nombre'] : '';
+                $errorValidacion = $this->validarNombreProveedor($nombreUpdate);
+                if ($errorValidacion === null && isset($_POST['descripcion']) && $_POST['descripcion'] !== null) {
+                    $errorValidacion = $this->validarDescripcionProveedor((string)$_POST['descripcion']);
+                }
+                if ($errorValidacion !== null) {
+                    echo json_encode(false);
+                    die();
+                }
                 $result = $object->update(
                     (int)$_POST['idItem'],
-                    (string)$_POST['nombre'],
+                    $nombreUpdate,
                     isset($_POST['descripcion']) ? (string)$_POST['descripcion'] : null,
                     isset($_POST['estado']) ? (int)$_POST['estado'] : null
                 );
@@ -107,10 +133,20 @@
                 die();
             }
             if (isset($_POST['addContact'])) {
+                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                if ($errorValidacion !== null) {
+                    echo json_encode(false);
+                    die();
+                }
                 echo json_encode($object->addContact((int)$_POST['idProveedor'], (string)$_POST['telefono']));
                 die();
             }
             if (isset($_POST['updateContact'])) {
+                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                if ($errorValidacion !== null) {
+                    echo json_encode(false);
+                    die();
+                }
                 echo json_encode($object->updateContact((int)$_POST['idContacto'], (string)$_POST['telefono'], isset($_POST['estado']) ? (int)$_POST['estado'] : null));
                 die();
             }

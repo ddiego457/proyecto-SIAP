@@ -30,9 +30,13 @@ if ($type === 'export') {
     $report = isset($_GET['report']) ? trim((string)$_GET['report']) : '';
     $format = isset($_GET['format']) ? trim((string)$_GET['format']) : 'excel';
 
-    if ($format !== 'excel' && $format !== 'pdf') {
+    $errorValidacion = $this->validarFormatoReporte($format);
+    if ($errorValidacion === null) {
+        $errorValidacion = $this->validarNombreReporte($report);
+    }
+    if ($errorValidacion !== null) {
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['success' => false, 'message' => 'Formato no válido. Use excel o pdf.']);
+        echo json_encode(['success' => false, 'message' => $errorValidacion]);
         exit;
     }
 
@@ -55,12 +59,14 @@ if ($type === 'export') {
                 break;
 
             case 'req_individual':
-                $idDep = isset($_POST['id_dep']) ? (int)$_POST['id_dep'] : (isset($_GET['id_dep']) ? (int)$_GET['id_dep'] : 0);
-                if ($idDep <= 0) {
+                $idDepRaw = isset($_POST['id_dep']) ? trim((string)$_POST['id_dep']) : (isset($_GET['id_dep']) ? trim((string)$_GET['id_dep']) : '');
+                $errorValidacion = $this->validarIdDep($idDepRaw);
+                if ($errorValidacion !== null || (int)$idDepRaw <= 0) {
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => false, 'message' => 'Debe seleccionar una dependencia.']);
+                    echo json_encode(['success' => false, 'message' => $errorValidacion !== null ? $errorValidacion : 'Debe seleccionar una dependencia.']);
                     exit;
                 }
+                $idDep = (int)$idDepRaw;
                 if ($format === 'excel') {
                     $model->exportReqIndividualExcel($idDep);
                 } else {
