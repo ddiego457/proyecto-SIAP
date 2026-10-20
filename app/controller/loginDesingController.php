@@ -122,7 +122,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 'usuario'        => $loginResult['data'][0]['dependencia'],
                 'id_responsable' => $loginResult['data'][0]['id_responsable']
             ]);
-            header('location: ?url=requerimiento&type=main');
+            $home = $this->homeForRole();
+            header('location: ' . $home);
             die();
         }
 

@@ -4,9 +4,17 @@ namespace EquipoSiap\Siap\helpers;
 trait SessionTrait {
 
     private $loginUrl = '?url=inicio';
+    // Módulos permitidos por rol. '*' = todos los módulos.
+    private $modulosPorRol = [
+        'Administrador' => '*',
+        'Coordinador'   => ['proveedor', 'productosServicios', 'reporte', 'periodo'],
+        'Usuario'       => ['reporte', 'requerimiento'],
+    ];
+    // Destino tras login / redirecciones, según rol
+    private $homeUrlPorRol = [
+        'Coordinador' => '?url=productosServicios&type=main',
+    ];
     private $homeUrl = '?url=requerimiento&type=main';
-    // Módulos accesibles para usuarios no administradores
-    private $publicModules = ['reporte', 'requerimiento'];
 
     public function startSession(): void {
         if (session_status() === PHP_SESSION_NONE) {
@@ -36,7 +44,7 @@ trait SessionTrait {
 
     public function redirectIfLoggedIn(): void {
         if ($this->isLoggedIn()) {
-            header("Location: " . $this->homeUrl);
+            header("Location: " . $this->homeForRole());
             exit();
         }
     }
@@ -45,10 +53,26 @@ trait SessionTrait {
         $this->startSession();
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
-        if ($rol !== 'Administrador' && !in_array($modulo, $this->publicModules, true)) {
-            header("Location: " . $this->homeUrl);
+        if (!$this->rolAccedeA($rol, $modulo)) {
+            header("Location: " . $this->homeForRole());
             exit();
         }
+    }
+
+    // Home según rol: coordinadores arrancan en Productos y Servicios
+    private function homeForRole(): string {
+        $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
+        return isset($this->homeUrlPorRol[$rol]) ? $this->homeUrlPorRol[$rol] : $this->homeUrl;
+    }
+
+    // ¿El rol tiene acceso al módulo? '*' = acceso total
+    private function rolAccedeA($rol, $modulo): bool {
+        if (!isset($this->modulosPorRol[$rol])) {
+            // Rol no reconocido: solo módulos públicos (comportamiento previo)
+            return in_array($modulo, ['reporte', 'requerimiento'], true);
+        }
+        $modulos = $this->modulosPorRol[$rol];
+        return $modulos === '*' || in_array($modulo, $modulos, true);
     }
 
     public function logout(): void {

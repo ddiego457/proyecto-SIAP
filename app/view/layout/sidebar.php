@@ -2,6 +2,7 @@
 // Detectar modulo activo desde la URL
 $urlActual = isset($_GET['url']) ? $_GET['url'] : '';
 $esAdmin = isset($_SESSION['rol']) && $_SESSION['rol'] === 'Administrador';
+$esCoordinador = isset($_SESSION['rol']) && $_SESSION['rol'] === 'Coordinador';
 
 if (!function_exists('sidebarLink')) {
     function sidebarLink($url, $icon, $label, $urlActual) {
@@ -33,6 +34,12 @@ if (!function_exists('sidebarLink')) {
             <?php sidebarLink('productosServicios', '&#128230;', 'Productos y Servicios',       $urlActual); ?>
             <?php sidebarLink('periodo',             '&#128197;', 'Periodo',                    $urlActual); ?>
             <?php sidebarLink('reporte',             '&#128202;', 'Informes',                   $urlActual); ?>
+        <?php elseif ($esCoordinador): ?>
+            <div class="sidebar-section-title">M&oacute;dulos</div>
+            <?php sidebarLink('proveedor',           '&#128230;', 'Proveedores',                $urlActual); ?>
+            <?php sidebarLink('productosServicios', '&#128230;', 'Productos y Servicios',       $urlActual); ?>
+            <?php sidebarLink('periodo',             '&#128197;', 'Periodo',                    $urlActual); ?>
+            <?php sidebarLink('reporte',             '&#128202;', 'Informes',                   $urlActual); ?>
         <?php else: ?>
             <div class="sidebar-section-title">Mi &Aacute;rea</div>
             <?php sidebarLink('requerimiento',       '&#128203;', 'Mi Requerimiento',           $urlActual); ?>
@@ -50,7 +57,8 @@ if (!function_exists('sidebarLink')) {
             $rol = isset($_SESSION['rol']) ? (string)$_SESSION['rol'] : 'usuario';
             $dependenciaId = isset($_SESSION['id_dep']) ? $_SESSION['id_dep'] : null;
             $usuario = isset($_SESSION['usuario']) ? (string)$_SESSION['usuario'] : '';
-            $rolDisplay = ($rol === 'admin' || $rol === 'administrador' || $rol === 'Administrador') ? 'Administrador' : 'Usuario';
+            $rolDisplay = ($rol === 'admin' || $rol === 'administrador' || $rol === 'Administrador') ? 'Administrador'
+                        : (($rol === 'coordinador' || $rol === 'Coordinador') ? 'Coordinador' : 'Usuario');
         ?>
         <div class="sidebar-avatar"><?php echo strtoupper(substr($usuario !== '' ? $usuario : $rolDisplay, 0, 1)); ?></div>
         <div class="sidebar-user-info">
