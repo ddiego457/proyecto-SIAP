@@ -17,13 +17,13 @@
             if (isset($_POST['registerProveedor'])) {
                 if (isset($_POST['nombre']) && isset($_POST['descripcion'])) {
                     $nombre = trim($_POST['nombre']);
-                    $errorValidacion = $this->validarNombreProveedor($nombre);
+                    $errorValidacion = $object->validar('nombre_proveedor', $nombre);
                     if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => false, 'message' => $errorValidacion]);
                         die();
                     }
-                    $errorValidacion = $this->validarDescripcionProveedor($_POST['descripcion']);
+                    $errorValidacion = $object->validar('descripcion_proveedor', $_POST['descripcion']);
                     if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => false, 'message' => $errorValidacion]);
@@ -49,7 +49,7 @@
                 die();
             }
             if (isset($_POST['addContact'])) {
-                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
                 if ($errorValidacion !== null) {
                     echo json_encode(false);
                     die();
@@ -58,7 +58,7 @@
                 die();
             }
             if (isset($_POST['updateContact'])) {
-                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
                 if ($errorValidacion !== null) {
                     echo json_encode(false);
                     die();
@@ -103,9 +103,9 @@
 
             if (isset($_POST['updateItem'])) {
                 $nombreUpdate = isset($_POST['nombre']) ? (string)$_POST['nombre'] : '';
-                $errorValidacion = $this->validarNombreProveedor($nombreUpdate);
+                $errorValidacion = $object->validar('nombre_proveedor', $nombreUpdate);
                 if ($errorValidacion === null && isset($_POST['descripcion']) && $_POST['descripcion'] !== null) {
-                    $errorValidacion = $this->validarDescripcionProveedor((string)$_POST['descripcion']);
+                    $errorValidacion = $object->validar('descripcion_proveedor', (string)$_POST['descripcion']);
                 }
                 if ($errorValidacion !== null) {
                     echo json_encode(false);
@@ -133,7 +133,7 @@
                 die();
             }
             if (isset($_POST['addContact'])) {
-                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
                 if ($errorValidacion !== null) {
                     echo json_encode(false);
                     die();
@@ -142,7 +142,7 @@
                 die();
             }
             if (isset($_POST['updateContact'])) {
-                $errorValidacion = $this->validarTelefono($_POST['telefono'] ?? '');
+                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
                 if ($errorValidacion !== null) {
                     echo json_encode(false);
                     die();

@@ -3,17 +3,18 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class responsableModel extends ConnectDB
 {
+    use ValidationTrait;
+
     private $conex;
     private $id;
     private $id_rol;
     private $nom_rep;
     private $password;
     private $estado;
-    // Expresión regular de correo (acepta dominios como .com.ve)
-    public $expEmail = '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/';
 
     public function __construct()
     {

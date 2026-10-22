@@ -79,15 +79,18 @@ if (isset($_GET['type']) && $_GET['type'] == 'reset') {
 
         if ($pass1 === '' || $pass2 === '') {
             $error = "Complete ambos campos de contraseña.";
-        } else if (!preg_match($userModel->expPassword, $pass1)) {
-            $error = "La contraseña debe tener al menos 4 caracteres (letras, números, punto, guion o guion bajo).";
-        } else if ($pass1 !== $pass2) {
-            $error = "Las contraseñas no coinciden.";
-        } else if ($userModel->resetPassword($idResponsable, $pass1, $token)) {
-            header('Location: ?url=inicio&reset=1');
-            exit();
         } else {
-            $error = "No se pudo actualizar la contraseña. Intente de nuevo.";
+            $errorValidacion = $userModel->validar('password', $pass1);
+            if ($errorValidacion !== null) {
+                $error = $errorValidacion;
+            } else if ($pass1 !== $pass2) {
+                $error = "Las contraseñas no coinciden.";
+            } else if ($userModel->resetPassword($idResponsable, $pass1, $token)) {
+                header('Location: ?url=inicio&reset=1');
+                exit();
+            } else {
+                $error = "No se pudo actualizar la contraseña. Intente de nuevo.";
+            }
         }
     }
 

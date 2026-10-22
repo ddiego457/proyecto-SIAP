@@ -18,7 +18,7 @@
             if (isset($_POST['registerDependencia'])) {
                 if (isset($_POST['nombre_dep'])) {
                     $nombre = trim($_POST['nombre_dep']);
-                    $errorValidacion = $this->validarNombreDependencia($nombre);
+                    $errorValidacion = $object->validar('nombre_dependencia', $nombre);
                     if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => false, 'message' => $errorValidacion]);
@@ -68,7 +68,7 @@
                 $nombreDep = (string)($_POST['nombre_dep'] ?? '');
                 $nuevoEstado = isset($_POST['estado']) ? (int)$_POST['estado'] : null;
 
-                $errorValidacion = $this->validarNombreDependencia($nombreDep);
+                $errorValidacion = $object->validar('nombre_dependencia', $nombreDep);
                 if ($errorValidacion !== null) {
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode(['success' => false, 'message' => $errorValidacion]);

@@ -3,9 +3,12 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class tasaBCVModel extends ConnectDB 
 {
+    use ValidationTrait;
+
     private $conex;
 
     // === PROPIEDADES PRIVADAS DE LA ENTIDAD ===
@@ -13,7 +16,6 @@ class tasaBCVModel extends ConnectDB
     private $valorUsd;
     private $fechaRegistro;
     private $estado;
-
 
     public function __construct() {
         parent::__construct();

@@ -2,6 +2,7 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -9,7 +10,10 @@ use Mpdf\Mpdf;
 
 class reporteModel extends ConnectDB
 {
+    use ValidationTrait;
+
     private $conex;
+
     public function __construct()
     {
         parent::__construct();
