@@ -9,6 +9,7 @@ $token = isset($token) ? $token : '';
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nueva contraseña</title>
+<link rel="icon" type="image/png" href="assets/img/SIAPpeque%C3%B1o.png">
 
 <link rel="stylesheet" href="assets/css/loginDesign.css">
 </head>

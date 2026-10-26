@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Login</title>
+<link rel="icon" type="image/png" href="assets/img/SIAPpeque%C3%B1o.png">
 
 <!-- Fonts -->
 <!-- <link rel="preconnect" href="https://fonts.googleapis.com">

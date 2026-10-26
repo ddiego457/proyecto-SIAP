@@ -10,6 +10,7 @@ if (!isset($failDescript) || empty(trim($failDescript))) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error del Sistema - SIAP</title>
+    <link rel="icon" type="image/png" href="assets/img/SIAPpeque%C3%B1o.png">
     <style>
         /* Ajusta estos colores para que coincidan con tu sistema SIAP */
         :root {
