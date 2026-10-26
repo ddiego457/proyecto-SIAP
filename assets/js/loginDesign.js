@@ -1,4 +1,5 @@
 (function () {
+  //import {regNombre} from 
   const input = document.getElementById('password');
   const toggle = document.getElementById('togglePassword');
   if (!input || !toggle) return;

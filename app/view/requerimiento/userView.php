@@ -90,7 +90,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
             <table id="tablaMain" >
                     <thead>
                         <tr>
-                            <th>dependencias</th>
+                            <th>Dependencias</th>
                             <th>Partida</th>
                             <th>Producto</th>
                             <th>Ene</th>

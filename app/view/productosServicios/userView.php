@@ -23,9 +23,9 @@ include_once 'app/view/layout/head.php';
                 <select id="selectPartida" class="field-input field-select">
                     <?php if (!empty($partidas)): ?>
                         <?php foreach ($partidas as $partida): ?>
-                            <option value="<?php echo htmlspecialchars((string)$partida['id_partida']); ?>" <?php echo ((int)$partida['id_partida'] === (int)$partidaSeleccionada) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($partida['cod_partida'] . ' - ' . $partida['descripcion']); ?>
-                            </option>
+                                <option value="<?php echo htmlspecialchars((string)$partida['id_partida']); ?>" <?php echo ((int)$partida['id_partida'] === (int)$partidaSeleccionada) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($partida['cod_partida'] . ' - ' . $partida['descripcion']); ?>
+                                </option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -211,4 +211,4 @@ include_once 'app/view/layout/head.php';
     </form>
 </div>
 -->
-<?php include_once 'app/view/layout/foot.php'; ?>
+<?php include_once 'app/view/layout/foot.php'; ?><!---->
