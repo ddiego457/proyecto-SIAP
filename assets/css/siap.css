@@ -312,6 +312,8 @@ a { text-decoration: none; color: inherit; }
     margin-left: 3px;
 }
 
+/*quiero agregarle un fondo de color amarillo un poco transparente*/
+
 /* ============================================================
     MAIN LAYOUT (sidebar + content)
    ============================================================ */
@@ -1237,41 +1239,24 @@ table.siap-table {
 
 .sidebar-brand {
     min-height: 155px;
-
-    padding:
-        20px
-        18px
-        18px;
-
-    border-bottom:
-        1px solid var(--sidebar-border);
-
-    transition:
-        padding .22s cubic-bezier(.4,0,.2,1),
-        min-height .22s ease;
+    padding:20px 18px 18px;
+    border-bottom:1px solid var(--sidebar-border);
+    transition:padding .22s cubic-bezier(.4,0,.2,1),min-height .22s ease;
 }
 
 .sidebar-brand-logo {
     width: 62px;
     height: 62px;
-
     margin-bottom: 10px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     border-radius: 15px;
-
-    background:
-        rgba(255,255,255,.055);
-
+    background:white;
     border:
         1px solid rgba(255,255,255,.07);
-
     box-shadow:
         0 8px 20px rgba(0,0,0,.12);
-
     transition:
         width .22s ease,
         height .22s ease,
@@ -1476,9 +1461,7 @@ table.siap-table {
 .sidebar-link-label {
     overflow: hidden;
     text-overflow: ellipsis;
-    transition:
-        opacity .13s ease,
-        transform .18s ease;
+    transition:opacity .13s ease,transform .18s ease;
 }
 
 
@@ -1498,8 +1481,7 @@ table.siap-table {
 }
 
 .sidebar-user:hover {
-    background:
-        rgba(255,255,255,.055);
+    background:rgba(255,255,255,.055);
 }
 
 

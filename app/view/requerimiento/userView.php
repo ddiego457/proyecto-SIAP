@@ -36,7 +36,8 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
     $periodStatus = 'expired';
 }
 ?>
-<div class="alert-banner alert-<?php echo $periodStatus; ?>">
+<div class="page-body">
+    <div class="alert-banner alert-info alert-<?php echo $periodStatus; ?>" id="alertBanner">
         <div class="alert-banner-left">
             <?php if ($periodStatus === 'expired'): ?>
                 <div class="alert-banner-title">⚠️ <strong>Periodo de envío finalizado</strong></div>
@@ -48,9 +49,8 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
         <div class="alert-banner-title"> Año activo: <strong> <?php  echo $anioFiscal  ?> </strong> </div>
         </div>
         <div class="alert-banner-badge">  <?php echo $dias > 0 ? $dias : '0' ?> <span>días</span></div>
-</div>
+    </div>
 
-<div class="page-body">
     <div class="card">
         <div class="card-header">
             <span class="card-title">Requerimientos Consolidados</span>
@@ -69,7 +69,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                     <?php endforeach; ?>
                 </datalist>
             </div>
-            <div class="col-md-4" style="display:flex; align-items:flex-end; padding-bottom: 8px;">
+            <div class="col-md-4" style="display: inline-flex; gap: 12px; align-items: baseline;">
                 <label class="field-switch">
                     <input type="checkbox" id="modalViewToggle">
                     <span class="switch-slider"></span>

@@ -14,6 +14,15 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
 </head>
 <body>
 <div class="app-layout">
+    <script>
+        try {
+            if (localStorage.getItem('siap-sidebar-collapsed') === 'true') {
+                document.currentScript.parentElement.classList.add('sidebar-collapsed');
+            }
+        } catch (error) {
+            console.error('No se pudo restaurar el estado del menú lateral.', error);
+        }
+    </script>
     <button
         id="sidebarToggleBtn"
         class="sidebar-toggle-btn-global"

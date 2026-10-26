@@ -9,20 +9,30 @@
     document.addEventListener('DOMContentLoaded', function() {
         var toggleBtn = document.getElementById('sidebarToggleBtn');
         if (!toggleBtn) return;
-    toggleBtn.addEventListener('click', function(e) {
-            if (e && e.target && e.target.closest('.sidebar-link[data-nav="1"]')) return;
-            var appLayout = document.querySelector('.app-layout');
-            if (!appLayout) return;
+        var appLayout = document.querySelector('.app-layout');
+        if (!appLayout) return;
+        var sidebar = document.querySelector('.sidebar');
+        var isCollapsed = appLayout.classList.contains('sidebar-collapsed');
 
+        toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        if (sidebar) {
+            sidebar.style.pointerEvents = isCollapsed ? 'none' : '';
+        }
+
+        toggleBtn.addEventListener('click', function(e) {
+            if (e && e.target && e.target.closest('.sidebar-link[data-nav="1"]')) return;
             var hidden = appLayout.classList.toggle('sidebar-collapsed');
 
-            // Cuando está oculto, quitamos tabIndex para que no quede "encima" manipulable
-            var sidebar = document.querySelector('.sidebar');
             if (sidebar) {
                 sidebar.style.pointerEvents = hidden ? 'none' : '';
             }
 
             toggleBtn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+            try {
+                localStorage.setItem('siap-sidebar-collapsed', hidden ? 'true' : 'false');
+            } catch (error) {
+                console.error('No se pudo guardar el estado del menú lateral.', error);
+            }
         });
     });
 </script>
