@@ -30,9 +30,9 @@ if ($type === 'export') {
     $report = isset($_GET['report']) ? trim((string)$_GET['report']) : '';
     $format = isset($_GET['format']) ? trim((string)$_GET['format']) : 'excel';
 
-    $errorValidacion = $this->validarFormatoReporte($format);
+    $errorValidacion = $model->validar('formato_reporte', $format);
     if ($errorValidacion === null) {
-        $errorValidacion = $this->validarNombreReporte($report);
+        $errorValidacion = $model->validar('nombre_reporte', $report);
     }
     if ($errorValidacion !== null) {
         header('Content-Type: application/json; charset=utf-8');
@@ -60,7 +60,7 @@ if ($type === 'export') {
 
             case 'req_individual':
                 $idDepRaw = isset($_POST['id_dep']) ? trim((string)$_POST['id_dep']) : (isset($_GET['id_dep']) ? trim((string)$_GET['id_dep']) : '');
-                $errorValidacion = $this->validarIdDep($idDepRaw);
+                $errorValidacion = $model->validar('id_dep_reporte', $idDepRaw);
                 if ($errorValidacion !== null || (int)$idDepRaw <= 0) {
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode(['success' => false, 'message' => $errorValidacion !== null ? $errorValidacion : 'Debe seleccionar una dependencia.']);

@@ -3,9 +3,12 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class responsableModel extends ConnectDB
 {
+    use ValidationTrait;
+
     private $conex;
     private $id;
     private $id_rol;
@@ -438,6 +441,43 @@ class responsableModel extends ConnectDB
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             return [];
+        }
+    }
+
+    // ─── Foto de perfil (nombre del archivo en assets/img/perfiles/) ──
+    // Devuelve el nombre del archivo o null si no tiene foto
+    public function getFoto(int $idResponsable): ?string
+    {
+        return $this->executeGetFoto($idResponsable);
+    }
+
+    private function executeGetFoto(int $idResponsable): ?string
+    {
+        try {
+            $stmt = $this->conex->prepare("SELECT foto FROM responsables WHERE id_responsable = ? LIMIT 1");
+            $stmt->execute([$idResponsable]);
+            $foto = $stmt->fetchColumn();
+            return ($foto !== false && $foto !== null && $foto !== '') ? (string)$foto : null;
+        } catch (\PDOException $e) {
+            return null;
+        }
+    }
+
+    // Guarda la foto (nombre del archivo) o la limpia (null) si $archivo es null
+    public function setFoto(int $idResponsable, ?string $archivo): bool
+    {
+        return $this->executeSetFoto($idResponsable, $archivo);
+    }
+
+    private function executeSetFoto(int $idResponsable, ?string $archivo): bool
+    {
+        try {
+            $stmt = $this->conex->prepare("UPDATE responsables SET foto = ? WHERE id_responsable = ?");
+            $stmt->bindValue(1, $archivo);
+            $stmt->bindValue(2, $idResponsable, \PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (\PDOException $e) {
+            return false;
         }
     }
 

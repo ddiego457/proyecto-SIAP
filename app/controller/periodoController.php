@@ -27,9 +27,9 @@ if (isset($_GET['type'])) {
                 $fechaFin = $_POST['fecha_fin'];
                 $anioFiscalId = (int)$_POST['anio_fiscal_id'];
 
-                $errorValidacion = $this->validarFechaPeriodo($fechaInicio, 'La fecha de inicio');
+                $errorValidacion = $object->validar('fecha_periodo', $fechaInicio, ['campo' => 'La fecha de inicio']);
                 if ($errorValidacion === null) {
-                    $errorValidacion = $this->validarFechaPeriodo($fechaFin, 'La fecha de fin');
+                    $errorValidacion = $object->validar('fecha_periodo', $fechaFin, ['campo' => 'La fecha de fin']);
                 }
                 if ($errorValidacion !== null) {
                     sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
@@ -93,9 +93,9 @@ if (isset($_GET['type'])) {
             $fechaFin = $_POST['fecha_fin'];
             $anioFiscalId = (int)$_POST['anio_fiscal_id'];
 
-            $errorValidacion = $this->validarFechaPeriodo($fechaInicio, 'La fecha de inicio');
+            $errorValidacion = $object->validar('fecha_periodo', $fechaInicio, ['campo' => 'La fecha de inicio']);
             if ($errorValidacion === null) {
-                $errorValidacion = $this->validarFechaPeriodo($fechaFin, 'La fecha de fin');
+                $errorValidacion = $object->validar('fecha_periodo', $fechaFin, ['campo' => 'La fecha de fin']);
             }
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
@@ -124,7 +124,7 @@ if (isset($_GET['type'])) {
 
         if (isset($_POST['registerAnioFiscal'])) {
             $anio = isset($_POST['anio_fiscal']) ? trim((string)$_POST['anio_fiscal']) : '';
-            $errorValidacion = $this->validarAnioFiscal($anio);
+            $errorValidacion = $object->validar('anio_fiscal', $anio);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
@@ -140,7 +140,7 @@ if (isset($_GET['type'])) {
         if (isset($_POST['updateAnioFiscal'])) {
             $idItem = (int)$_POST['idItem'];
             $anio = isset($_POST['anio_fiscal']) ? trim((string)$_POST['anio_fiscal']) : '';
-            $errorValidacion = $this->validarAnioFiscal($anio);
+            $errorValidacion = $object->validar('anio_fiscal', $anio);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }

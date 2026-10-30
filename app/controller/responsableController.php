@@ -30,7 +30,7 @@
             if (isset($_POST['registerResponsable'])) {
                 if (isset($_POST['nom_rep']) && isset($_POST['contrasena']) && isset($_POST['id_rol']) && isset($_POST['email'])) {
                     $nombre = trim($_POST['nom_rep']);
-                    $errorValidacion = $this->validarNombreResponsable($nombre);
+                    $errorValidacion = $object->validar('nombre_responsable', $nombre);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
@@ -40,7 +40,7 @@
                     }
                     // Validar correo electrónico
                     $email = strtolower(trim((string)$_POST['email']));
-                    $errorValidacion = $this->validarEmail($email);
+                    $errorValidacion = $object->validar('email', $email);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
@@ -49,7 +49,7 @@
                         sendJson(['success' => false, 'message' => 'Ya existe un responsable con ese correo.']);
                     }
                     // Validar contraseña
-                    $errorValidacion = $this->validarPassword($_POST['contrasena']);
+                    $errorValidacion = $object->validar('password', $_POST['contrasena']);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
@@ -100,19 +100,19 @@
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
 
-                $errorValidacion = $this->validarNombreResponsable($nom);
+                $errorValidacion = $object->validar('nombre_responsable', $nom);
                 if ($errorValidacion !== null) {
                     sendJson(['success' => false, 'message' => $errorValidacion]);
                 }
                 if ($pass !== null && $pass !== '') {
-                    $errorValidacion = $this->validarPassword($pass);
+                    $errorValidacion = $object->validar('password', $pass);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                 }
                 if ($email !== null && $email !== '') {
                     $email = strtolower($email);
-                    $errorValidacion = $this->validarEmail($email);
+                    $errorValidacion = $object->validar('email', $email);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
@@ -168,7 +168,7 @@
                     die();
                 }
 
-                $errorValidacion = $this->validarFechaAsignacion($fechaInicio);
+                $errorValidacion = $object->validar('fecha_asignacion', $fechaInicio);
                 if ($errorValidacion !== null) {
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode(['success' => false, 'message' => $errorValidacion]);
@@ -181,20 +181,20 @@
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
                 if ($nom !== '') {
-                    $errorValidacion = $this->validarNombreResponsable($nom);
+                    $errorValidacion = $object->validar('nombre_responsable', $nom);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                 }
                 if ($pass !== null && $pass !== '') {
-                    $errorValidacion = $this->validarPassword($pass);
+                    $errorValidacion = $object->validar('password', $pass);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
                 }
                 if ($email !== null && $email !== '') {
                     $email = strtolower($email);
-                    $errorValidacion = $this->validarEmail($email);
+                    $errorValidacion = $object->validar('email', $email);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
                     }
@@ -223,7 +223,7 @@
             if (isset($_POST['registerRol'])) {
                 $descripcion = isset($_POST['descripcion']) ? trim((string)$_POST['descripcion']) : '';
 
-                $errorValidacion = $this->validarDescripcionRol($descripcion);
+                $errorValidacion = $object->validar('descripcion_rol', $descripcion);
                 if ($errorValidacion !== null) {
                     sendJson(['success' => false, 'message' => $errorValidacion]);
                 }
@@ -244,7 +244,7 @@
                     sendJson(['success' => false, 'message' => 'Rol no válido.']);
                 }
 
-                $errorValidacion = $this->validarDescripcionRol($descripcion);
+                $errorValidacion = $object->validar('descripcion_rol', $descripcion);
                 if ($errorValidacion !== null) {
                     sendJson(['success' => false, 'message' => $errorValidacion]);
                 }

@@ -53,12 +53,12 @@ if (isset($_GET['type'])) {
             $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
             $idDep = $_SESSION['id_dep'];
 
-            $errorValidacion = $this->validarPartidaActual($partida);
+            $errorValidacion = $object->validar('partida_actual', $partida);
             if ($errorValidacion === null) {
-                $errorValidacion = $this->validarCantidades($cantidades);
+                $errorValidacion = $object->validar('cantidades', $cantidades);
             }
             if ($idReq > 0 && $errorValidacion === null) {
-                $errorValidacion = $this->validarIdRequerimiento($idReq);
+                $errorValidacion = $object->validar('id_requerimiento', $idReq);
             }
             if ($errorValidacion !== null) {
                 echo json_encode(["status" => "error", "message" => $errorValidacion]);
@@ -125,9 +125,9 @@ if (isset($_GET['type'])) {
         
         $cantidades = isset($_POST['cantidades']) ? $_POST['cantidades'] : [];
 
-        $errorValidacion = $this->validarCantidades($cantidades);
+        $errorValidacion = $object->validar('cantidades', $cantidades);
         if ($errorValidacion === null && $idReq > 0) {
-            $errorValidacion = $this->validarIdRequerimiento($idReq);
+            $errorValidacion = $object->validar('id_requerimiento', $idReq);
         }
         if ($errorValidacion !== null) {
             echo json_encode(["status" => "error", "message" => $errorValidacion]);

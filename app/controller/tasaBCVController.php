@@ -17,13 +17,13 @@
                 if (isset($_POST['tasa_bcv_usd']) && isset($_POST['fecha_reg'])) {
                     // El formulario usa los nombres exactos de columnas de tasa_bcv
                     $fecha = trim((string)$_POST['fecha_reg']);
-                    $errorValidacion = $this->validarFechaRegistro($fecha);
+                    $errorValidacion = $object->validar('fecha_registro', $fecha);
                     if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => false, 'message' => $errorValidacion]);
                         die();
                     }
-                    $errorValidacion = $this->validarTasa($_POST['tasa_bcv_usd']);
+                    $errorValidacion = $object->validar('tasa', $_POST['tasa_bcv_usd']);
                     if ($errorValidacion !== null) {
                         header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => false, 'message' => $errorValidacion]);
@@ -66,9 +66,9 @@
                 if (isset($_POST['estado'])) {
                     $estado = (int)$_POST['estado'];
                 }
-                $errorValidacion = $this->validarTasa($_POST['tasa_bcv_usd'] ?? '');
+                $errorValidacion = $object->validar('tasa', $_POST['tasa_bcv_usd'] ?? '');
                 if ($errorValidacion === null) {
-                    $errorValidacion = $this->validarFechaRegistro($_POST['fecha_reg'] ?? '');
+                    $errorValidacion = $object->validar('fecha_registro', $_POST['fecha_reg'] ?? '');
                 }
                 if ($errorValidacion !== null) {
                     echo json_encode(false);

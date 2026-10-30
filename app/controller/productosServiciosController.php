@@ -52,11 +52,11 @@ if (isset($_GET['type'])) {
             $codPartida = isset($_POST['cod_partida']) ? trim((string)$_POST['cod_partida']) : '';
             $descripcion = isset($_POST['descripcion']) ? trim((string)$_POST['descripcion']) : '';
 
-            $errorValidacion = $this->validarCodigoPartida($codPartida);
+            $errorValidacion = $object->validar('codigo_partida', $codPartida);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
-            $errorValidacion = $this->validarDescripcionPartida($descripcion);
+            $errorValidacion = $object->validar('descripcion_partida', $descripcion);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
@@ -83,11 +83,11 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Partida presupuestaria no valida.']);
             }
 
-            $errorValidacion = $this->validarCodigoPartida($codPartida);
+            $errorValidacion = $object->validar('codigo_partida', $codPartida);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
-            $errorValidacion = $this->validarDescripcionPartida($descripcion);
+            $errorValidacion = $object->validar('descripcion_partida', $descripcion);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
@@ -140,11 +140,11 @@ if (isset($_GET['type'])) {
 
             $nomItemUpdate = isset($_POST['nom_item']) ? trim((string)$_POST['nom_item']) : '';
             $precioUpdate = isset($_POST['precio']) ? trim((string)$_POST['precio']) : '';
-            $errorValidacion = $this->validarNombreProducto($nomItemUpdate);
+            $errorValidacion = $object->validar('nombre_producto', $nomItemUpdate);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
-            $errorValidacion = $this->validarPrecio($precioUpdate);
+            $errorValidacion = $object->validar('precio', $precioUpdate);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
@@ -178,11 +178,11 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida o proveedor inválido.']);
             }
 
-            $errorValidacion = $this->validarNombreProducto($nombre);
+            $errorValidacion = $object->validar('nombre_producto', $nombre);
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }
-            $errorValidacion = $this->validarPrecio((string)($_POST['precio'] ?? ''));
+            $errorValidacion = $object->validar('precio', (string)($_POST['precio'] ?? ''));
             if ($errorValidacion !== null) {
                 sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
             }

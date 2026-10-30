@@ -1,6 +1,37 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
+    // ─── Validaciones SIAP (plugin jQuery) ──────────────────────
+    $('#formRegistro').siapValidar({
+        nom_rep: { regla: 'nombre' },
+        email: { regla: 'email' },
+        contrasena: { regla: 'contrasenia' },
+        id_rol: { regla: 'requerido', mensaje: 'Seleccione un rol.' },
+        dependencia_search: {
+            test: function () {
+                return String($('#register_id_dep').val() || '').trim() !== '';
+            },
+            mensaje: 'Seleccione una dependencia válida de la lista.'
+        }
+    });
+
+    $('#formEditar').siapValidar({
+        nom_rep: { regla: 'nombre' },
+        email: { regla: 'email' },
+        contrasena: { regla: 'contrasenia', omitirVacio: true },
+        id_rol: { regla: 'requerido', mensaje: 'Seleccione un rol.' },
+        id_dep: {
+            test: function () {
+                return !$('#editDependenciaGroup').is(':visible')
+                    || String($('#edit_id_dep').val() || '').trim() !== '';
+            },
+            mensaje: 'Seleccione una dependencia disponible.'
+        }
+    });
+
+    $('#formRol').siapValidar({ descripcion: { regla: 'rol' } });
+    $('#formEditarRol').siapValidar({ descripcion: { regla: 'rol' } });
+
     const dependenciaOptions = {};
     const dependenciaKeysLower = {};
     $('#dependenciasList option').each(function() {
@@ -20,6 +51,10 @@ $(document).ready(function() {
             $('#register_id_dep').val(dependenciaKeysLower[currentValue.toLowerCase()]);
         } else {
             $('#register_id_dep').val('');
+        }
+        // Si el campo ya fue validado, vuelve a comprobarlo con el id actualizado.
+        if ($(this).data('siap-tocado')) {
+            $(this).trigger('focusout');
         }
     });
 
@@ -174,6 +209,7 @@ $(document).ready(function() {
             });
         }
 
+        $('#formEditar').siapValidar('limpiar');
         $('#modalEditar').show();
     });
 
@@ -256,6 +292,7 @@ $(document).ready(function() {
 
     $('#btnNuevoRol').on('click', function() {
         $('#formRol')[0].reset();
+        $('#formRol').siapValidar('limpiar');
         $('#modalRol').show();
         $('#rol_descripcion').focus();
     });
@@ -278,6 +315,7 @@ $(document).ready(function() {
         const data = tablaRoles.row($(this).closest('tr')).data();
         $('#editRol_id').val(data.id_rol);
         $('#editRol_descripcion').val(data.descripcion);
+        $('#formEditarRol').siapValidar('limpiar');
         $('#modalEditarRol').show();
     });
 

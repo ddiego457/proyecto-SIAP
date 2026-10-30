@@ -2,6 +2,39 @@ $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
     console.log('periodo.js loaded', currentUrl);
 
+    // Validaciones en el cliente (plugin siapValidar).
+    $('#formRegistro').siapValidar({
+        fecha_inicio: { regla: 'fecha' },
+        fecha_fin: {
+            test: function(valor) {
+                var inicio = $('#fecha_inicio').val();
+                return ValidacionesSIAP.validarFechaISO(valor) && inicio && valor >= inicio;
+            },
+            mensaje: 'La fecha fin debe ser igual o posterior a la fecha inicio, en formato AAAA-MM-DD.'
+        },
+        anio_fiscal_id: { regla: 'requerido', mensaje: 'Seleccione un año fiscal.' }
+    });
+
+    $('#formEditar').siapValidar({
+        fecha_inicio: { regla: 'fecha' },
+        fecha_fin: {
+            test: function(valor) {
+                var inicio = $('#edit_fecha_inicio').val();
+                return ValidacionesSIAP.validarFechaISO(valor) && inicio && valor >= inicio;
+            },
+            mensaje: 'La fecha fin debe ser igual o posterior a la fecha inicio, en formato AAAA-MM-DD.'
+        },
+        anio_fiscal_id: { regla: 'requerido', mensaje: 'Seleccione un año fiscal.' }
+    });
+
+    $('#formAnioFiscal').siapValidar({
+        anio_fiscal: { regla: 'anio' }
+    });
+
+    $('#formAnioFiscalEditar').siapValidar({
+        anio_fiscal: { regla: 'anio' }
+    });
+
     const tabla = $('#tablaMain').DataTable({
         ajax: {
             url: currentUrl,
@@ -109,6 +142,7 @@ $(document).ready(function() {
         $('#edit_fecha_inicio').val(data.fecha_inicio);
         $('#edit_fecha_fin').val(data.fecha_fin);
         $('#edit_anio_fiscal_id').val(data.anio_fiscal_id ?? '');
+        $('#formEditar').siapValidar('limpiar');
         $('#modalEditar').show();
     });
 
@@ -270,6 +304,7 @@ $(document).ready(function() {
         const data = tablaAnios.row($(this).closest('tr')).data();
         $('#editAniof_id').val(data.id_anioFis);
         $('#editAniof_anio').val(data.anio_fiscal);
+        $('#formAnioFiscalEditar').siapValidar('limpiar');
         $('#modalEditarAnioFiscal').show();
     });
 

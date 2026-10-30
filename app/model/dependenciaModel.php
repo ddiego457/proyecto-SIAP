@@ -3,9 +3,12 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class dependenciaModel extends ConnectDB
 {
+    use ValidationTrait;
+
     // Conexión interna
     private $conex;
 

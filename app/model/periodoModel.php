@@ -1,14 +1,18 @@
 <?php
 namespace EquipoSiap\Siap\model;
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class periodoModel extends ConnectDB
 {
+    use ValidationTrait;
+
     private $conex;
     private $id;
     private $fechaInicio;
     private $fechaFin;
     private $anioFiscalId;
+
     public function __construct() {
         parent::__construct();
         $this->conex = $this->getConnection();

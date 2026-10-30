@@ -9,7 +9,8 @@ $success = isset($success) ? $success : false;
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Recuperar contraseña</title>
-<link rel="icon" type="image/png" href="assets/img/SIAPpeque%C3%B1o.png">
+<link rel="icon" type="image/x-icon" href="assets/img/SIAPpeque%C3%B1o.ico">
+<link rel="apple-touch-icon" href="assets/img/SIAPlogo.png">
 
 <link rel="stylesheet" href="assets/css/loginDesign.css">
 </head>

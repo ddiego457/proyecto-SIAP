@@ -4,6 +4,20 @@ $(document).ready(function() {
     // 0. CONFIGURACIÓN GLOBAL
     // =========================================================================
 
+    // Validación de cantidades dinámicas (inputs generados por DataTables).
+    // Se valida al salir del campo (focusout) con el mismo criterio del servidor.
+    if (window.ValidacionesSIAP) {
+        $(document).on('focusout', 'input[name^="cantidades["]', function () {
+            var $campo = $(this);
+            var valor = String($campo.val() || '').trim();
+            if (valor === '' || ValidacionesSIAP.validarCantidadMes(valor)) {
+                ValidacionesSIAP.limpiarError($campo);
+            } else {
+                ValidacionesSIAP.marcarError($campo, ValidacionesSIAP.mensajes.cantidadMes);
+            }
+        });
+    }
+
     // =========================================================================
     // 1. LÓGICA DE LA TABLA PRINCIPAL (VISTA DE CONSOLIDADO Y ACTUALIZACIÓN)
     // =========================================================================

@@ -2,12 +2,12 @@
 
 namespace EquipoSiap\Siap\model;
 use EquipoSiap\Siap\config\Connect\ConnectDB;
-use EquipoSiap\Siap\helpers\UserValidationTrait;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 use PDO;
 use Exception;
 
 class UserModel extends ConnectDB {
-    use UserValidationTrait;
+    use ValidationTrait;
 
     private $conex;
     private $id;
@@ -23,11 +23,13 @@ class UserModel extends ConnectDB {
         $usuario = trim((string)$usuario);
         $password = (string)$password;
 
-        if ($this->validarUsuario($usuario) !== null) {
+        $errorValidacion = $this->validar('usuario', $usuario);
+        if ($errorValidacion !== null) {
             return 0;
         }
 
-        if ($this->validarPassword($password) !== null) {
+        $errorValidacion = $this->validar('password', $password);
+        if ($errorValidacion !== null) {
             return 0;
         }
 
@@ -40,7 +42,7 @@ class UserModel extends ConnectDB {
     private function loginSistema() {
         try {
             $query = $this->conex->prepare("SELECT d.nom_dep as dependencia, r.id_responsable,
-                r.nom_rep as responsable, r.id_rol, rl.descripcion as rol, password, d.id_dep as id_dep
+                r.nom_rep as responsable, r.id_rol, rl.descripcion as rol, password, r.foto, d.id_dep as id_dep
                 FROM responsables as r
                 JOIN cargo as cr ON cr.id_responsable = r.id_responsable AND cr.estado = 1
                 JOIN dependencias as d ON d.id_dep = cr.id_dep

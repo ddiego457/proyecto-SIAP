@@ -18,14 +18,14 @@ include_once 'app/view/layout/head.php';
         </div>
         <div class="card-body">
             <div class="card-subtitle">Proveedor: <?php echo htmlspecialchars($proveedorNombre); ?></div>
-            <div class="field-group">
-                <label class="field-label">Agregar teléfono</label>
+            <form id="formAgregarContacto">
                 <div class="field-group">
+                    <label class="field-label">Agregar teléfono</label>
                     <input type="hidden" id="contact_id_proveedor" value="<?php echo $idProveedor; ?>">
-                    <input type="text" id="contact_telefono" class="field-input" placeholder="Ej. 0414-1234567">
+                    <input type="text" id="contact_telefono" name="telefono" class="field-input" placeholder="Ej. 0414-1234567">
+                    <button type="submit" id="btnAgregarContacto" class="btn btn-success btn-sm" style="margin-top:10px;">Agregar</button>
                 </div>
-                <button id="btnAgregarContacto" class="btn btn-success btn-sm" style="margin-top:10px;">Agregar</button>
-            </div>
+            </form>
             <div class="table-wrapper" style="margin-top:20px;">
                 <table id="tablaContactos" class="siap-table" style="width:100%">
                     <thead><tr><th>ID</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>

@@ -5,10 +5,11 @@ trait SessionTrait {
 
     private $loginUrl = '?url=inicio';
     // Módulos permitidos por rol. '*' = todos los módulos.
+    // ('perfil' = cambio de foto de perfil desde la sidebar, accesible a todos los roles)
     private $modulosPorRol = [
         'Administrador' => '*',
-        'Coordinador'   => ['proveedor', 'productosServicios', 'reporte', 'periodo'],
-        'Usuario'       => ['reporte', 'requerimiento'],
+        'Coordinador'   => ['proveedor', 'productosServicios', 'periodo', 'reporte', 'perfil'],
+        'Usuario'       => ['requerimiento', 'reporte', 'perfil'],
     ];
     // Destino tras login / redirecciones, según rol
     private $homeUrlPorRol = [
@@ -69,7 +70,7 @@ trait SessionTrait {
     private function rolAccedeA($rol, $modulo): bool {
         if (!isset($this->modulosPorRol[$rol])) {
             // Rol no reconocido: solo módulos públicos (comportamiento previo)
-            return in_array($modulo, ['reporte', 'requerimiento'], true);
+            return in_array($modulo, ['reporte', 'requerimiento', 'perfil'], true);
         }
         $modulos = $this->modulosPorRol[$rol];
         return $modulos === '*' || in_array($modulo, $modulos, true);

@@ -1,6 +1,27 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
+    // Validaciones en el cliente (plugin siapValidar).
+    $('#formRegistro').siapValidar({
+        nombre: { regla: 'nombreProveedor' },
+        descripcion: { regla: 'descripcionProveedor' }
+    });
+
+    $('#formEditar').siapValidar({
+        nombre: { regla: 'nombreProveedor' },
+        descripcion: { regla: 'descripcionProveedor' },
+        estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
+    });
+
+    $('#formAgregarContacto').siapValidar({
+        telefono: { regla: 'telefono' }
+    });
+
+    $('#formEditarContacto').siapValidar({
+        telefono: { regla: 'telefono' },
+        estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
+    });
+
     const tabla = $('#tablaMain').DataTable({
         ajax: {
             url: currentUrl,
@@ -108,6 +129,7 @@ $(document).ready(function() {
         $('#edit_nombre').val(data.nombre);
         $('#edit_descripcion').val(data.descripcion);
         $('#edit_estado').val(data.estado);
+        $('#formEditar').siapValidar('limpiar');
         $('#modalEditar').show();
     });
 
@@ -171,21 +193,10 @@ $(document).ready(function() {
             language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" }
         });
 
-        // Validación teléfono: solo dígitos, + y - (y espacios)
-        function validarTelefono(tel) {
-            return /^\+?[0-9][0-9\-\s]{6,}$/.test(tel.trim());
-        }
-
-        $('#btnAgregarContacto').on('click', function() {
+        // Validación de teléfono delegada a siapValidar (focusout + bloqueo de submit).
+        $('#formAgregarContacto').on('submit', function(e) {
+            e.preventDefault();
             const telefono = $('#contact_telefono').val().trim();
-            if (!telefono) {
-                alert('Ingrese un teléfono válido.');
-                return;
-            }
-            if (!validarTelefono(telefono)) {
-                alert('Formato de teléfono inválido. Solo se permiten dígitos, "+" al inicio y "-". Ej: +58-212-5551234');
-                return;
-            }
             $.ajax({
                 url: currentUrl,
                 method: 'POST',
@@ -209,6 +220,7 @@ $(document).ready(function() {
             $('#edit_idContacto').val(idContacto);
             $('#edit_telefono').val(row.telefono);
             $('#edit_estadoContacto').val(row.estado);
+            $('#formEditarContacto').siapValidar('limpiar');
             $('#modalEditarContacto').show();
         });
 
@@ -263,15 +275,6 @@ $(document).ready(function() {
 
         $('#formEditarContacto').on('submit', function(e) {
             e.preventDefault();
-            const telefono = $('#edit_telefono').val().trim();
-            if (!telefono) {
-                alert('Ingrese un teléfono válido.');
-                return;
-            }
-            if (!validarTelefono(telefono)) {
-                alert('Formato de teléfono inválido. Solo se permiten dígitos, "+" al inicio y "-". Ej: +58-212-5551234');
-                return;
-            }
             const formData = new FormData(e.target);
             formData.append('updateContact', true);
             $.ajax({

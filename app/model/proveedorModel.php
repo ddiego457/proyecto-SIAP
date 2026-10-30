@@ -3,11 +3,11 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
-use EquipoSiap\Siap\helpers\ProveedorValidationTrait;
+use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class proveedorModel extends ConnectDB
 {
-    use ProveedorValidationTrait;
+    use ValidationTrait;
 
     private $conex;
     private $id;
@@ -204,11 +204,18 @@ class proveedorModel extends ConnectDB
         return $this->executeAddContact($idProveedor, $telefono);
     }
 
+    // Validación de formato de teléfono: solo dígitos, + y -
+    private static function validarTelefono(string $telefono): bool
+    {
+        // Permite: dígitos, + (al inicio), - (en medio), espacios opcionales
+        // Ejemplos válidos: +58-212-5551234, 0212-5551234, +58 212 555 1234
+        return (bool)preg_match('/^\+?[0-9][0-9\-\s]{6,}$/', trim($telefono));
+    }
+
     private function executeAddContact(int $idProveedor, string $telefono)
     {
         $tel = trim($telefono);
-        // Formato de teléfono validado por ProveedorValidationTrait
-        if ($this->validarTelefono($tel) !== null) {
+        if (!self::validarTelefono($tel)) {
             return false;
         }
         try {
@@ -230,8 +237,7 @@ class proveedorModel extends ConnectDB
     private function executeUpdateContact(int $idContacto, string $telefono, ?int $estado)
     {
         $tel = trim($telefono);
-        // Formato de teléfono validado por ProveedorValidationTrait
-        if ($this->validarTelefono($tel) !== null) {
+        if (!self::validarTelefono($tel)) {
             return false;
         }
         try {

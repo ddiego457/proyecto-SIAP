@@ -1,6 +1,17 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
+    // Validaciones en el cliente (plugin siapValidar).
+    $('#formRegistro').siapValidar({
+        tasa_bcv_usd: { regla: 'tasa' },
+        fecha_reg: { regla: 'fecha' }
+    });
+
+    $('#formEditar').siapValidar({
+        tasa_bcv_usd: { regla: 'tasa' },
+        fecha_reg: { regla: 'fecha' }
+    });
+
     function formatDateForDisplay(value) {
         if (!value) return '';
         const date = new Date(value);
@@ -141,6 +152,7 @@ $(document).ready(function() {
         // Asegurar visualización con 2 decimales
         $('#edit_tasa_bcv_usd').val(Number(data.tasa_bcv_usd || 0).toFixed(2));
         $('#edit_fecha_reg').val(formatDateForInput(data.fecha_reg));
+        $('#formEditar').siapValidar('limpiar');
         $('#modalEditar').show();
     });
 

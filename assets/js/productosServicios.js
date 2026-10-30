@@ -1,5 +1,32 @@
 $(document).ready(function() {
   const currentUrl = window.location.pathname + window.location.search;
+
+  // Validaciones en el cliente (plugin siapValidar).
+  $('#formRegistroPS').siapValidar({
+    id_partida: { regla: 'requerido', mensaje: 'Seleccione una partida presupuestaria.' },
+    id_proveedor: { regla: 'requerido', mensaje: 'Seleccione un proveedor.' },
+    nom_item: { regla: 'nombreProducto' },
+    precio: { regla: 'precio' }
+  });
+
+  $('#formEditar').siapValidar({
+    id_partida: { regla: 'requerido', mensaje: 'Seleccione una partida presupuestaria.' },
+    id_proveedor: { regla: 'requerido', mensaje: 'Seleccione un proveedor.' },
+    nom_item: { regla: 'nombreProducto' },
+    precio: { regla: 'precio' }
+  });
+
+  $('#formPartida').siapValidar({
+    cod_partida: { regla: 'codigoPartida' },
+    descripcion: { regla: 'descrPresupuesto' }
+  });
+
+  $('#formPartidaEditar').siapValidar({
+    cod_partida: { regla: 'codigoPartida' },
+    descripcion: { regla: 'descrPresupuesto' },
+    estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
+  });
+
   const tabla = $('#tablaMain').DataTable({
     ajax: {
       url: currentUrl,
@@ -97,6 +124,7 @@ $(document).ready(function() {
     $('#edit_proveedor_id').val(data.id_proveedor);
     $('#edit_nom_prod').val(data.nom_prod);
     $('#edit_precio').val(data.precio);
+    $('#formEditar').siapValidar('limpiar');
     $('#modalEditar').show();
   });
 
@@ -265,6 +293,7 @@ $(document).ready(function() {
     $('#editPartida_cod').val(data.cod_partida);
     $('#editPartida_descripcion').val(data.descripcion);
     $('#editPartida_estado').val(parseInt(data.estado, 10) === 1 ? '1' : '0');
+    $('#formPartidaEditar').siapValidar('limpiar');
     $('#modalEditarPartida').show();
   });
 

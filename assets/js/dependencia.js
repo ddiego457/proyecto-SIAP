@@ -1,6 +1,15 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
+    // Validaciones en el cliente (plugin siapValidar).
+    $('#formRegistro').siapValidar({
+        nombre_dep: { regla: 'nombreDependencia' }
+    });
+
+    $('#formEditar').siapValidar({
+        nombre_dep: { regla: 'nombreDependencia' }
+    });
+
     const tabla = $('#tablaMain').DataTable({
         ajax: {
             url: currentUrl,
@@ -78,6 +87,7 @@ $(document).ready(function() {
         $('#edit_idItem').val(data.id_dep);
         $('#edit_nombre_dep').val(data.nombre_dep);
         $('#edit_estado').val(data.estado);
+        $('#formEditar').siapValidar('limpiar');
         $('#modalEditar').show();
     });
 
