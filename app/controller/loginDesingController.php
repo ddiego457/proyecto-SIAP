@@ -123,7 +123,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 'rol'            => $loginResult['data'][0]['rol'],
                 'id_dep'         => $loginResult['data'][0]['id_dep'],
                 'usuario'        => $loginResult['data'][0]['dependencia'],
-                'id_responsable' => $loginResult['data'][0]['id_responsable']
+                'id_responsable' => $loginResult['data'][0]['id_responsable'],
+                'foto'           => isset($loginResult['data'][0]['foto']) ? $loginResult['data'][0]['foto'] : null
             ]);
             header('location: ?url=requerimiento&type=main');
             die();

@@ -6,7 +6,8 @@ trait SessionTrait {
     private $loginUrl = '?url=inicio';
     private $homeUrl = '?url=requerimiento&type=main';
     // Módulos accesibles para usuarios no administradores
-    private $publicModules = ['reporte', 'requerimiento'];
+    // ('perfil' = cambio de foto de perfil desde la sidebar)
+    private $publicModules = ['reporte', 'requerimiento', 'perfil'];
 
     public function startSession(): void {
         if (session_status() === PHP_SESSION_NONE) {

@@ -45,19 +45,51 @@ if (!function_exists('sidebarLink')) {
         </a>
     </nav>
 
-    <div class="sidebar-user">
+    <div class="sidebar-user" id="sidebarUserBox" role="button" tabindex="0" title="Cambiar foto de perfil" aria-label="Cambiar foto de perfil">
         <?php
             $rol = isset($_SESSION['rol']) ? (string)$_SESSION['rol'] : 'usuario';
             $dependenciaId = isset($_SESSION['id_dep']) ? $_SESSION['id_dep'] : null;
             $usuario = isset($_SESSION['usuario']) ? (string)$_SESSION['usuario'] : '';
             $rolDisplay = ($rol === 'admin' || $rol === 'administrador' || $rol === 'Administrador') ? 'Administrador' : 'Usuario';
+
+            // Foto de perfil del responsable logueado (nombre del archivo en BD/sesión)
+            $fotoSesion = isset($_SESSION['foto']) ? (string)$_SESSION['foto'] : '';
+            $rutaFoto = $fotoSesion !== '' ? dirname(__DIR__, 3) . '/assets/img/perfiles/' . basename($fotoSesion) : '';
+            $tieneFoto = $rutaFoto !== '' && file_exists($rutaFoto);
         ?>
-        <div class="sidebar-avatar"><?php echo strtoupper(substr($usuario !== '' ? $usuario : $rolDisplay, 0, 1)); ?></div>
+        <div class="sidebar-avatar">
+            <?php if ($tieneFoto): ?>
+                <img src="assets/img/perfiles/<?php echo htmlspecialchars(basename($fotoSesion)); ?>?v=<?php echo filemtime($rutaFoto); ?>" alt="Foto de perfil">
+            <?php else: ?>
+                <?php echo strtoupper(substr($usuario !== '' ? $usuario : $rolDisplay, 0, 1)); ?>
+            <?php endif; ?>
+        </div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name"><?php echo $usuario !== '' ? htmlspecialchars($usuario) : 'TIC'; ?></div>
             <div class="sidebar-user-role"><?php echo $rolDisplay; ?></div>
         </div>
     </div>
 </aside>
+
+<!-- MODAL: FOTO DE PERFIL (se abre al presionar el bloque de usuario en la sidebar) -->
+<div id="modalFotoPerfil" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel modal-perfil-panel">
+        <div class="modal-header">
+            <h3>Foto de perfil</h3>
+            <button type="button" id="btnCerrarFotoPerfil" class="modal-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="perfil-preview" id="perfilPreview"></div>
+            <p class="perfil-hint">Formatos admitidos: JPG, PNG o WEBP. M&aacute;ximo 2 MB.<br>La imagen se recorta autom&aacute;ticamente en cuadrado.</p>
+            <input type="file" id="inputFotoPerfil" accept="image/jpeg,image/png,image/webp" style="display:none;">
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnEliminarFoto" class="btn btn-outline">Eliminar foto</button>
+            <button type="button" id="btnCancelarFoto" class="btn btn-outline">Cancelar</button>
+            <button type="button" id="btnElegirFoto" class="btn btn-success">Elegir foto</button>
+            <button type="button" id="btnGuardarFoto" class="btn btn-success" style="display:none;">Guardar</button>
+        </div>
+    </div>
+</div>
 
 

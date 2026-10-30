@@ -1508,6 +1508,7 @@ CREATE TABLE `responsables` (
   `nom_rep` varchar(100) NOT NULL,
   `email` varchar(150) DEFAULT NULL,
   `password` varchar(120) NOT NULL,
+  `foto` varchar(150) DEFAULT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 

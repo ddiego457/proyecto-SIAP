@@ -2,6 +2,8 @@
 </div><!-- /app-layout -->
 <script src="assets/js/DataTables/jquery.js"></script>
 <script src="assets/js/DataTables/datatables.min.js"></script>
+<!-- Foto de perfil: disponible en todas las páginas (bloque de usuario en la sidebar) -->
+<script src="assets/js/perfil.js?v=<?php echo file_exists('assets/js/perfil.js') ? filemtime('assets/js/perfil.js') : time(); ?>"></script>
 <?php if(isset($jsFile)): ?>
 <script src="assets/js/<?php echo $jsFile; ?>?v=<?php echo file_exists("assets/js/{$jsFile}") ? filemtime("assets/js/{$jsFile}") : time(); ?>"></script>
 <?php endif; ?>
