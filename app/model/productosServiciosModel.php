@@ -99,6 +99,9 @@ class productosServiciosModel extends ConnectDB
             );
             return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio]);
         } catch (\PDOException $e) {
+            // Se deja el detalle real en el log para poder diagnosticar;
+            // al usuario solo se le muestra un mensaje genérico.
+            error_log('[productosServiciosModel::executeAdd] Error BD: ' . $e->getMessage());
             return false;
         }
     }

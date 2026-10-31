@@ -193,9 +193,12 @@ if (isset($_GET['type'])) {
             }
 
             $result = $object->add($idPartida, $idProveedor, $nombre, $precio);
-            $payload = ['success' => (bool)$result, 'message' => $result ? 'Producto o servicio registrado' : 'Error al guardar el registro (duplicado o error BD).'];
-            if ($result) $payload['redirect'] = '?url=productosServicios&type=main';
-            sendJsonResponse($payload);
+            // No se envía 'redirect': el JS permanece en la vista de registro
+            // para permitir registrar varios items seguidos.
+            sendJsonResponse([
+                'success' => (bool)$result,
+                'message' => $result ? 'Producto o servicio registrado' : 'Error al guardar el registro (duplicado o error BD).'
+            ]);
         }
 
         include 'app/view/productosServicios/registerView.php';

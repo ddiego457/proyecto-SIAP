@@ -365,7 +365,7 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `precio`, `estado`) VALUES
-(0, 1, 2, 'cocina electrica (unidad)', 22.00, 1),
+(1029, 1, 2, 'cocina electrica (unidad)', 22.00, 1),
 (1, 1, 2, 'Cable eléctrico AWG 12', 15.50, 1),
 (2, 1, 2, 'Interruptor termomagnético 20A', 8.75, 1),
 (3, 2, 2, 'Resma de papel bond 80g', 12.00, 1),
@@ -1774,6 +1774,12 @@ ALTER TABLE `partidas`
 --
 ALTER TABLE `periodos_entrega`
   MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `productos`
+--
+ALTER TABLE `productos`
+  MODIFY `id_prod` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1030;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`

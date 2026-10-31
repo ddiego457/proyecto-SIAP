@@ -622,6 +622,23 @@ a { text-decoration: none; color: inherit; }
 }
 .alert-banner-badge span { font-size: 13px; font-weight: 500; color: var(--warning); }
 
+/* ─── TOAST (notificaciones flotantes) ─────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  z-index: 9999;
+  animation: toastSlideIn .3s ease;
+}
+.toast-success { background: #28a745; }
+.toast-error { background: #dc3545; }
+@keyframes toastSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
 /* ─── STEP WIZARD ──────────────────────────────────────────── */
 .step-wizard {
   display: flex;
