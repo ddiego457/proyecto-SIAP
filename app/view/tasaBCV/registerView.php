@@ -8,7 +8,7 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">Registrar Tasa BCV</div>
     <div class="topbar-actions">
-        <a href="?url=tasaBCV&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+        <a href="?url=tasaBCV&type=main" class="btn btn-color btn-sm">&#8592; Volver</a>
     </div>
 </div>
 
@@ -32,14 +32,13 @@ include_once 'app/view/layout/head.php';
 
     <div class="card" style="max-width:560px;margin:0 auto;">
         <div class="card-header">
-            <span class="card-title">Nuevo registro â€” Tasa BCV</span>
+            <span class="card-title">Nuevo registro Tasa BCV</span>
         </div>
         <div class="card-body">
             <form id="formRegistro">
                 <div class="field-group">
                     <label class="field-label">Tasa BCV (USD)</label>
-                          <input type="number" name="tasa_bcv_usd" class="field-input"
-                              step="0.01" min="0" placeholder="Ej. 36.52" required>
+                        <input type="number" name="tasa_bcv_usd" class="field-input"step="0.01" min="0" placeholder="Ej. 36.52" required>
                     <input type="hidden" name="estado" value="1">
                 </div>
                 <div class="field-group">

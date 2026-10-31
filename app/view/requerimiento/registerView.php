@@ -13,7 +13,7 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">&#128203; Registrar Requerimiento</div>
     <div class="topbar-actions">
-        <a href="?url=requerimiento&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+        <a href="?url=requerimiento&type=main" class="btn btn-color btn-sm">&#8592; Volver</a>
     </div>
 </div>
 
