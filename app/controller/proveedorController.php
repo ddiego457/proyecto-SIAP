@@ -37,7 +37,7 @@
                     }
                     $result = $object->add($nombre, $_POST['descripcion']);
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).', 'redirect' => '?url=proveedor&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).']);
                     die();
                 }
             }

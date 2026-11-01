@@ -70,22 +70,22 @@ $(document).ready(function() {
             success: function(res) {
                 if (res && typeof res === 'object') {
                     if (res.success) {
-                        alert(res.message || 'Proveedor registrado exitosamente');
-                        if (res.redirect) window.location.href = res.redirect; else window.location.href = '?url=proveedor&type=main';
+                        // Permanece en la vista de registro para dar de alta otro proveedor
+                        siapToast(res.message || 'Proveedor registrado exitosamente', 'success');
+                        siapResetFormulario('#formRegistro', 'input[name="nombre"]');
                     } else {
-                        alert(res.message || 'Error al registrar. Verifique los datos.');
-                        $btn.prop('disabled', false).text('✓ Registrar');
+                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
                     }
                 } else if (res == true) {
-                    alert('Proveedor registrado exitosamente');
-                    window.location.href = '?url=proveedor&type=main';
+                    siapToast('Proveedor registrado exitosamente', 'success');
+                    siapResetFormulario('#formRegistro', 'input[name="nombre"]');
                 } else {
-                    alert('Error al registrar. Verifique los datos.');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                    siapToast('Error al registrar. Verifique los datos.', 'error');
                 }
+                $btn.prop('disabled', false).text('✓ Registrar');
             },
             error: function() {
-                alert('Error de conexión.');
+                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
             }
         });

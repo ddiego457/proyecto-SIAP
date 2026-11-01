@@ -104,19 +104,19 @@ $(document).ready(function() {
             success: function(res) {
                 if (res && typeof res === 'object') {
                     if (res.success) {
-                        alert(res.message || 'Responsable registrado exitosamente');
-                        if (res.redirect) window.location.href = res.redirect; else window.location.href = '?url=responsable&type=main';
+                        // Permanece en la vista de registro para dar de alta otro responsable
+                        siapToast(res.message || 'Responsable registrado exitosamente', 'success');
+                        siapResetFormulario('#formRegistro', 'input[name="nom_rep"]');
                     } else {
-                        alert(res.message || 'Error al registrar. Verifique los datos.');
-                        $btn.prop('disabled', false).text('✓ Registrar');
+                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
                     }
                 } else {
-                    alert('Error al registrar. Verifique los datos.');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                    siapToast('Error al registrar. Verifique los datos.', 'error');
                 }
+                $btn.prop('disabled', false).text('✓ Registrar');
             },
             error: function() {
-                alert('Error de conexión.');
+                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
             }
         });

@@ -1,20 +1,6 @@
 $(document).ready(function() {
   const currentUrl = window.location.pathname + window.location.search;
 
-  // Notificación flotante (reutiliza los estilos .toast de siap.css)
-  function showToast(message, type = 'success') {
-    const $old = $('.toast');
-    if ($old.length) $old.remove();
-
-    const $toast = $('<div>', { class: 'toast toast-' + type, text: message });
-    $('body').append($toast);
-
-    setTimeout(() => {
-      $toast.css({ opacity: '0', transition: 'opacity 0.3s' });
-      setTimeout(() => $toast.remove(), 300);
-    }, 4000);
-  }
-
   // Validaciones en el cliente (plugin siapValidar).
   $('#formRegistroPS').siapValidar({
     id_partida: { regla: 'requerido', mensaje: 'Seleccione una partida presupuestaria.' },
@@ -111,42 +97,26 @@ $(document).ready(function() {
             if (res.success) {
               // Permanece en la vista de registro: se limpia el formulario
               // para poder registrar otro item sin salir de la página.
-              showToast(res.message || 'Producto o servicio registrado', 'success');
-              limpiarFormularioRegistro();
+              siapToast(res.message || 'Producto o servicio registrado', 'success');
+              siapResetFormulario('#formRegistroPS', 'input[name="nom_item"]');
             } else {
-              showToast(res.message || 'Error al registrar el item.', 'error');
+              siapToast(res.message || 'Error al registrar el item.', 'error');
             }
           } else if (res === true) {
-            showToast('Registro guardado correctamente', 'success');
-            limpiarFormularioRegistro();
+            siapToast('Registro guardado correctamente', 'success');
+            siapResetFormulario('#formRegistroPS', 'input[name="nom_item"]');
           } else {
-            showToast('Error al registrar el item.', 'error');
+            siapToast('Error al registrar el item.', 'error');
           }
           $btn.prop('disabled', false).text('✓ Registrar');
       },
       error: function(xhr, status, error) {
         console.error('AJAX error:', status, error, xhr.responseText);
-        showToast('Error en la petición. Revise la consola.', 'error');
+        siapToast('Error en la petición. Revise la consola.', 'error');
         $btn.prop('disabled', false).text('✓ Registrar');
       }
     });
   });
-
-  // Restablece el formulario de registro tras un alta exitosa,
-  // limpiando también los estados de validación (is-invalid / field-error).
-  function limpiarFormularioRegistro() {
-    const form = $('#formRegistroPS')[0];
-    if (form) form.reset();
-
-    // Quitar marcas de error del plugin siapValidar
-    $('#formRegistroPS').find('.field-input, .field-select').each(function() {
-      $(this).removeClass('is-invalid').removeAttr('aria-invalid').removeAttr('aria-describedby');
-    });
-    $('#formRegistroPS').find('small.field-error').remove();
-
-    // Foco en el primer campo para un siguiente registro rápido
-    $('#formRegistroPS').find('input[name="nom_item"]').trigger('focus');
-  }
 
   $(document).on('click', '.btn-modificar', function() {
     const data = tabla.row($(this).closest('tr')).data();

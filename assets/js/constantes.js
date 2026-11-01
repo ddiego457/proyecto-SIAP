@@ -44,3 +44,55 @@ const regexCodigoPartida = /^(?=.{1,10}$)[0-9]+(?:\.[0-9]+)?$/;
 const regexTasa = /^(?!0+(?:\.0+)?$)\d{1,10}(?:\.\d{1,2})?$/;
 
 const regexCantidadMes = /^\d{1,9}$/;
+
+/*
+ * Notificación flotante reutilizable.
+ * Usa los estilos globales .toast / .toast-success / .toast-error de siap.css.
+ * Disponible en todas las páginas (constantes.js se incluye en el layout).
+ */
+function siapToast(mensaje, tipo) {
+    tipo = tipo || 'success';
+    var previo = document.querySelector('.toast');
+    if (previo) previo.remove();
+
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-' + tipo;
+    toast.textContent = mensaje;
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(function () { toast.remove(); }, 300);
+    }, 4000);
+}
+
+/*
+ * Restablece un formulario tras un alta exitosa para poder registrar otro
+ * item sin salir de la vista. Limpia también los estados de validación
+ * del plugin siapValidar (clase .is-invalid y mensajes <small class="field-error">).
+ *
+ *  siapResetFormulario('#formRegistro', 'input[name="nombre"]');
+ *  - selectorForm: selector del formulario.
+ *  - selectorFoco: (opcional) campo donde dejar el foco tras limpiar.
+ */
+function siapResetFormulario(selectorForm, selectorFoco) {
+    var form = document.querySelector(selectorForm);
+    if (!form) return;
+
+    form.reset();
+
+    // Quitar marcas de error del plugin siapValidar
+    form.querySelectorAll('.field-input, .field-select').forEach(function (campo) {
+        campo.classList.remove('is-invalid');
+        campo.removeAttribute('aria-invalid');
+        campo.removeAttribute('aria-describedby');
+    });
+    form.querySelectorAll('small.field-error').forEach(function (msg) {
+        msg.remove();
+    });
+
+    var foco = selectorFoco ? form.querySelector(selectorFoco) : null;
+    if (!foco) foco = form.querySelector('input:not([type="hidden"]), select, textarea');
+    if (foco) foco.focus();
+}

@@ -93,22 +93,25 @@ $(document).ready(function() {
             success: function(res) {
                 if (res && typeof res === 'object') {
                     if (res.success) {
-                        alert(res.message || 'Registro exitoso');
-                        if (res.redirect) window.location.href = res.redirect; else window.location.reload();
+                        // Permanece en la vista de registro para dar de alta otra tasa
+                        siapToast(res.message || 'Registro exitoso', 'success');
+                        siapResetFormulario('#formRegistro', 'input[name="tasa_bcv_usd"]');
+                        $btn.prop('disabled', false).text('✓ Registrar');
                     } else {
-                        alert(res.message || 'Error al registrar. Verifique los datos.');
+                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
                         $btn.prop('disabled', false).text('✓ Registrar');
                     }
                 } else if (res == true) {
-                    alert('Registro exitoso');
-                    window.location.reload();
+                    siapToast('Registro exitoso', 'success');
+                    siapResetFormulario('#formRegistro', 'input[name="tasa_bcv_usd"]');
+                    $btn.prop('disabled', false).text('✓ Registrar');
                 } else {
-                    alert('Error al registrar. Verifique los datos.');
+                    siapToast('Error al registrar. Verifique los datos.', 'error');
                     $btn.prop('disabled', false).text('✓ Registrar');
                 }
             },
             error: function() {
-                alert('Error de conexión.');
+                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
             }
         });

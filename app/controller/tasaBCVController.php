@@ -37,7 +37,7 @@
                     }
                     $result = $object->add((float)$_POST['tasa_bcv_usd'], $fecha, 1);
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Tasa BCV registrada' : 'Error al registrar (duplicado o error BD).', 'redirect' => '?url=tasaBCV&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Tasa BCV registrada' : 'Error al registrar (duplicado o error BD).']);
                     die();
                 }
             }

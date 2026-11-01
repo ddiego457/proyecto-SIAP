@@ -19,7 +19,7 @@ if (isset($_GET['type']) && $_GET['type'] == 'recuperar') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim(isset($_POST['email']) ? $_POST['email'] : '');
 
-        $error = $this->validarEmail($email);
+        $error = $userModel->validar('email', $email);
         if ($error === null) {
             $user = $userModel->getByEmail($email);
 
@@ -78,7 +78,7 @@ if (isset($_GET['type']) && $_GET['type'] == 'reset') {
 
         if ($pass1 === '' || $pass2 === '') {
             $error = "Complete ambos campos de contraseña.";
-        } else if (($error = $this->validarPassword($pass1)) !== null) {
+        } else if (($error = $userModel->validar('password', $pass1)) !== null) {
             // El mensaje del trait ya quedó asignado en $error
         } else if ($pass1 !== $pass2) {
             $error = "Las contraseñas no coinciden.";
