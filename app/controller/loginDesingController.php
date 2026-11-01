@@ -119,7 +119,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 'rol'            => $loginResult['data'][0]['rol'],
                 'id_dep'         => $loginResult['data'][0]['id_dep'],
                 'usuario'        => $loginResult['data'][0]['dependencia'],
-                'id_responsable' => $loginResult['data'][0]['id_responsable']
+                'id_responsable' => $loginResult['data'][0]['id_responsable'],
+                // Foto de perfil: se restaura al iniciar sesión para que la
+                // sidebar la muestre tras un cierre de sesión (si no está,
+                // la sidebar muestra la letra inicial).
+                'foto'           => $loginResult['data'][0]['foto'] ?? null
             ]);
             $home = $this->homeForRole();
             header('location: ' . $home);
