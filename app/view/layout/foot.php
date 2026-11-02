@@ -38,6 +38,21 @@
                 console.error('No se pudo guardar el estado del menú lateral.', error);
             }
         });
+
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 700) {
+                if (appLayout && !appLayout.classList.contains('sidebar-collapsed')) {
+                    if (sidebar && !sidebar.contains(e.target) && toggleBtn && !toggleBtn.contains(e.target)) {
+                        appLayout.classList.add('sidebar-collapsed');
+                        if (sidebar) sidebar.style.pointerEvents = 'none';
+                        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+                        try {
+                            localStorage.setItem('siap-sidebar-collapsed', 'true');
+                        } catch (error) {}
+                    }
+                }
+            }
+        });
     });
 </script>
 </body>

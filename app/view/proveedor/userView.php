@@ -7,7 +7,7 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">Proveedores</div>
     <div class="topbar-actions">
-        <a href="?url=proveedor&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+        <a href="?url=proveedor&type=register" class="btn btn-success btn-sm">Registrar</a>
     </div>
 </div>
 

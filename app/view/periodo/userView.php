@@ -7,7 +7,7 @@ include_once 'app/view/layout/head.php';
 <div class="topbar">
     <div class="topbar-title">Periodos</div>
     <div class="topbar-actions">
-        <a href="?url=periodo&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+        <a href="?url=periodo&type=register" class="btn btn-success btn-sm">Registrar</a>
         <button type="button" id="btnAniosFiscales" class="btn btn-outline btn-sm"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> A&ntilde;os fiscales</button>
     </div>
 </div>

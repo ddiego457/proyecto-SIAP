@@ -18,7 +18,7 @@ include_once 'app/view/layout/head.php';
     <div class="topbar-title">Requerimientos</div>
     <div class="topbar-actions">
         <?php if((($_SESSION['rol'] ?? '') !== "Administrador") && !empty($prevReq) && !empty($perAct)){?>
-        <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">&#43; Registrar</a>
+        <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">Registrar</a>
         <?php }?>
     </div>
 </div>
