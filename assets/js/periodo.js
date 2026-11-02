@@ -101,15 +101,17 @@ $(document).ready(function() {
             success: function(res) {
                 console.log('Respuesta registrar periodo:', res);
                 if (res && res.success) {
-                    alert(res.message || 'Registro exitoso');
-                    window.location.href = '?url=periodo&type=main';
+                    // Permanece en la vista de registro para dar de alta otro periodo
+                    siapToast(res.message || 'Registro exitoso', 'success');
+                    siapResetFormulario('#formRegistro', 'input[name="fecha_inicio"]');
+                    $btn.prop('disabled', false).text('✓ Registrar');
                 } else {
-                    alert(res.message || 'Error al registrar. Verifique los datos.');
+                    siapToast((res && res.message) || 'Error al registrar. Verifique los datos.', 'error');
                     $btn.prop('disabled', false).text('✓ Registrar');
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error en la petición de registro. Revise la consola para más detalles.');
+                siapToast('Error en la petición de registro. Revise la consola para más detalles.', 'error');
                 console.error('AJAX register error:', status, error, xhr.responseText);
                 $btn.prop('disabled', false).text('✓ Registrar');
             }

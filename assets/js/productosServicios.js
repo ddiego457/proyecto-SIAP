@@ -1,20 +1,6 @@
 $(document).ready(function() {
   const currentUrl = window.location.pathname + window.location.search;
 
-  // Notificación flotante (reutiliza los estilos .toast de siap.css)
-  function showToast(message, type = 'success') {
-    const $old = $('.toast');
-    if ($old.length) $old.remove();
-
-    const $toast = $('<div>', { class: 'toast toast-' + type, text: message });
-    $('body').append($toast);
-
-    setTimeout(() => {
-      $toast.css({ opacity: '0', transition: 'opacity 0.3s' });
-      setTimeout(() => $toast.remove(), 300);
-    }, 4000);
-  }
-
   // Validaciones en el cliente (plugin siapValidar).
   $('#formRegistroPS').siapValidar({
     id_partida: { regla: 'requerido', mensaje: 'Seleccione una partida presupuestaria.' },
@@ -111,42 +97,26 @@ $(document).ready(function() {
             if (res.success) {
               // Permanece en la vista de registro: se limpia el formulario
               // para poder registrar otro item sin salir de la página.
-              showToast(res.message || 'Producto o servicio registrado', 'success');
-              limpiarFormularioRegistro();
+              siapToast(res.message || 'Producto o servicio registrado', 'success');
+              siapResetFormulario('#formRegistroPS', 'input[name="nom_item"]');
             } else {
-              showToast(res.message || 'Error al registrar el item.', 'error');
+              siapToast(res.message || 'Error al registrar el item.', 'error');
             }
           } else if (res === true) {
-            showToast('Registro guardado correctamente', 'success');
-            limpiarFormularioRegistro();
+            siapToast('Registro guardado correctamente', 'success');
+            siapResetFormulario('#formRegistroPS', 'input[name="nom_item"]');
           } else {
-            showToast('Error al registrar el item.', 'error');
+            siapToast('Error al registrar el item.', 'error');
           }
           $btn.prop('disabled', false).text('✓ Registrar');
       },
       error: function(xhr, status, error) {
         console.error('AJAX error:', status, error, xhr.responseText);
-        showToast('Error en la petición. Revise la consola.', 'error');
+        siapToast('Error en la petición. Revise la consola.', 'error');
         $btn.prop('disabled', false).text('✓ Registrar');
       }
     });
   });
-
-  // Restablece el formulario de registro tras un alta exitosa,
-  // limpiando también los estados de validación (is-invalid / field-error).
-  function limpiarFormularioRegistro() {
-    const form = $('#formRegistroPS')[0];
-    if (form) form.reset();
-
-    // Quitar marcas de error del plugin siapValidar
-    $('#formRegistroPS').find('.field-input, .field-select').each(function() {
-      $(this).removeClass('is-invalid').removeAttr('aria-invalid').removeAttr('aria-describedby');
-    });
-    $('#formRegistroPS').find('small.field-error').remove();
-
-    // Foco en el primer campo para un siguiente registro rápido
-    $('#formRegistroPS').find('input[name="nom_item"]').trigger('focus');
-  }
 
   $(document).on('click', '.btn-modificar', function() {
     const data = tabla.row($(this).closest('tr')).data();
@@ -433,6 +403,152 @@ $(document).ready(function() {
       error: function(xhr, status, error) {
         console.error('AJAX delete error:', status, error, xhr.responseText);
         alert('Error en la petición de inhabilitación. Revise la consola.');
+      }
+    });
+  });
+
+  // ─── Importar Excel ─────────────────────────────────────────────
+  $('#btnImportarExcel').on('click', function() {
+    $('#formImportar')[0].reset();
+    $('#formImportar').siapValidar('limpiar');
+    $('#modalImportar').show();
+    $('#archivoExcel').focus();
+  });
+
+  $('#btnCerrarModalImportar, #btnCerrarModalImportar2').on('click', function() {
+    $('#modalImportar').hide();
+  });
+
+  $('#modalImportar').on('click', function(e) {
+    if (e.target === this) $('#modalImportar').hide();
+  });
+
+  // Cerrar con la tecla ESC (agrega modalImportar y modalResultadoImportar a los existentes)
+  $(document).on('keydown', function(e) {
+    if (e.key === 'Escape') {
+      $('#modalImportar').hide();
+      $('#modalResultadoImportar').hide();
+    }
+  });
+
+  // Cerrar modal de resultados
+  $('#btnCerrarModalResultado, #btnCerrarModalResultado2').on('click', function() {
+    $('#modalResultadoImportar').hide();
+  });
+
+  $('#modalResultadoImportar').on('click', function(e) {
+    if (e.target === this) $('#modalResultadoImportar').hide();
+  });
+
+  // Mostrar el resultado de la importación en el modal
+  function mostrarResultadoImportar(res) {
+    const r = res.resumen || {};
+    const insertados = r.insertados || 0;
+    const omitidos = r.omitidos || 0;
+    const errores = r.errores || 0;
+    const detalles = Array.isArray(r.detalles_error) ? r.detalles_error : [];
+    const hojas = Array.isArray(r.hojas) ? r.hojas : [];
+
+    // Título según el resultado
+    let titulo = 'Importación completada';
+    let subtitulo = res.message || '';
+    let claseBanner = 'alert-banner alert-info';
+
+    if (!res.success) {
+      titulo = 'Error en la importación';
+      claseBanner = 'alert-banner alert-warning';
+    } else if (insertados === 0 && errores > 0) {
+      titulo = 'Importación con errores';
+      claseBanner = 'alert-banner alert-warning';
+    } else if (insertados === 0 && omitidos > 0) {
+      titulo = 'Sin registros nuevos';
+      subtitulo = 'Todos los registros del archivo ya existían en la base de datos.';
+    }
+
+    $('#resultadoImportarMensaje').attr('class', claseBanner).show();
+    $('#resultadoImportarTitulo').text(titulo);
+    $('#resultadoImportarSubtitulo').text(subtitulo);
+
+    // Contadores
+    $('#resultadoInsertados').text(insertados);
+    $('#resultadoOmitidos').text(omitidos);
+    $('#resultadoErrores').text(errores);
+
+    // Hojas procesadas
+    if (hojas.length > 0) {
+      $('#resultadoHojas').text(hojas.join(', '));
+      $('#resultadoHojasWrap').show();
+    } else {
+      $('#resultadoHojasWrap').hide();
+    }
+
+    // Detalles de errores
+    if (detalles.length > 0) {
+      const $lista = $('#resultadoDetalles').empty();
+      detalles.forEach(function(detalle) {
+        $lista.append($('<li>').text(detalle));
+      });
+      $('#resultadoDetallesWrap').show();
+    } else {
+      $('#resultadoDetallesWrap').hide();
+    }
+
+    $('#modalResultadoImportar').show();
+  }
+
+  $('#formImportar').on('submit', function(e) {
+    e.preventDefault();
+
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    if ($btn.prop('disabled')) return;
+
+    const archivo = $('#archivoExcel')[0].files[0];
+
+    if (!archivo) {
+      mostrarResultadoImportar({ success: false, message: 'Seleccione un archivo Excel.' });
+      return;
+    }
+
+    if (!/\.(xlsx|xls)$/i.test(archivo.name)) {
+      mostrarResultadoImportar({ success: false, message: 'Solo se permiten archivos con extensión .xlsx o .xls.' });
+      return;
+    }
+
+    if (archivo.size > 50 * 1024 * 1024) {
+      mostrarResultadoImportar({ success: false, message: 'El archivo no debe superar los 50 MB.' });
+      return;
+    }
+
+    const formData = new FormData(this);
+    formData.append('importarProductos', '1');
+
+    $btn.prop('disabled', true).text('Importando…');
+
+    $.ajax({
+      url: '?url=productosServicios&type=import',
+      method: 'POST',
+      data: formData,
+      dataType: 'json',
+      processData: false,
+      contentType: false,
+      success: function(res) {
+        mostrarResultadoImportar(res);
+
+        if (res && res.success) {
+          $('#modalImportar').hide();
+          tabla.ajax.reload();
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX import error:', status, error, xhr.responseText);
+        mostrarResultadoImportar({
+          success: false,
+          message: 'Error en la petición de importación. Revise la consola.'
+        });
+      },
+      complete: function() {
+        $btn.prop('disabled', false).text('Importar');
       }
     });
   });

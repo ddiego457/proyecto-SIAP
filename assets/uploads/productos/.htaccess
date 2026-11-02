@@ -1,0 +1,7 @@
+# Impedir la ejecución de cualquier archivo subido (solo se guardan .xlsx/.xls)
+<FilesMatch "\.(php|phtml|phar|cgi|pl|py|sh|js)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear el listado de directorios
+Options -Indexes

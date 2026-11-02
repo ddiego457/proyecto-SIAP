@@ -78,7 +78,7 @@
                         $email
                     );
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable registrado exitosamente' : 'Error al registrar en la base de datos.', 'redirect' => '?url=responsable&type=main']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable registrado exitosamente' : 'Error al registrar en la base de datos.']);
                     die();
                 }
             }

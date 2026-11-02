@@ -22,6 +22,22 @@ if (!function_exists('sendJsonResponse')) {
 }
 
 if (isset($_GET['type'])) {
+    // ─── Importación de productos desde Excel ─────────────────────────
+    if ($_GET['type'] === 'import') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['importarProductos'])) {
+            sendJsonResponse(['success' => false, 'message' => 'Acción no válida.']);
+        }
+
+        $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
+
+        $resultado = $object->importarProductosExcel(
+            isset($_FILES['archivoExcel']) ? $_FILES['archivoExcel'] : [],
+            $idProveedor
+        );
+
+        sendJsonResponse($resultado);
+    }
+
     if ($_GET['type'] === 'list' || $_GET['type'] === 'main') {
         if (!empty($partidas)) {
             $partidaSeleccionada = (int)$partidas[0]['id_partida'];
@@ -124,10 +140,6 @@ if (isset($_GET['type'])) {
 
             $res = $object->activatePartida($idPartida);
             sendJsonResponse(['success' => (bool)$res, 'message' => $res ? 'Partida presupuestaria activada' : 'Error al activar la partida']);
-        }
-
-        if (isset($_POST['loadData'])) {
-            $res = $object->loadData();
         }
 
         if (isset($_POST['updateItem'])) {
