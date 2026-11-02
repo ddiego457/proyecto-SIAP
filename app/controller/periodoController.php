@@ -70,7 +70,6 @@ if (isset($_GET['type'])) {
                     $msg .= ' (Se desactivó el periodo activo anterior de ese año fiscal).';
                 }
                 $payload = ['success' => (bool)$result, 'message' => $msg];
-                if ($result) $payload['redirect'] = '?url=periodo&type=main';
                 sendJsonResponse($payload);
             }
         }
