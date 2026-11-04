@@ -30,7 +30,7 @@ include_once 'app/view/layout/head.php';
 
     <div class="card" style="max-width:560px;margin:0 auto;">
         <div class="card-header">
-            <span class="card-title">Nuevo registro â€” Tasa BCV</span>
+            <span class="card-title">Nuevo registro — Tasa BCV</span>
             <div class="card-header-actions">
                 <a href="?url=tasaBCV&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
             </div>

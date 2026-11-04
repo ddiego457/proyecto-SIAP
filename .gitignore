@@ -1,1 +1,7 @@
 /vendor/
+# Secreto HMAC de recuperación de contraseña (se autogenera en cada instalación)
+/app/config/reset_secret.php
+# Archivos subidos por los usuarios: no se versionan
+/assets/uploads/**/*.xlsx
+/assets/uploads/**/*.xls
+/assets/uploads/**/*.pdf
