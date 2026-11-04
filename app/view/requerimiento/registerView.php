@@ -12,9 +12,7 @@ include_once 'app/view/layout/head.php';
 <!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-title">&#128203; Registrar Requerimiento</div>
-    <div class="topbar-actions">
-        <a href="?url=requerimiento&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
@@ -23,6 +21,9 @@ include_once 'app/view/layout/head.php';
     <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Carga de Requerimientos - Partida <span id="titulo-partida">401</span></h4>
+            <div class="card-header-actions">
+                <a href="?url=requerimiento&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+            </div>
         </div>
         <div class="card-body">
             <?php if (isset($periodExpired) && $periodExpired): ?>

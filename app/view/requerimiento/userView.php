@@ -16,11 +16,7 @@ include_once 'app/view/layout/head.php';
 <!-- el boton de registro -->
 <div class="topbar">
     <div class="topbar-title">Requerimientos</div>
-    <div class="topbar-actions">
-        <?php if((($_SESSION['rol'] ?? '') !== "Administrador") && !empty($prevReq) && !empty($perAct)){?>
-        <a href="?url=requerimiento&type=register"  class="btn btn-success btn-sm">&#43; Registrar</a>
-        <?php }?>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <!-- acomodar para que se vea mejor -->
@@ -82,6 +78,11 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
             <button id="btn-vista-partidas" class="btn btn-blue" style="display: none;">
                 <i class="fa-solid fa-table-list" aria-hidden="true"></i> Totales POA</button>
         <?php } ?>
+        </div>
+        <div class="card-header-actions">
+            <?php if((($_SESSION['rol'] ?? '') !== "Administrador") && !empty($prevReq) && !empty($perAct)){?>
+            <a href="?url=requerimiento&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+            <?php }?>
         </div>
         </div>
         <div class="card-body">

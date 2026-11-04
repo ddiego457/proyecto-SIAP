@@ -14,11 +14,15 @@ class proveedorModel extends ConnectDB
     private $nombre;
     private $descripcion;
     private $estado;
+    // Carpeta destino de documentos PDF (misma usada antiguamente por la importación Excel)
+    private $directorioDocumentos;
 
     public function __construct()
     {
         parent::__construct();
         $this->conex = $this->getConnection();
+        // Se resuelve desde app/model/ hacia la raíz del proyecto
+        $this->directorioDocumentos = dirname(__DIR__, 2) . '/assets/uploads/productos';
     }
 
     public function getAll()
@@ -28,7 +32,7 @@ class proveedorModel extends ConnectDB
 
     private function executeGetAll()
     {
-        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado FROM proveedores ORDER BY nom_prov ASC");
+        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado, archivo_pdf, nombre_pdf FROM proveedores ORDER BY nom_prov ASC");
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -302,6 +306,246 @@ class proveedorModel extends ConnectDB
     private function executeInactivateContact(int $idContacto)
     {
         return $this->deleteContact($idContacto);
+    }
+
+    // ─── Documentos PDF del proveedor ─────────────────────────────────
+    // Límite de tamaño del PDF (10 MB)
+    private $maximoBytesPdf = 10 * 1024 * 1024;
+
+    // ==================================================================
+    // MÉTODOS PÚBLICOS
+    // ==================================================================
+
+    /**
+     * Valida un archivo subido antes de guardarlo como PDF del proveedor.
+     * Verifica: código de subida de PHP, tamaño máximo (10 MB),
+     * extensión .pdf y tipo real del archivo (no el MIME del navegador).
+     *
+     * @param array $archivo Elemento de $_FILES (ej. $_FILES['archivoPdf'])
+     * @return null|string null si es válido, o mensaje de error si no lo es
+     */
+    public function validarArchivoPdf(array $archivo): ?string
+    {
+        return $this->executeValidarArchivoPdf($archivo);
+    }
+
+    /**
+     * Guarda el PDF del proveedor: valida, mueve el archivo a la carpeta
+     * de documentos y actualiza la BD. Si la BD falla, elimina el archivo.
+     *
+     * @param int   $idProveedor
+     * @param array $archivo Elemento de $_FILES
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public function subirPdf(int $idProveedor, array $archivo): array
+    {
+        return $this->executeSubirPdf($idProveedor, $archivo);
+    }
+
+    /**
+     * Devuelve el PDF asociado a un proveedor.
+     *
+     * @return array|null ['archivo' => string, 'nombre' => string] o null si no tiene
+     */
+    public function obtenerPdf(int $idProveedor): ?array
+    {
+        return $this->executeObtenerPdf($idProveedor);
+    }
+
+    // ==================================================================
+    // MÉTODOS PRIVADOS (verificaciones con BD e implementación interna)
+    // ==================================================================
+
+    private function executeValidarArchivoPdf(array $archivo): ?string
+    {
+        // 1) Debe venir un archivo
+        if (empty($archivo) || !isset($archivo['error'])) {
+            return 'Seleccione un archivo PDF.';
+        }
+
+        // 2) Sin errores de subida de PHP
+        if ((int)$archivo['error'] !== UPLOAD_ERR_OK) {
+            if ((int)$archivo['error'] === UPLOAD_ERR_INI_SIZE || (int)$archivo['error'] === UPLOAD_ERR_FORM_SIZE) {
+                return 'El archivo no debe superar los 10 MB.';
+            }
+            return 'No se pudo subir el archivo. Verifique que no supere los 10 MB.';
+        }
+
+        // 3) Tamaño máximo
+        if ((int)$archivo['size'] > $this->maximoBytesPdf) {
+            return 'El archivo no debe superar los 10 MB.';
+        }
+
+        // 4) Debe ser un archivo subido realmente por HTTP
+        if (!isset($archivo['tmp_name']) || !is_uploaded_file($archivo['tmp_name'])) {
+            return 'Archivo no válido.';
+        }
+
+        // 5) Extensión permitida
+        $extension = strtolower(pathinfo($archivo['name'] ?? '', PATHINFO_EXTENSION));
+        if ($extension !== 'pdf') {
+            return 'Solo se permiten archivos con extensión .pdf.';
+        }
+
+        // 6) Tipo real (no se confía en el MIME declarado por el navegador)
+        $mimeReal = '';
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if ($finfo !== false) {
+                $mimeReal = (string)finfo_file($finfo, $archivo['tmp_name']);
+                finfo_close($finfo);
+            }
+        }
+        if ($mimeReal === '' && function_exists('mime_content_type')) {
+            $mimeReal = (string)mime_content_type($archivo['tmp_name']);
+        }
+
+        if ($mimeReal !== '' && $mimeReal !== 'application/pdf') {
+            return 'El archivo no es un PDF válido.';
+        }
+
+        return null;
+    }
+
+    private function executeSubirPdf(int $idProveedor, array $archivo): array
+    {
+        if ($idProveedor <= 0) {
+            return ['success' => false, 'message' => 'Proveedor inválido.'];
+        }
+
+        // 1) Validar archivo
+        $error = $this->executeValidarArchivoPdf($archivo);
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        // 2) Verificar proveedor
+        $proveedor = $this->executeGetById($idProveedor);
+        if (!$proveedor) {
+            return ['success' => false, 'message' => 'Proveedor no encontrado.'];
+        }
+
+        // 3) Mover el archivo a la carpeta de documentos
+        $movido = $this->executeMoverArchivoPdf($idProveedor, $archivo);
+        if (!$movido['success']) {
+            return ['success' => false, 'message' => $movido['message']];
+        }
+
+        // 4) Registrar en la BD (si falla, se elimina el archivo recién movido)
+        $guardado = $this->executeActualizarPdfProveedor(
+            $idProveedor,
+            $movido['archivo'],
+            $movido['nombre']
+        );
+
+        if (!$guardado['success']) {
+            @unlink($movido['ruta']);
+            return ['success' => false, 'message' => 'No se pudo registrar el PDF en la base de datos.'];
+        }
+
+        return ['success' => true, 'message' => 'PDF guardado correctamente.'];
+    }
+
+    /**
+     * Verifica/crea la carpeta de documentos y mueve el archivo subido.
+     * El nombre lo genera el servidor (evita path traversal y colisiones).
+     */
+    private function executeMoverArchivoPdf(int $idProveedor, array $archivo): array
+    {
+        $ruta = $this->directorioDocumentos;
+
+        // Crear carpeta si no existe
+        if (!is_dir($ruta)) {
+            if (!@mkdir($ruta, 0755, true)) {
+                return [
+                    'success' => false,
+                    'message' => 'No se pudo crear la carpeta de documentos. Verifique permisos en assets/uploads/.'
+                ];
+            }
+        }
+
+        if (!is_writable($ruta)) {
+            return [
+                'success' => false,
+                'message' => 'La carpeta de documentos no tiene permisos de escritura.'
+            ];
+        }
+
+        $nombreOriginal = $archivo['name'] ?? 'documento.pdf';
+        $nombreArchivo  = 'proveedor_' . $idProveedor . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.pdf';
+        $rutaDestino    = $ruta . '/' . $nombreArchivo;
+
+        if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+            return [
+                'success' => false,
+                'message' => 'No se pudo guardar el archivo en el servidor.'
+            ];
+        }
+
+        return [
+            'success'  => true,
+            'archivo'  => $nombreArchivo,
+            'nombre'   => $nombreOriginal,
+            'ruta'     => $rutaDestino
+        ];
+    }
+
+    private function executeActualizarPdfProveedor(int $idProveedor, string $archivo, string $nombre): array
+    {
+        try {
+            // Obtener el PDF anterior para eliminarlo (evita archivos huérfanos)
+            $anterior = $this->executeObtenerPdf($idProveedor);
+
+            $stmt = $this->conex->prepare(
+                "UPDATE proveedores SET archivo_pdf = ?, nombre_pdf = ? WHERE id_proveedor = ?"
+            );
+            $stmt->bindValue(1, $archivo);
+            $stmt->bindValue(2, $nombre);
+            $stmt->bindValue(3, $idProveedor, \PDO::PARAM_INT);
+
+            if (!$stmt->execute()) {
+                return ['success' => false];
+            }
+
+            // Borrar el archivo anterior solo tras confirmar el UPDATE
+            if ($anterior !== null && !empty($anterior['archivo'])) {
+                $rutaAnterior = $this->directorioDocumentos . '/' . basename($anterior['archivo']);
+                if (is_file($rutaAnterior)) {
+                    @unlink($rutaAnterior);
+                }
+            }
+
+            return ['success' => true];
+        } catch (\PDOException $e) {
+            error_log('[proveedorModel::executeActualizarPdfProveedor] Error BD: ' . $e->getMessage());
+            return ['success' => false];
+        }
+    }
+
+    private function executeObtenerPdf(int $idProveedor): ?array
+    {
+        try {
+            $stmt = $this->conex->prepare(
+                "SELECT archivo_pdf, nombre_pdf FROM proveedores WHERE id_proveedor = ?"
+            );
+            $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
+            $stmt->execute();
+            $fila = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$fila || empty($fila['archivo_pdf'])) {
+                return null;
+            }
+
+            return [
+                'archivo' => $fila['archivo_pdf'],
+                'nombre'  => $fila['nombre_pdf'] !== null && $fila['nombre_pdf'] !== ''
+                    ? $fila['nombre_pdf']
+                    : $fila['archivo_pdf']
+            ];
+        } catch (\PDOException $e) {
+            error_log('[proveedorModel::executeObtenerPdf] Error BD: ' . $e->getMessage());
+            return null;
+        }
     }
 }
 

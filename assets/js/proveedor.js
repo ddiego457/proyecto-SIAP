@@ -1,5 +1,9 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
+    // Endpoint dedicado a los documentos PDF del proveedor
+    const pdfUrl = currentUrl.replace(/([?].*)?$/, '') + '?url=proveedor&type=pdf';
+    // Límite de tamaño del PDF en el cliente (10 MB)
+    const maximoBytesPdf = 10 * 1024 * 1024;
 
     // Validaciones en el cliente (plugin siapValidar).
     $('#formRegistro').siapValidar({
@@ -36,6 +40,7 @@ $(document).ready(function() {
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_proveedor}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                actions += ` <button value="${d.id_proveedor}" class="btn btn-sm btn-secondary btn-pdf" aria-label="Documento PDF" title="Documento PDF"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {
                     actions += ` <button value="${d.id_proveedor}" class="btn btn-sm btn-secondary btn-contactos" aria-label="Contactos" title="Contactos"><i class="fa-solid fa-phone" aria-hidden="true"></i></button>`;
                     actions += ` <button value="${d.id_proveedor}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
@@ -161,6 +166,90 @@ $(document).ready(function() {
                 } else {
                     alert('Error al actualizar.');
                 }
+            }
+        });
+    });
+
+    // ─── Documento PDF del proveedor ─────────────────────────────────
+    $(document).on('click', '.btn-pdf', function() {
+        const data = tabla.row($(this).closest('tr')).data();
+        if (!data) return;
+
+        $('#pdf_idProveedor').val(data.id_proveedor);
+        $('#pdf_proveedorNombre').val(data.nombre);
+        $('#pdf_archivo').val('');
+
+        if (data.archivo_pdf) {
+            const nombre = data.nombre_pdf || data.archivo_pdf;
+            $('#pdfActualLink').attr('href', 'assets/uploads/productos/' + encodeURI(data.archivo_pdf));
+            $('#pdfActualNombre').text(nombre);
+            $('#pdfActualWrap').show();
+            $('#pdfSinDocumento').hide();
+        } else {
+            $('#pdfActualWrap').hide();
+            $('#pdfSinDocumento').show();
+        }
+
+        $('#btnGuardarPdf').prop('disabled', false).text('Guardar PDF');
+        $('#modalPdf').show();
+    });
+
+    $('#btnCerrarModalPdf, #btnCerrarModalPdf2').on('click', function() {
+        $('#modalPdf').hide();
+    });
+
+    $('#modalPdf').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') $('#modalPdf').hide();
+    });
+
+    $('#formSubirPdf').on('submit', function(e) {
+        e.preventDefault();
+
+        const archivo = $('#pdf_archivo')[0].files[0];
+        if (!archivo) {
+            siapToast('Seleccione un archivo PDF.', 'error');
+            return;
+        }
+        if (!/\.pdf$/i.test(archivo.name)) {
+            siapToast('Solo se permiten archivos con extensión .pdf.', 'error');
+            return;
+        }
+        if (archivo.size > maximoBytesPdf) {
+            siapToast('El archivo no debe superar los 10 MB.', 'error');
+            return;
+        }
+
+        const $btn = $('#btnGuardarPdf');
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true).text('Guardando…');
+
+        const formData = new FormData(e.target);
+        formData.append('subirPdf', true);
+
+        $.ajax({
+            url: pdfUrl,
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                $btn.prop('disabled', false).text('Guardar PDF');
+                if (res && res.success) {
+                    siapToast(res.message || 'PDF guardado correctamente.', 'success');
+                    $('#modalPdf').hide();
+                    tabla.ajax.reload();
+                } else {
+                    siapToast((res && res.message) || 'Error al guardar el PDF.', 'error');
+                }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text('Guardar PDF');
+                siapToast('Error de conexión.', 'error');
             }
         });
     });

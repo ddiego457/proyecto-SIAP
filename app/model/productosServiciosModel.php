@@ -16,8 +16,6 @@ class productosServiciosModel extends ConnectDB
     {
         parent::__construct();
         $this->conex = $this->getConnection();
-        // Carpeta destino de archivos importados (se resuelve desde app/model/ hacia la raíz del proyecto)
-        $this->directorioImportaciones = dirname(__DIR__, 2) . '/assets/uploads/productos';
     }
 
     public function getPartidas(): array
@@ -267,8 +265,6 @@ class productosServiciosModel extends ConnectDB
     }
 
     // ─── Importación de productos desde Excel ─────────────────────────
-    // Carpeta destino de archivos importados (se resuelve dentro del modelo)
-    private $directorioImportaciones;
     // Límite de tamaño del archivo (50 MB)
     private $maximoBytesImportacion = 50 * 1024 * 1024;
 
@@ -287,18 +283,6 @@ class productosServiciosModel extends ConnectDB
     public function validarArchivoImportacion(array $archivo): ?string
     {
         return $this->executeValidarArchivoImportacion($archivo);
-    }
-
-    /**
-     * Guarda el archivo subido en la carpeta de importaciones.
-     * Verifica/crea la carpeta y ejecuta move_uploaded_file.
-     *
-     * @param array $archivo Elemento de $_FILES
-     * @return array ['success' => bool, 'message' => string, 'archivo' => ?string, 'ruta' => ?string]
-     */
-    public function guardarArchivoImportacion(array $archivo): array
-    {
-        return $this->executeGuardarArchivoImportacion($archivo);
     }
 
     /**
@@ -322,32 +306,26 @@ class productosServiciosModel extends ConnectDB
      */
     public function importarProductosExcel(array $archivo, int $idProveedor): array
     {
-        // 1) Validar archivo
+        // 1) Validar archivo (extensión, tamaño y tipo real)
         $error = $this->validarArchivoImportacion($archivo);
         if ($error !== null) {
             return ['success' => false, 'message' => $error];
         }
 
-        // 2) Guardar archivo
-        $guardado = $this->guardarArchivoImportacion($archivo);
-        if (!$guardado['success']) {
-            return ['success' => false, 'message' => $guardado['message']];
-        }
-
-        // 3) Validar proveedor
+        // 2) Validar proveedor
         if ($idProveedor <= 0 || !$this->validarProveedorActivo($idProveedor)) {
             return ['success' => false, 'message' => 'Proveedor inválido o inactivo.'];
         }
 
-        // 4) Importar desde el archivo guardado
+        // 3) Importar directamente desde el archivo temporal de PHP
+        //    (no se guarda en disco: PHP lo elimina al terminar la petición)
         try {
-            $resumen = $this->executeImportarProductosExcel($guardado['ruta'], $idProveedor);
+            $resumen = $this->executeImportarProductosExcel($archivo['tmp_name'], $idProveedor);
         } catch (\Throwable $e) {
             error_log('[productosServiciosModel::importarProductosExcel] Error: ' . $e->getMessage());
             return [
                 'success' => false,
-                'message' => 'Error al procesar el archivo Excel: ' . $e->getMessage(),
-                'archivo' => $guardado['archivo']
+                'message' => 'Error al procesar el archivo Excel: ' . $e->getMessage()
             ];
         }
 
@@ -358,8 +336,7 @@ class productosServiciosModel extends ConnectDB
         return [
             'success' => true,
             'message' => "Importación completada: {$totalInsertados} insertados, {$totalOmitidos} omitidos, {$totalErrores} con error.",
-            'resumen' => $resumen,
-            'archivo' => $guardado['archivo']
+            'resumen' => $resumen
         ];
     }
 
@@ -409,47 +386,6 @@ class productosServiciosModel extends ConnectDB
         }
 
         return null;
-    }
-
-    private function executeGuardarArchivoImportacion(array $archivo): array
-    {
-        $ruta = $this->directorioImportaciones;
-
-        // Crear carpeta si no existe
-        if (!is_dir($ruta)) {
-            if (!@mkdir($ruta, 0755, true)) {
-                return [
-                    'success' => false,
-                    'message' => 'No se pudo crear la carpeta de importaciones. Verifique permisos en assets/uploads/.'
-                ];
-            }
-        }
-
-        if (!is_writable($ruta)) {
-            return [
-                'success' => false,
-                'message' => 'La carpeta de importaciones no tiene permisos de escritura.'
-            ];
-        }
-
-        // Nombre generado por el servidor (evita path traversal y colisiones)
-        $extension      = strtolower(pathinfo($archivo['name'] ?? '', PATHINFO_EXTENSION));
-        $nombreArchivo  = 'productos_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $rutaDestino    = $ruta . '/' . $nombreArchivo;
-
-        if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
-            return [
-                'success' => false,
-                'message' => 'No se pudo guardar el archivo en el servidor.'
-            ];
-        }
-
-        return [
-            'success' => true,
-            'message' => 'Archivo guardado correctamente.',
-            'archivo' => $nombreArchivo,
-            'ruta'    => $rutaDestino
-        ];
     }
 
     private function executeValidarProveedorActivo(int $idProveedor): bool

@@ -6,10 +6,7 @@ include_once 'app/view/layout/head.php';
 
 <div class="topbar">
     <div class="topbar-title">Periodos</div>
-    <div class="topbar-actions">
-        <a href="?url=periodo&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
-        <button type="button" id="btnAniosFiscales" class="btn btn-outline btn-sm"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> A&ntilde;os fiscales</button>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
@@ -30,6 +27,10 @@ include_once 'app/view/layout/head.php';
     <div class="card">
         <div class="card-header">
             <span class="card-title">Periodos</span>
+            <div class="card-header-actions">
+                <a href="?url=periodo&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+                <button type="button" id="btnAniosFiscales" class="btn btn-outline btn-sm"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> A&ntilde;os fiscales</button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-wrap">

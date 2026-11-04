@@ -1,13 +1,19 @@
 /* ============================================================
-   FOTO DE PERFIL — se carga en todas las páginas (ver foot.php)
-   Al presionar el bloque de usuario de la sidebar se abre un
-   modal para cambiar o eliminar la foto del responsable logueado.
+   FOTO DE PERFIL + MENÚ DE USUARIO DEL TOPBAR
+   Se carga en todas las páginas (ver foot.php).
+
+   1) Menú de usuario: #topbarUserBtn despliega #topbarUserMenu
+      con "Editar foto" (abre el modal) y "Cerrar sesión".
+   2) Modal de foto: al presionar "Editar foto" se abre
+      #modalFotoPerfil para cambiar o eliminar la foto del
+      responsable logueado.
    El servidor recibe la imagen en ?url=perfil&type=main
    ============================================================ */
 $(document).ready(function() {
-    const $box = $('#sidebarUserBox');
+    const $btnUser = $('#topbarUserBtn');
+    const $menu = $('#topbarUserMenu');
     const $modal = $('#modalFotoPerfil');
-    const $avatar = $box.find('.sidebar-avatar');
+    const $avatar = $('.topbar-user-avatar').first();
     const $preview = $('#perfilPreview');
     const $input = $('#inputFotoPerfil');
     const $btnGuardar = $('#btnGuardarFoto');
@@ -21,7 +27,51 @@ $(document).ready(function() {
     const avatarOriginalHtml = $avatar.html();
     let archivoSeleccionado = null;
 
-    // ¿Tiene foto actualmente? (la sidebar server-side ya decide img vs letra)
+    // ─── MENÚ DESPLEGABLE DEL TOPBAR ──────────────────────────
+    function abrirMenu() {
+        $menu.show();
+        $btnUser.attr('aria-expanded', 'true');
+    }
+
+    function cerrarMenu() {
+        $menu.hide();
+        $btnUser.attr('aria-expanded', 'false');
+    }
+
+    $btnUser.on('click', function(e) {
+        e.stopPropagation();
+        if ($menu.is(':visible')) {
+            cerrarMenu();
+        } else {
+            abrirMenu();
+        }
+    });
+
+    // Cerrar al hacer clic fuera del menú
+    $(document).on('click', function(e) {
+        if ($menu.is(':visible') && !$(e.target).closest('.topbar-user').length) {
+            cerrarMenu();
+        }
+    });
+
+    // Cerrar con Escape
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if ($modal.is(':visible')) {
+                cerrarModal();
+            }
+            cerrarMenu();
+        }
+    });
+
+    // La opción "Editar foto" cierra el menú y abre el modal
+    $('#btnEditarFotoMenu').on('click', function() {
+        cerrarMenu();
+        abrirModal();
+    });
+
+    // ─── MODAL DE FOTO DE PERFIL ──────────────────────────────
+    // ¿Tiene foto actualmente? (el server-side ya decide img vs letra)
     function tieneFoto() {
         return $avatar.find('img').length > 0;
     }
@@ -50,15 +100,6 @@ $(document).ready(function() {
         $input.val('');
         $btnGuardar.hide();
     }
-
-    // Abrir con clic o con teclado (Enter/Espacio, el bloque es role="button")
-    $box.on('click', abrirModal);
-    $box.on('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            abrirModal();
-        }
-    });
 
     // Cerrar: botón X, Cancelar o clic fuera del panel
     $('#btnCerrarFotoPerfil, #btnCancelarFoto').on('click', cerrarModal);
@@ -111,7 +152,7 @@ $(document).ready(function() {
             contentType: false,
             success: function(res) {
                 if (res && typeof res === 'object' && res.success) {
-                    // Actualizar el avatar de la sidebar sin recargar la página
+                    // Actualizar el avatar del topbar sin recargar la página
                     $avatar.html('<img src="' + res.url + '" alt="Foto de perfil">');
                     alert(res.message || 'Foto de perfil actualizada.');
                     cerrarModal();

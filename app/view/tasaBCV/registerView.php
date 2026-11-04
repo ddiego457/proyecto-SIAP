@@ -7,9 +7,7 @@ include_once 'app/view/layout/head.php';
 <!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-title">Registrar Tasa BCV</div>
-    <div class="topbar-actions">
-        <a href="?url=tasaBCV&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
@@ -33,6 +31,9 @@ include_once 'app/view/layout/head.php';
     <div class="card" style="max-width:560px;margin:0 auto;">
         <div class="card-header">
             <span class="card-title">Nuevo registro â€” Tasa BCV</span>
+            <div class="card-header-actions">
+                <a href="?url=tasaBCV&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+            </div>
         </div>
         <div class="card-body">
             <form id="formRegistro">

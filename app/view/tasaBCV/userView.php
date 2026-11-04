@@ -7,9 +7,7 @@ include_once 'app/view/layout/head.php';
 <!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-title">Tasas BCV</div>
-    <div class="topbar-actions">
-        <a href="?url=tasaBCV&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <!-- BODY -->
@@ -31,6 +29,9 @@ include_once 'app/view/layout/head.php';
     <div class="card">
         <div class="card-header">
             <span class="card-title">Tasas BCV</span>
+            <div class="card-header-actions">
+                <a href="?url=tasaBCV&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-wrapper">

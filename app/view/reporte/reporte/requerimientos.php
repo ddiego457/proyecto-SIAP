@@ -11,6 +11,7 @@ $dependencias  = isset($dependencias) ? $dependencias : [];
 
 <div class="topbar">
     <div class="topbar-title">informe de dependencia</div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">

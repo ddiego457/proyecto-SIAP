@@ -2,7 +2,7 @@
 </div><!-- /app-layout -->
 <script src="assets/js/DataTables/jquery.js"></script>
 <script src="assets/js/DataTables/datatables.min.js"></script>
-<!-- Foto de perfil: disponible en todas las páginas (bloque de usuario en la sidebar) -->
+<!-- Foto de perfil y menú de usuario: disponible en todas las páginas (topbar → userMenu.php) -->
 <script src="assets/js/perfil.js?v=<?php echo file_exists('assets/js/perfil.js') ? filemtime('assets/js/perfil.js') : time(); ?>"></script>
 <script src="assets/js/constantes.js?v=<?php echo file_exists('assets/js/constantes.js') ? filemtime('assets/js/constantes.js') : time(); ?>"></script>
 <script src="assets/js/validaciones.js?v=<?php echo file_exists('assets/js/validaciones.js') ? filemtime('assets/js/validaciones.js') : time(); ?>"></script>

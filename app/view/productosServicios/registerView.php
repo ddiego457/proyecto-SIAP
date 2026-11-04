@@ -6,15 +6,16 @@ include_once 'app/view/layout/head.php';
 
 <div class="topbar">
     <div class="topbar-title">Registrar item</div>
-    <div class="topbar-actions">
-        <a href="?url=productosServicios&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
     <div class="card" style="max-width:560px; margin:0 auto;">
         <div class="card-header">
             <span class="card-title">Nuevo registro &#8212; Producto o Servicio</span>
+            <div class="card-header-actions">
+                <a href="?url=productosServicios&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+            </div>
         </div>
         <div class="card-body">
             <?php if (empty($partidas) || empty($proveedores)): ?>

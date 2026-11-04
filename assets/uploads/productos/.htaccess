@@ -1,4 +1,4 @@
-# Impedir la ejecución de cualquier archivo subido (solo se guardan .xlsx/.xls)
+# Impedir la ejecución de cualquier archivo subido (solo se guardan .pdf)
 <FilesMatch "\.(php|phtml|phar|cgi|pl|py|sh|js)$">
     Require all denied
 </FilesMatch>

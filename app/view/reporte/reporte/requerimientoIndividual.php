@@ -8,6 +8,7 @@ $mensaje = isset($mensaje) ? $mensaje : '';
 
 <div class="topbar">
     <div class="topbar-title">Informe de requerimiento</div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">

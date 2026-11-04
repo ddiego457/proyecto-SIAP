@@ -94,6 +94,32 @@
             include 'app/view/proveedor/providerContactsView.php';
             die();
 
+        } elseif ($_GET['type'] == 'pdf') {
+
+            if (isset($_POST['subirPdf'])) {
+                $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
+                $archivo = isset($_FILES['archivoPdf']) ? $_FILES['archivoPdf'] : [];
+
+                $resultado = $object->subirPdf($idProveedor, $archivo);
+
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode($resultado);
+                die();
+            }
+
+            if (isset($_POST['obtenerPdf'])) {
+                $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
+                $pdf = $idProveedor > 0 ? $object->obtenerPdf($idProveedor) : null;
+
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => true, 'pdf' => $pdf]);
+                die();
+            }
+
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
+            die();
+
         } elseif ($_GET['type'] == 'main') {
 
             if (isset($_POST['getAll'])) {

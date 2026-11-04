@@ -6,15 +6,16 @@ include_once 'app/view/layout/head.php';
 
 <div class="topbar">
     <div class="topbar-title">Contactos</div>
-    <div class="topbar-actions">
-        <a href="?url=proveedor&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
     <div class="card">
         <div class="card-header">
             <span class="card-title">Contactos del proveedor</span>
+            <div class="card-header-actions">
+                <a href="?url=proveedor&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+            </div>
         </div>
         <div class="card-body">
             <div class="card-subtitle">Proveedor: <?php echo htmlspecialchars($proveedorNombre); ?></div>

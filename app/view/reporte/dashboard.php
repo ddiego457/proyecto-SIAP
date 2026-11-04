@@ -7,6 +7,7 @@ include_once 'app/view/layout/head.php';
 
 <div class="topbar">
     <div class="topbar-title">Dashboard de Informes</div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">

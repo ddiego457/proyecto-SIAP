@@ -6,17 +6,18 @@ include_once 'app/view/layout/head.php';
 
 <div class="topbar">
     <div class="topbar-title">Productos y Servicios</div>
-    <div class="topbar-actions">
-        <a href="?url=productosServicios&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
-        <button type="button" id="btnImportarExcel" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar Excel</button>
-        <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
-    </div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
     <div class="card">
         <div class="card-header">
             <span class="card-title">Items asignados por partida</span>
+            <div class="card-header-actions">
+                <a href="?url=productosServicios&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+                <button type="button" id="btnImportarExcel" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar Excel</button>
+                <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
+            </div>
         </div>
         <div class="card-body">
             <div class="field-group" style="max-width:360px; margin-bottom:18px;">
