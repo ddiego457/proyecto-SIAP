@@ -63,7 +63,6 @@ $(document).ready(function() {
                 } else {
                     actions += ` <button value="${d.id_tasa}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
-                actions += ` <button value="${d.id_tasa}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
                 return actions;
             }}
         ],
@@ -114,17 +113,6 @@ $(document).ready(function() {
                 siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
             }
-        });
-    });
-
-    // Eliminar
-    $(document).on('click', '.btn-eliminar', function() {
-        if (!confirm('¿Está seguro de eliminar este registro?')) return;
-        const idTasa = this.value;
-        $.ajax({
-            url: currentUrl, method: 'POST', dataType: 'json',
-            data: { id_tasa: idTasa, deleteItem: true },
-            success: function(res) { alert(res); tabla.ajax.reload(); }
         });
     });
 

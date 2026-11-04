@@ -49,10 +49,6 @@
                 echo json_encode($object->getAll());
                 die();
             }
-            if (isset($_POST['deleteItem'])) {
-                echo json_encode($object->delete((int)$_POST['id_tasa']));
-                die();
-            }
             if (isset($_POST['inactivateItem'])) {
                 echo json_encode($object->inactivate((int)$_POST['id_tasa']));
                 die();

@@ -660,20 +660,24 @@ $(document).ready(function() {
                         $(api.column(i + 1).footer()).html(totalMes.toLocaleString('es-CO'));
                     }
 
-                    // Suma de Cantidad Total (col 15) y totales monetarios (col 16, 17)
-                    // Los precios unitarios (cols 13, 14) NO se suman en el pie.
-                    var totalCant = api.column(15).data().reduce(function (a, b) {
-                        return numeroPartida(a) + numeroPartida(b);
-                    }, 0);
-                    var totalUsd = api.column(16).data().reduce(function (a, b) {
-                        return numeroPartida(a) + numeroPartida(b);
-                    }, 0);
-                    var totalBs = api.column(17).data().reduce(function (a, b) {
-                        return numeroPartida(a) + numeroPartida(b);
-                    }, 0);
+                    // Sumas del pie: Cantidad Total (col 13), precios unitarios
+                    // (cols 14, 16) y totales monetarios (cols 15, 17).
+                    function sumarColumna(idx) {
+                        return api.column(idx).data().reduce(function (a, b) {
+                            return numeroPartida(a) + numeroPartida(b);
+                        }, 0);
+                    }
 
-                    $(api.column(15).footer()).html(totalCant.toLocaleString('es-CO'));
-                    $(api.column(16).footer()).html('$' + totalUsd.toLocaleString('en-US', formatoMoneda));
+                    var totalCant = sumarColumna(13);
+                    var totalPUUsd = sumarColumna(14);
+                    var totalUsd   = sumarColumna(15);
+                    var totalPUBs  = sumarColumna(16);
+                    var totalBs    = sumarColumna(17);
+
+                    $(api.column(13).footer()).html(totalCant.toLocaleString('es-CO'));
+                    $(api.column(14).footer()).html('$' + totalPUUsd.toLocaleString('en-US', formatoMoneda));
+                    $(api.column(15).footer()).html('$' + totalUsd.toLocaleString('en-US', formatoMoneda));
+                    $(api.column(16).footer()).html('Bs ' + totalPUBs.toLocaleString('en-US', formatoMoneda));
                     $(api.column(17).footer()).html('Bs ' + totalBs.toLocaleString('en-US', formatoMoneda));
                 }
             });
