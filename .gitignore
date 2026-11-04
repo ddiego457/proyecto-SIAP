@@ -1,1 +1,3 @@
 /vendor/
+# Secreto HMAC de recuperación de contraseña (se autogenera en cada instalación)
+/app/config/reset_secret.php

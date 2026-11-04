@@ -17,14 +17,18 @@ $success = false;
 if (isset($_GET['type']) && $_GET['type'] == 'recuperar') {
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = trim(isset($_POST['email']) ? $_POST['email'] : '');
+        $dato = trim(isset($_POST['dato']) ? $_POST['dato'] : '');
 
-        $error = $userModel->validar('email', $email);
-        if ($error === null) {
-            $user = $userModel->getByEmail($email);
+        if ($dato === '') {
+            $error = "Ingrese su correo o usuario.";
+        } else {
+            $user = $userModel->getByEmailOUsuario($dato);
 
             if ($user === null) {
-                $error = "No hay ninguna cuenta activa registrada con ese correo.";
+                $error = "No hay ninguna cuenta activa registrada con ese correo o usuario.";
+            } else if (empty($user['email'])) {
+                // Usuario sin correo registrado: no hay adónde enviar el enlace
+                $error = "Esta opción no está disponible, usuario sin correo.";
             } else {
                 $token = $userModel->createResetToken($user['id_responsable']);
 
@@ -48,7 +52,7 @@ if (isset($_GET['type']) && $_GET['type'] == 'recuperar') {
                     if (MailHelper::send($user['email'], 'Recuperación de contraseña — SIAP', $body)) {
                         $success = "Se envió un correo de recuperación a: " . $user['email'] . ". Siga el enlace para cambiar su contraseña.";
                     } else {
-                        $userModel->deleteResetToken($token);
+                        // Sin token que borrar: no se guardó nada en la BD
                         $error = "No se pudo enviar el correo. Verifique la configuración de correo del sistema o contacte al administrador.";
                     }
                 }
@@ -82,7 +86,7 @@ if (isset($_GET['type']) && $_GET['type'] == 'reset') {
             // El mensaje del trait ya quedó asignado en $error
         } else if ($pass1 !== $pass2) {
             $error = "Las contraseñas no coinciden.";
-        } else if ($userModel->resetPassword($idResponsable, $pass1, $token)) {
+        } else if ($userModel->resetPassword($idResponsable, $pass1)) {
             header('Location: ?url=inicio&reset=1');
             exit();
         } else {

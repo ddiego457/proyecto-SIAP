@@ -28,7 +28,7 @@ $success = isset($success) ? $success : false;
 
         <section class="form">
         <h1 class="welcome-title">Recuperar contraseña</h1>
-        <p class="welcome-subtitle">Ingrese el correo electrónico registrado para recibir un enlace de recuperación</p>
+        <p class="welcome-subtitle">Ingrese el correo electrónico o el usuario registrado para recibir un enlace de recuperación</p>
 
         <?php if (!empty($error)): ?>
             <div class="error-message" style="color: #d9534f; background: #f2dede; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ebccd1;">
@@ -50,7 +50,7 @@ $success = isset($success) ? $success : false;
                 <path d="m22 7-10 6L2 7"/>
                 </svg>
             </span>
-            <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required />
+            <input type="text" name="dato" placeholder="correo@ejemplo.com o usuario" autocomplete="username" required />
             </div>
 
             <button type="submit" class="btn">Enviar enlace de recuperación →</button>
