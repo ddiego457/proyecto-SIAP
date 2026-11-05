@@ -8,23 +8,162 @@ class periodoModel extends ConnectDB
     use ValidationTrait;
 
     private $conex;
-    private $id;
-    private $fechaInicio;
-    private $fechaFin;
-    private $anioFiscalId;
 
     public function __construct() {
         parent::__construct();
         $this->conex = $this->getConnection();
     }
-    // Método para obtener años fiscales activos (CORREGIDO)
+
+    // ==================================================================
+    // MÉTODOS PÚBLICOS (Controladores de flujo)
+    // Regla: solo validan (ValidationTrait) y delegan en privados.
+    // Los privados son los únicos que tocan la BD.
+    // ==================================================================
+
+    // Método para obtener años fiscales activos
     public function getAniosFiscalesActivos() {
         return $this->executeGetAniosFiscalesActivos();
     }
 
+    // Devuelve el año fiscal por id (útil para diagnósticos)
+    public function getAnioFiscalById(int $id)
+    {
+        return $this->executeGetAnioFiscalById($id);
+    }
+
+    // Valida que el rango de fechas sea válido y pertenezca al año fiscal
+    public function isValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin)
+    {
+        return $this->executeIsValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin);
+    }
+
+    public function getAll() {
+        return $this->executeGetAll();
+    }
+
+    // Validación pública para evitar solapamiento de periodos en el mismo año fiscal
+    public function existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, ?int $excludeId = null): bool
+    {
+        return $this->executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, $excludeId);
+    }
+
+    // Validación: ¿ya hay un periodo ACTIVO para este año fiscal?
+    public function hasActivePeriodForYear(int $anioFiscalId): bool
+    {
+        return $this->executeHasActivePeriodForYear($anioFiscalId);
+    }
+
+    // [C] - CREAR PERIODO
+    // Devuelve {success, message[, diagnostic]}: el controlador lo reenvía tal cual.
+    public function add($fechaInicio, $fechaFin, $anioFiscalId): array
+    {
+        $error = $this->validar('fecha_periodo', $fechaInicio, ['campo' => 'La fecha de inicio']);
+        if ($error === null) {
+            $error = $this->validar('fecha_periodo', $fechaFin, ['campo' => 'La fecha de fin']);
+        }
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        return $this->executeAdd($fechaInicio, $fechaFin, $anioFiscalId);
+    }
+
+    // [U] - ACTUALIZAR PERIODO
+    // Devuelve {success, message}: el controlador lo reenvía tal cual.
+    public function update($id, $fechaInicio, $fechaFin, $anioFiscalId): array
+    {
+        $error = $this->validar('fecha_periodo', $fechaInicio, ['campo' => 'La fecha de inicio']);
+        if ($error === null) {
+            $error = $this->validar('fecha_periodo', $fechaFin, ['campo' => 'La fecha de fin']);
+        }
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        return $this->executeUpdate($id, $fechaInicio, $fechaFin, $anioFiscalId);
+    }
+
+    // Activar un periodo y desactivar otros del mismo año fiscal
+    public function activate($id) {
+        return $this->executeActivate($id);
+    }
+
+    public function inactivate($id) {
+        return $this->executeInactivate($id);
+    }
+
+    // Obtener el periodo activo más reciente
+    public function getLatestActive() {
+        return $this->executeGetLatestActive();
+    }
+
+    public function getAllAniosFiscales() {
+        return $this->executeGetAllAniosFiscales();
+    }
+
+    // Validación pública para evitar duplicados por año
+    public function existsAnioFiscalByAnio(string $anioFiscal, ?int $excludeId = null): bool
+    {
+        return $this->executeExistsAnioFiscalByAnio($anioFiscal, $excludeId);
+    }
+
+    // [C] - CREAR AÑO FISCAL
+    // El nuevo año fiscal se crea SIEMPRE como activo y se desactivan los demás.
+    // Devuelve {success, message}: el controlador lo reenvía tal cual.
+    public function addAnioFiscal(string $anioFiscal): array
+    {
+        $anioFiscal = trim($anioFiscal);
+
+        $error = $this->validar('anio_fiscal', $anioFiscal);
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        return $this->executeAddAnioFiscal($anioFiscal);
+    }
+
+    // [U] - ACTUALIZAR AÑO FISCAL ($activo = null conserva el estado actual)
+    // Devuelve {success, message}: el controlador lo reenvía tal cual.
+    public function updateAnioFiscal(int $id, string $anioFiscal, ?int $activo = null): array
+    {
+        $anioFiscal = trim($anioFiscal);
+
+        $error = $this->validar('anio_fiscal', $anioFiscal);
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        return $this->executeUpdateAnioFiscal($id, $anioFiscal, $activo);
+    }
+
+    // Activar un año fiscal (desactiva los demás)
+    // Devuelve {success, message}
+    public function activateAnioFiscal(int $id): array
+    {
+        $result = $this->executeActivateAnioFiscal($id);
+        return [
+            'success' => $result,
+            'message' => $result ? 'Año fiscal activado' : 'Error al activar el año fiscal.'
+        ];
+    }
+
+    // Inhabilitar un año fiscal (marcar activo = 0)
+    // Devuelve {success, message}
+    public function inactivateAnioFiscal(int $id): array
+    {
+        $result = $this->executeInactivateAnioFiscal($id);
+        return [
+            'success' => $result,
+            'message' => $result ? 'Año fiscal inhabilitado' : 'Error al inhabilitar el año fiscal.'
+        ];
+    }
+
+    // ==================================================================
+    // MÉTODOS PRIVADOS (implementación y acceso a BD)
+    // ==================================================================
+
     private function executeGetAniosFiscalesActivos(): array
     {
-
         try {
             $sql = "SELECT id_aniof, anio FROM anio_fiscal WHERE activo = 1";
             $stmt = $this->conex->prepare($sql);
@@ -35,16 +174,8 @@ class periodoModel extends ConnectDB
         }
     }
 
-
-    // Devuelve el año fiscal por id (útil para diagnósticos)
-    public function getAnioFiscalById(int $id)
-    {
-        return $this->executeGetAnioFiscalById($id);
-    }
-
     private function executeGetAnioFiscalById(int $id): ?array
     {
-
         try {
             $stmt = $this->conex->prepare("SELECT id_aniof, anio FROM anio_fiscal WHERE id_aniof = ? LIMIT 1");
             $stmt->execute([$id]);
@@ -53,7 +184,6 @@ class periodoModel extends ConnectDB
             return null;
         }
     }
-
 
     // Método auxiliar para parsear fechas válidas en formatos esperados
     private function parseDate(string $fecha): ?\DateTime
@@ -70,18 +200,11 @@ class periodoModel extends ConnectDB
         return null;
     }
 
-    // Método para validar rangos de fechas
-    public function isValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin)
-    {
-        return $this->executeIsValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin);
-    }
-
     private function executeIsValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin): bool
     {
-
         try {
-            $inicio = $this->parseDate($fechaInicio);
-            $fin = $this->parseDate($fechaFin);
+            $inicio = $this->parseDate((string)$fechaInicio);
+            $fin = $this->parseDate((string)$fechaFin);
 
             if (!$inicio || !$fin) {
                 return false;
@@ -107,11 +230,6 @@ class periodoModel extends ConnectDB
         }
     }
 
-
-    public function getAll() {
-        return $this->executeGetAll();
-    }
-
     private function executeGetAll() {
         try {
             // Columnas que el JS (periodo.js) espera:
@@ -122,13 +240,6 @@ class periodoModel extends ConnectDB
         } catch (\PDOException $e) {
             return [];
         }
-    }
-
-
-    // Validación pública para evitar solapamiento de periodos en el mismo año fiscal
-    public function existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, ?int $excludeId = null): bool
-    {
-        return $this->executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, $excludeId);
     }
 
     private function executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, ?int $excludeId = null): bool
@@ -147,27 +258,48 @@ class periodoModel extends ConnectDB
         return (bool)$stmt->fetchColumn();
     }
 
-    // Validación: ¿ya hay un periodo ACTIVO para este año fiscal?
-    public function hasActivePeriodForYear(int $anioFiscalId): bool
+    private function executeHasActivePeriodForYear(int $anioFiscalId): bool
     {
         $stmt = $this->conex->prepare("SELECT 1 FROM periodos_entrega WHERE id_aniof = ? AND activo = 1 LIMIT 1");
         $stmt->execute([$anioFiscalId]);
         return (bool)$stmt->fetchColumn();
     }
 
-    public function add($fechaInicio, $fechaFin, $anioFiscalId) {
-        return $this->executeAdd($fechaInicio, $fechaFin, $anioFiscalId);
-    }
+    private function executeAdd($fechaInicio, $fechaFin, $anioFiscalId): array
+    {
+        // Año fiscal válido, fechas en orden y ambas dentro del año fiscal
+        if (!$this->executeIsValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin)) {
+            // Diagnóstico para entender por qué falla la validación
+            $startYear = null;
+            $endYear = null;
+            try { $sd = new \DateTime((string)$fechaInicio); $startYear = $sd->format('Y'); } catch (\Exception $e) { }
+            try { $ed = new \DateTime((string)$fechaFin); $endYear = $ed->format('Y'); } catch (\Exception $e) { }
 
-    private function executeAdd($fechaInicio, $fechaFin, $anioFiscalId) {
+            return [
+                'success' => false,
+                'message' => 'Fechas inválidas: la fecha de inicio debe ser anterior o igual a la fecha fin, y ambas deben corresponder al año fiscal seleccionado.',
+                'diagnostic' => [
+                    'fecha_inicio' => $fechaInicio,
+                    'fecha_fin' => $fechaFin,
+                    'startYear' => $startYear,
+                    'endYear' => $endYear,
+                    'fiscalYearRecord' => $this->executeGetAnioFiscalById((int)$anioFiscalId)
+                ]
+            ];
+        }
+
+        // Evitar solapamiento de periodos en el mismo año fiscal
+        if ($this->executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId)) {
+            return ['success' => false, 'message' => 'Ya existe un periodo que se solapa con esas fechas en el mismo año fiscal.'];
+        }
+
+        // Si ya hay un periodo activo en ese año, se desactivará automáticamente
+        // Avisamos al usuario para que lo sepa
+        $yaHabiaActivo = $this->executeHasActivePeriodForYear((int)$anioFiscalId);
+
         try {
-            // Evitar solapamiento de periodos en el mismo año fiscal
-            if ($this->existsOverlapping($fechaInicio, $fechaFin, $anioFiscalId)) {
-                return false;
-            }
-
             // Si ya hay un periodo activo en ese año, desactivarlo antes de insertar el nuevo
-            if ($this->hasActivePeriodForYear($anioFiscalId)) {
+            if ($yaHabiaActivo) {
                 $stmt = $this->conex->prepare("UPDATE periodos_entrega SET activo = 0 WHERE id_aniof = ? AND activo = 1");
                 $stmt->execute([$anioFiscalId]);
             }
@@ -178,37 +310,56 @@ class periodoModel extends ConnectDB
             $stmt->bindValue(1, $fechaInicio);
             $stmt->bindValue(2, $fechaFin);
             $stmt->bindValue(3, $anioFiscalId, \PDO::PARAM_INT);
-            return $stmt->execute();
+
+            if (!$stmt->execute()) {
+                return ['success' => false, 'message' => 'Error al guardar el periodo (duplicado o error BD).'];
+            }
+
+            $msg = 'Periodo registrado';
+            if ($yaHabiaActivo) {
+                $msg .= ' (Se desactivó el periodo activo anterior de ese año fiscal).';
+            }
+            return ['success' => true, 'message' => $msg];
         } catch (\PDOException $e) {
-            return false;
+            return ['success' => false, 'message' => 'Error al guardar el periodo (duplicado o error BD).'];
         }
     }
 
-    public function update($id, $fechaInicio, $fechaFin, $anioFiscalId) {
-        return $this->executeUpdate($id, $fechaInicio, $fechaFin, $anioFiscalId);
-    }
+    private function executeUpdate($id, $fechaInicio, $fechaFin, $anioFiscalId): array
+    {
+        // Año fiscal válido, fechas en orden y ambas dentro del año fiscal
+        if (!$this->executeIsValidFiscalYearRange($anioFiscalId, $fechaInicio, $fechaFin)) {
+            return [
+                'success' => false,
+                'message' => 'Fechas inválidas: la fecha de inicio debe ser anterior o igual a la fecha fin, y ambas deben corresponder al año fiscal seleccionado.'
+            ];
+        }
 
-    private function executeUpdate($id, $fechaInicio, $fechaFin, $anioFiscalId) {
+        // Evitar solapamiento (excluyendo el propio periodo que se edita)
+        if ($this->executeExistsOverlapping($fechaInicio, $fechaFin, $anioFiscalId, (int)$id)) {
+            return ['success' => false, 'message' => 'Ya existe un periodo que se solapa con esas fechas en el mismo año fiscal.'];
+        }
+
         try {
+            // Nota: el modelo no tiene lógica de auto-desactivar en update, solo en add y activate
             $query = "UPDATE periodos_entrega SET per_inicio = ?, per_fin = ?, id_aniof = ? WHERE id_periodo = ?";
             $stmt = $this->conex->prepare($query);
             $stmt->bindValue(1, $fechaInicio);
             $stmt->bindValue(2, $fechaFin);
             $stmt->bindValue(3, $anioFiscalId, \PDO::PARAM_INT);
             $stmt->bindValue(4, $id, \PDO::PARAM_INT);
-            return $stmt->execute();
+
+            if (!$stmt->execute()) {
+                return ['success' => false, 'message' => 'Error al actualizar el periodo.'];
+            }
+
+            return ['success' => true, 'message' => 'Periodo actualizado'];
         } catch (\PDOException $e) {
-            return false;
+            return ['success' => false, 'message' => 'Error al actualizar el periodo.'];
         }
     }
 
-
-
     // Activar un periodo y desactivar otros del mismo año fiscal
-    public function activate($id) {
-        return $this->executeActivate($id);
-    }
-
     private function executeActivate($id) {
         try {
             // Obtener id_aniof del periodo
@@ -236,21 +387,12 @@ class periodoModel extends ConnectDB
         $stmt = $this->conex->prepare("UPDATE periodos_entrega SET activo = 0
                 WHERE id_periodo = ?");
         $stmt->bindValue(1, $id);
-        $stmt->execute();
-    }
-
-    public function inactivate($id) {
-        return $this->executeInactivate($id);
+        return $stmt->execute();
     }
 
     private function executeInactivate($id) {
         // delete e inactivate hacen lo mismo: dejamos una sola operación en executeDelete
         return $this->executeDelete($id);
-    }
-
-    // Obtener el periodo activo más reciente
-    public function getLatestActive() {
-        return $this->executeGetLatestActive();
     }
 
     private function executeGetLatestActive() {
@@ -268,10 +410,6 @@ class periodoModel extends ConnectDB
     // de Periodos: ?url=periodo&type=main)
     // ════════════════════════════════════════════════════════════════════
 
-    public function getAllAniosFiscales() {
-        return $this->executeGetAllAniosFiscales();
-    }
-
     private function executeGetAllAniosFiscales() {
         try {
             // Mantener compatibilidad con el JS: el JS espera 'id_anioFis' y 'anio_fiscal'
@@ -285,12 +423,6 @@ class periodoModel extends ConnectDB
         } catch (\PDOException $e) {
             return [];
         }
-    }
-
-    // Validación pública para evitar duplicados por año
-    public function existsAnioFiscalByAnio(string $anioFiscal, ?int $excludeId = null): bool
-    {
-        return $this->executeExistsAnioFiscalByAnio($anioFiscal, $excludeId);
     }
 
     private function executeExistsAnioFiscalByAnio(string $anioFiscal, ?int $excludeId = null): bool
@@ -310,18 +442,12 @@ class periodoModel extends ConnectDB
         }
     }
 
-    // [C] - CREAR AÑO FISCAL
-    // El nuevo año fiscal se crea SIEMPRE como activo y se desactivan los demás.
-    public function addAnioFiscal(string $anioFiscal) {
-        return $this->executeAddAnioFiscal($anioFiscal);
-    }
-
-    private function executeAddAnioFiscal(string $anioFiscal): bool
+    private function executeAddAnioFiscal(string $anioFiscal): array
     {
         try {
             // Evitar duplicados del mismo año fiscal (solo 1 registro por año)
-            if ($this->existsAnioFiscalByAnio($anioFiscal)) {
-                return false;
+            if ($this->executeExistsAnioFiscalByAnio($anioFiscal)) {
+                return ['success' => false, 'message' => 'Ya existe un año fiscal con ese valor.'];
             }
 
             $this->conex->beginTransaction();
@@ -335,23 +461,28 @@ class periodoModel extends ConnectDB
             $result = $stmt2->execute();
 
             $this->conex->commit();
-            return $result;
+
+            if (!$result) {
+                return ['success' => false, 'message' => 'Error al registrar (duplicado o error BD).'];
+            }
+
+            return ['success' => true, 'message' => 'Año fiscal registrado y activado'];
         } catch (\PDOException $e) {
             if ($this->conex->inTransaction()) {
                 $this->conex->rollBack();
             }
-            return false;
+            return ['success' => false, 'message' => 'Error al registrar (duplicado o error BD).'];
         }
     }
 
-    // [U] - ACTUALIZAR AÑO FISCAL ($activo = null conserva el estado actual)
-    public function updateAnioFiscal(int $id, string $anioFiscal, ?int $activo = null) {
-        return $this->executeUpdateAnioFiscal($id, $anioFiscal, $activo);
-    }
-
-    private function executeUpdateAnioFiscal(int $id, string $anioFiscal, ?int $activo): bool
+    private function executeUpdateAnioFiscal(int $id, string $anioFiscal, ?int $activo): array
     {
         try {
+            // Evitar duplicados por año (excluyendo el propio registro)
+            if ($this->executeExistsAnioFiscalByAnio($anioFiscal, $id)) {
+                return ['success' => false, 'message' => 'Ya existe un año fiscal con ese valor.'];
+            }
+
             $this->conex->beginTransaction();
 
             // Si se marca como activo, quita el activo a los demás (solo 1 activo a la vez)
@@ -374,18 +505,18 @@ class periodoModel extends ConnectDB
             $result = $stmt2->execute();
 
             $this->conex->commit();
-            return $result;
+
+            if (!$result) {
+                return ['success' => false, 'message' => 'Error al actualizar el año fiscal.'];
+            }
+
+            return ['success' => true, 'message' => 'Año fiscal actualizado'];
         } catch (\PDOException $e) {
             if ($this->conex->inTransaction()) {
                 $this->conex->rollBack();
             }
-            return false;
+            return ['success' => false, 'message' => 'Error al actualizar el año fiscal.'];
         }
-    }
-
-    // Activar un año fiscal (desactiva los demás)
-    public function activateAnioFiscal(int $id) {
-        return $this->executeActivateAnioFiscal($id);
     }
 
     private function executeActivateAnioFiscal(int $id): bool
@@ -401,11 +532,6 @@ class periodoModel extends ConnectDB
         } catch (\PDOException $e) {
             return false;
         }
-    }
-
-    // Inhabilitar un año fiscal (marcar activo = 0)
-    public function inactivateAnioFiscal(int $id) {
-        return $this->executeInactivateAnioFiscal($id);
     }
 
     private function executeInactivateAnioFiscal(int $id): bool

@@ -16,10 +16,16 @@ class responsableModel extends ConnectDB
     private $password;
     private $estado;
 
+    // Carpeta destino de la foto de perfil (se resuelve desde app/model/ hacia la raíz)
+    private $directorioPerfiles;
+    // Límite de la foto de perfil (regla del negocio: 2 MB)
+    private $maximoBytesFoto = 2 * 1024 * 1024;
+
     public function __construct()
     {
         parent::__construct();
         $this->conex = $this->getConnection();
+        $this->directorioPerfiles = dirname(__DIR__, 2) . '/assets/img/perfiles';
     }
 
     // Obtener todos los responsables con rol y dependencia actual
@@ -479,6 +485,206 @@ class responsableModel extends ConnectDB
         } catch (\PDOException $e) {
             return false;
         }
+    }
+
+    /**
+     * Sube o cambia la foto de perfil del responsable.
+     * Valida el archivo, lo procesa (recorte cuadrado + 256x256), lo guarda
+     * en assets/img/perfiles/, actualiza la BD, borra la foto anterior y
+     * refresca $_SESSION['foto'].
+     *
+     * @param int   $idResponsable Sesión del responsable (nunca del formulario)
+     * @param array $archivo       Elemento de $_FILES
+     * @return array ['success' => bool, 'message' => string, 'foto'?, 'url'?]
+     */
+    public function subirFoto(int $idResponsable, array $archivo): array
+    {
+        return $this->executeSubirFoto($idResponsable, $archivo);
+    }
+
+    /**
+     * Elimina la foto de perfil (vuelve a mostrarse la letra inicial).
+     *
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public function eliminarFoto(int $idResponsable): array
+    {
+        return $this->executeEliminarFoto($idResponsable);
+    }
+
+    // ==================================================================
+    // MÉTODOS PRIVADOS (foto de perfil: validación, proceso y archivo)
+    // ==================================================================
+
+    private function executeSubirFoto(int $idResponsable, array $archivo): array
+    {
+        if ($idResponsable <= 0) {
+            return ['success' => false, 'message' => 'Sesión no válida. Inicie sesión de nuevo.'];
+        }
+
+        // 1) Validar el archivo subido
+        $error = $this->executeValidarArchivoFoto($archivo);
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        // 2) Recorte cuadrado centrado + redimensionado a 256x256 (patrón uniforme)
+        $procesada = $this->executeProcesarImagenFoto($archivo);
+        if (!$procesada['success']) {
+            return ['success' => false, 'message' => $procesada['message']];
+        }
+        $destino = $procesada['imagen'];
+
+        // 3) Crear carpeta si no existe
+        if (!is_dir($this->directorioPerfiles) && !@mkdir($this->directorioPerfiles, 0755, true)) {
+            imagedestroy($destino);
+            return ['success' => false, 'message' => 'No se pudo crear la carpeta de imágenes. Verifique permisos en assets/img/.'];
+        }
+
+        // 4) Nombre generado por el servidor (nunca el del cliente): evita
+        //    path traversal y colisiones. Se guarda siempre como JPEG.
+        $nombreNuevo = 'resp_' . $idResponsable . '_' . bin2hex(random_bytes(8)) . '.jpg';
+        $rutaNueva = $this->directorioPerfiles . '/' . $nombreNuevo;
+
+        if (!@imagejpeg($destino, $rutaNueva, 85)) {
+            imagedestroy($destino);
+            return ['success' => false, 'message' => 'No se pudo guardar la imagen. Verifique permisos de escritura en assets/img/perfiles/.'];
+        }
+        imagedestroy($destino);
+
+        // 5) Actualizar la BD (nombre del archivo) y borrar la foto anterior
+        $fotoAnterior = $this->executeGetFoto($idResponsable);
+
+        if (!$this->executeSetFoto($idResponsable, $nombreNuevo)) {
+            @unlink($rutaNueva);
+            return ['success' => false, 'message' => 'No se pudo actualizar la foto en la base de datos.'];
+        }
+
+        if ($fotoAnterior !== null && $fotoAnterior !== $nombreNuevo) {
+            @unlink($this->directorioPerfiles . '/' . basename($fotoAnterior));
+        }
+
+        // 6) Refrescar la sesión para que la sidebar la muestre al instante
+        $_SESSION['foto'] = $nombreNuevo;
+
+        return [
+            'success' => true,
+            'message' => 'Foto de perfil actualizada.',
+            'foto'    => $nombreNuevo,
+            'url'     => 'assets/img/perfiles/' . $nombreNuevo . '?v=' . time(),
+        ];
+    }
+
+    private function executeEliminarFoto(int $idResponsable): array
+    {
+        if ($idResponsable <= 0) {
+            return ['success' => false, 'message' => 'Sesión no válida. Inicie sesión de nuevo.'];
+        }
+
+        $fotoAnterior = $this->executeGetFoto($idResponsable);
+
+        if (!$this->executeSetFoto($idResponsable, null)) {
+            return ['success' => false, 'message' => 'No se pudo eliminar la foto de la base de datos.'];
+        }
+
+        if ($fotoAnterior !== null) {
+            @unlink($this->directorioPerfiles . '/' . basename($fotoAnterior));
+        }
+
+        unset($_SESSION['foto']);
+
+        return ['success' => true, 'message' => 'Foto de perfil eliminada.'];
+    }
+
+    /**
+     * Valida un archivo subido antes de procesarlo como foto de perfil.
+     * Verifica: que venga un archivo, código de subida de PHP, tamaño
+     * máximo (2 MB), que sea una subida HTTP real, la extensión GD y el
+     * tipo REAL de la imagen (no se confía en el MIME del navegador).
+     *
+     * @return null|string null si es válido, o mensaje de error si no lo es
+     */
+    private function executeValidarArchivoFoto(array $archivo): ?string
+    {
+        // 1) Debe venir un archivo
+        if (empty($archivo) || !isset($archivo['error']) || $archivo['error'] === UPLOAD_ERR_NO_FILE) {
+            return 'Seleccione una imagen primero.';
+        }
+
+        // 2) Sin errores de subida de PHP
+        if ((int)$archivo['error'] !== UPLOAD_ERR_OK) {
+            return 'Error al subir el archivo (código ' . (int)$archivo['error'] . '). Intente de nuevo.';
+        }
+
+        // 3) Límite de 2 MB (el servidor admite más; es una regla del negocio)
+        if ((int)$archivo['size'] > $this->maximoBytesFoto) {
+            return 'La imagen no debe superar los 2 MB.';
+        }
+
+        // 4) Debe ser un archivo subido realmente por HTTP
+        if (empty($archivo['tmp_name']) || !is_uploaded_file($archivo['tmp_name'])) {
+            return 'Archivo no válido.';
+        }
+
+        // 5) Verificar que la extensión GD esté disponible para procesar la imagen
+        if (!function_exists('imagecreatetruecolor')) {
+            return 'El servidor no tiene habilitada la extensión GD para procesar imágenes. Contacte al administrador.';
+        }
+
+        // 6) Tipo REAL de la imagen (no se confía en el MIME declarado por el navegador)
+        $info = @getimagesize($archivo['tmp_name']);
+        if ($info === false) {
+            return 'El archivo seleccionado no es una imagen válida.';
+        }
+
+        // 7) Formatos admitidos
+        $mime = $info['mime'] ?? '';
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return 'Formato no admitido. Use JPG, PNG o WEBP.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Abre la imagen, la recorta en cuadrado centrado y la redimensiona
+     * a 256x256 (patrón uniforme para todos los avatares).
+     *
+     * @return array ['success' => bool, 'message'?, 'imagen'? (GD resource)]
+     */
+    private function executeProcesarImagenFoto(array $archivo): array
+    {
+        $info = @getimagesize($archivo['tmp_name']);
+        if ($info === false) {
+            return ['success' => false, 'message' => 'El archivo seleccionado no es una imagen válida.'];
+        }
+
+        switch ($info['mime']) {
+            case 'image/jpeg':
+                $origen = @imagecreatefromjpeg($archivo['tmp_name']);
+                break;
+            case 'image/png':
+                $origen = @imagecreatefrompng($archivo['tmp_name']);
+                break;
+            case 'image/webp':
+                $origen = @imagecreatefromwebp($archivo['tmp_name']);
+                break;
+            default:
+                return ['success' => false, 'message' => 'Formato no admitido. Use JPG, PNG o WEBP.'];
+        }
+
+        if ($origen === false) {
+            return ['success' => false, 'message' => 'No se pudo procesar la imagen. Verifique que el archivo no esté dañado.'];
+        }
+
+        $ladoOrigen = min($info[0], $info[1]);
+        $sx = (int)(($info[0] - $ladoOrigen) / 2);
+        $sy = (int)(($info[1] - $ladoOrigen) / 2);
+        $destino = imagecreatetruecolor(256, 256);
+        imagecopyresampled($destino, $origen, 0, 0, $sx, $sy, 256, 256, $ladoOrigen, $ladoOrigen);
+        imagedestroy($origen);
+
+        return ['success' => true, 'imagen' => $destino];
     }
 
 

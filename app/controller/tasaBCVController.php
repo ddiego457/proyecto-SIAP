@@ -15,29 +15,15 @@
 
             if (isset($_POST['registerTasa'])) {
                 if (isset($_POST['tasa_bcv_usd']) && isset($_POST['fecha_reg'])) {
-                    // El formulario usa los nombres exactos de columnas de tasa_bcv
-                    $fecha = trim((string)$_POST['fecha_reg']);
-                    $errorValidacion = $object->validar('fecha_registro', $fecha);
-                    if ($errorValidacion !== null) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
-                        die();
-                    }
-                    $errorValidacion = $object->validar('tasa', $_POST['tasa_bcv_usd']);
-                    if ($errorValidacion !== null) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
-                        die();
-                    }
-                    // Evitar duplicados por fecha
-                    if ($object->existsByFecha($fecha)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Ya existe una tasa registrada para esa fecha.']);
-                        die();
-                    }
-                    $result = $object->add((float)$_POST['tasa_bcv_usd'], $fecha, 1);
+                    // El formulario usa los nombres exactos de columnas de tasa_bcv.
+                    // Las validaciones (formato y duplicado) viven en el modelo.
+                    $resultado = $object->add(
+                        (string)$_POST['tasa_bcv_usd'],
+                        (string)$_POST['fecha_reg'],
+                        1
+                    );
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Tasa BCV registrada' : 'Error al registrar (duplicado o error BD).']);
+                    echo json_encode($resultado);
                     die();
                 }
             }
@@ -62,18 +48,11 @@
                 if (isset($_POST['estado'])) {
                     $estado = (int)$_POST['estado'];
                 }
-                $errorValidacion = $object->validar('tasa', $_POST['tasa_bcv_usd'] ?? '');
-                if ($errorValidacion === null) {
-                    $errorValidacion = $object->validar('fecha_registro', $_POST['fecha_reg'] ?? '');
-                }
-                if ($errorValidacion !== null) {
-                    echo json_encode(false);
-                    die();
-                }
+                // Valores crudos: el modelo valida antes de convertir
                 $result = $object->update(
                     (int)$_POST['id_tasa'],
-                    (float)$_POST['tasa_bcv_usd'],
-                    $_POST['fecha_reg'],
+                    (string)($_POST['tasa_bcv_usd'] ?? ''),
+                    (string)($_POST['fecha_reg'] ?? ''),
                     $estado
                 );
                 echo json_encode($result);
@@ -96,4 +75,3 @@
     }
 
 ?>
-

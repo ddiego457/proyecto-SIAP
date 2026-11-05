@@ -82,15 +82,16 @@ if (isset($_GET['type']) && $_GET['type'] == 'reset') {
 
         if ($pass1 === '' || $pass2 === '') {
             $error = "Complete ambos campos de contraseña.";
-        } else if (($error = $userModel->validar('password', $pass1)) !== null) {
-            // El mensaje del trait ya quedó asignado en $error
         } else if ($pass1 !== $pass2) {
             $error = "Las contraseñas no coinciden.";
-        } else if ($userModel->resetPassword($idResponsable, $pass1)) {
-            header('Location: ?url=inicio&reset=1');
-            exit();
         } else {
-            $error = "No se pudo actualizar la contraseña. Intente de nuevo.";
+            // El formato de la contraseña se valida dentro del modelo
+            $resultado = $userModel->resetPassword($idResponsable, $pass1);
+            if ($resultado['success']) {
+                header('Location: ?url=inicio&reset=1');
+                exit();
+            }
+            $error = $resultado['message'];
         }
     }
 

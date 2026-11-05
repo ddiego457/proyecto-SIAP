@@ -11,36 +11,83 @@ class UserModel extends ConnectDB {
     use ValidationTrait;
 
     private $conex;
-    private $id;
-    private $usuario;
-    private $password;
 
     public function __construct() {
         parent::__construct();
         $this->conex = $this->getConnection();
     }
 
+    // ==================================================================
+    // MÉTODOS PÚBLICOS (Controladores de flujo)
+    // Regla: solo validan (ValidationTrait) y delegan en privados.
+    // Los privados son los únicos que tocan la BD.
+    // ==================================================================
+
+    // LOGIN: valida usuario y contraseña con el trait y delega la consulta
     public function getLoginSistema($usuario, $password) {
         $usuario = trim((string)$usuario);
         $password = (string)$password;
 
-        $errorValidacion = $this->validar('usuario', $usuario);
-        if ($errorValidacion !== null) {
+        if ($this->validar('usuario', $usuario) !== null) {
             return 0;
         }
 
-        $errorValidacion = $this->validar('password', $password);
-        if ($errorValidacion !== null) {
+        if ($this->validar('password', $password) !== null) {
             return 0;
         }
 
-        $this->usuario = $usuario;
-        $this->password = $password;
-
-        return $this->loginSistema();
+        return $this->executeLoginSistema($usuario, $password);
     }
+
+    // Busca usuario activo por correo O por usuario (nom_rep) para la
+    // recuperación de contraseña. Sin resultados (o formato inválido) -> null.
+    public function getByEmailOUsuario($dato) {
+        $dato = trim((string)$dato);
+
+        // El campo acepta correo O usuario: se valida según lo que parezca ser
+        $error = (strpos($dato, '@') !== false)
+            ? $this->validar('email', $dato)
+            : $this->validar('usuario', $dato);
+
+        if ($error !== null) {
+            return null;
+        }
+
+        return $this->executeGetByEmailOUsuario($dato);
+    }
+
+    // Crea un token de recuperación firmado (HMAC, sin estado).
+    // Devuelve null si falla.
+    public function createResetToken($idResponsable) {
+        return $this->executeCreateResetToken($idResponsable);
+    }
+
+    // Valida el token. Devuelve el id del responsable o null.
+    public function validateResetToken($token) {
+        return $this->executeValidateResetToken($token);
+    }
+
+    // Cambia la contraseña (hash). Devuelve {success, message}.
+    public function resetPassword($idResponsable, $nuevaPassword): array {
+        $error = $this->validar('password', $nuevaPassword);
+        if ($error !== null) {
+            return ['success' => false, 'message' => $error];
+        }
+
+        return $this->executeResetPassword((int)$idResponsable, $nuevaPassword);
+    }
+
+    // Obtiene datos completos del usuario por ID
+    public function getUser($id) {
+        return $this->executeGetUser($id);
+    }
+
+    // ==================================================================
+    // MÉTODOS PRIVADOS (implementación y acceso a BD)
+    // ==================================================================
+
     // Busca usuario activo en BD, compara contraseña (hash) y retorna status
-    private function loginSistema() {
+    private function executeLoginSistema(string $usuario, string $password) {
         try {
             $query = $this->conex->prepare("SELECT d.nom_dep as dependencia, r.id_responsable,
                 r.nom_rep as responsable, r.id_rol, rl.descripcion as rol, password, r.foto, d.id_dep as id_dep
@@ -49,12 +96,12 @@ class UserModel extends ConnectDB {
                 JOIN dependencias as d ON d.id_dep = cr.id_dep
                 JOIN roles as rl on rl.id_rol = r.id_rol
                 WHERE r.nom_rep = ? AND r.estado = 1");
-            $query->bindValue(1, $this->usuario);
+            $query->bindValue(1, $usuario);
             $query->execute();
             $data = $query->fetch(PDO::FETCH_ASSOC);
 
             if ($data) {
-                if (password_verify($this->password, $data['password'])) {
+                if (password_verify($password, $data['password'])) {
                     unset($data['password']);
                     return array('status' => 1, 'data' => array($data));
                 } else {
@@ -67,9 +114,8 @@ class UserModel extends ConnectDB {
             return array('status' => 'error', 'message' => $error->getMessage());
         }
     }
-    // Busca un responsable activo por correo O por usuario (nom_rep)
-    // para la recuperación de contraseña. Sin resultados -> null.
-    public function getByEmailOUsuario($dato) {
+
+    private function executeGetByEmailOUsuario($dato) {
         try {
             $stmt = $this->conex->prepare("SELECT id_responsable, nom_rep, email
                 FROM responsables
@@ -86,11 +132,9 @@ class UserModel extends ConnectDB {
         }
     }
 
-    // Crea un token de recuperación firmado (HMAC, sin estado).
-    // No escribe nada en la BD: solo lee el hash vigente para
-    // meter su huella en el payload (invalida enlaces antiguos
-    // si la contraseña cambia). Devuelve null si falla.
-    public function createResetToken($idResponsable) {
+    // Lee el hash vigente para meter su huella en el payload del token
+    // (invalida enlaces antiguos si la contraseña cambia).
+    private function executeCreateResetToken($idResponsable) {
         try {
             $stmt = $this->conex->prepare("SELECT password FROM responsables WHERE id_responsable = ? AND estado = 1");
             $stmt->bindValue(1, (int)$idResponsable, PDO::PARAM_INT);
@@ -113,11 +157,9 @@ class UserModel extends ConnectDB {
         }
     }
 
-    // Valida el token: firma correcta, sin vencer y que su huella
-    // coincida con la contraseña ACTUAL del responsable (así, al
-    // cambiar la contraseña, el enlace deja de servir solo).
-    // Devuelve el id del responsable o null.
-    public function validateResetToken($token) {
+    // Firma correcta, sin vencer y huella coincidente con la contraseña ACTUAL
+    // (así, al cambiar la contraseña, el enlace deja de servir solo).
+    private function executeValidateResetToken($token) {
         try {
             $datos = ResetTokenHelper::verificar((string)$token);
             if ($datos === null) {
@@ -143,24 +185,24 @@ class UserModel extends ConnectDB {
         }
     }
 
-    // Cambia la contraseña (hash). Devuelve true/false.
-    // El enlace usado queda inválido automáticamente: la huella
-    // guardada en tokens anteriores ya no coincide con el nuevo hash.
-    public function resetPassword($idResponsable, $nuevaPassword) {
+    private function executeResetPassword(int $idResponsable, string $nuevaPassword): array {
         try {
             $hash = password_hash($nuevaPassword, PASSWORD_DEFAULT);
             $stmt = $this->conex->prepare("UPDATE responsables SET password = ? WHERE id_responsable = ?");
             $stmt->bindValue(1, $hash);
-            $stmt->bindValue(2, (int)$idResponsable, PDO::PARAM_INT);
-            return $stmt->execute();
+            $stmt->bindValue(2, $idResponsable, PDO::PARAM_INT);
+
+            if (!$stmt->execute()) {
+                return ['success' => false, 'message' => 'No se pudo actualizar la contraseña. Intente de nuevo.'];
+            }
+
+            return ['success' => true, 'message' => 'Contraseña actualizada.'];
         } catch (Exception $e) {
-            return false;
+            return ['success' => false, 'message' => 'No se pudo actualizar la contraseña. Intente de nuevo.'];
         }
     }
 
-    // Obtiene datos completos del usuario por ID
-    public function getUser($id) {        $this->id = $id;
-
+    private function executeGetUser($id) {
         try {
             $consulta = $this->conex->prepare("SELECT r.id_responsable, r.nom_rep, r.id_rol,
                 rl.descripcion as rol, d.id_dep, d.nom_dep as dependencia
@@ -169,7 +211,7 @@ class UserModel extends ConnectDB {
                 JOIN dependencias as d ON d.id_dep = cr.id_dep
                 JOIN roles as rl ON rl.id_rol = r.id_rol
                 WHERE r.id_responsable = ? AND r.estado = 1");
-            $consulta->bindValue(1, $this->id);
+            $consulta->bindValue(1, (int)$id);
             $consulta->execute();
             $usuario = $consulta->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
@@ -192,5 +234,3 @@ class UserModel extends ConnectDB {
     }
 
 }
-
-?>

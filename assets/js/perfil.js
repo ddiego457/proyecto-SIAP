@@ -125,9 +125,27 @@ $(document).ready(function() {
             return;
         }
 
-        archivoSeleccionado = file;
-        $preview.html('<img src="' + URL.createObjectURL(file) + '" alt="Vista previa">');
-        $btnGuardar.show();
+        // La imagen debe poder decodificarse (detecta archivos corruptos
+        // en el cliente, igual que hace getimagesize() en el servidor)
+        const input = this;
+        const urlPreview = URL.createObjectURL(file);
+        const prueba = new Image();
+
+        prueba.onload = function() {
+            archivoSeleccionado = file;
+            $preview.html('<img src="' + urlPreview + '" alt="Vista previa">');
+            $btnGuardar.show();
+        };
+
+        prueba.onerror = function() {
+            URL.revokeObjectURL(urlPreview);
+            alert('El archivo seleccionado no es una imagen válida.');
+            input.value = '';
+            archivoSeleccionado = null;
+            $btnGuardar.hide();
+        };
+
+        prueba.src = urlPreview;
     });
 
     // Guardar (subir) la foto
