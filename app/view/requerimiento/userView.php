@@ -81,7 +81,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
         </div>
         <div class="card-header-actions">
             <?php if((($_SESSION['rol'] ?? '') !== "Administrador") && !empty($prevReq) && !empty($perAct)){?>
-            <a href="?url=requerimiento&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+            <a href="?url=requerimiento&type=register" class="btn btn-success btn-sm">Registrar</a>
             <?php }?>
         </div>
         </div>

@@ -32,7 +32,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Nuevo registro — Dependencia</span>
             <div class="card-header-actions">
-                <a href="?url=dependencia&type=main" class="btn btn-outline btn-sm">&#8592; Volver</a>
+                <a href="?url=dependencia&type=main" class="btn btn-color btn-sm">&#8592; Volver</a>
             </div>
         </div>
         <div class="card-body">

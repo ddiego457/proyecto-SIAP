@@ -1,3 +1,4 @@
+
 /* ============================================================
   SIAP - Sistema Integrado de Anteproyecto Presupuestario
   Design System - Inspirado en el diseño institucional UPTAEB
@@ -262,6 +263,7 @@ a { text-decoration: none; color: inherit; }
   cursor: pointer;
   color: var(--text-dark);
   white-space: nowrap;
+  justify-content: center;
 }
 .btn-primary {
   background: var(--btn-deep);
@@ -299,9 +301,17 @@ a { text-decoration: none; color: inherit; }
   border-color: var(--btn-edit);
 }
 .btn-outline {
-  color: var(--text-mid);
+  background-color: var(--blue-hover);
+  color: var(--white);
   border-color: var(--border);
 }
+
+.btn-color {
+  background:#4B5563;
+  color: var(--white);
+  border-color: #4B5563;
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--text-muted);
@@ -1398,8 +1408,7 @@ table.siap-table {
 
     border-radius: 15px;
 
-    background:
-        rgba(255,255,255,.055);
+    background:white;
 
     border:
         1px solid rgba(255,255,255,.07);
@@ -2067,36 +2076,21 @@ table.siap-table {
         transform:
             translateX(0);
     }
-
-
     /* El contenido siempre ocupa toda la pantalla */
-
     .main-content,
     .sidebar-collapsed .main-content {
-        margin-left:
-            0;
-
-        width:
-            100%;
+        margin-left:0;
+        width:100%;
     }
 
 
     /* Botón */
     .sidebar-collapsed{
-        left:
-            14px;
-
-        top:
-            14px;
-
-        width:
-            390px;
-
-        height:
-            40px;
-
-        z-index:
-            300;
+        left:14px;
+        top:14px;
+        width:100%;
+        height:40px;
+        z-index:300;
     }
 
 

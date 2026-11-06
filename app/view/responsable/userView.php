@@ -29,7 +29,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Responsables</span>
             <div class="card-header-actions">
-                <a href="?url=responsable&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+                <a href="?url=responsable&type=register" class="btn btn-success btn-sm">Registrar</a>
                 <button type="button" id="btnRoles" class="btn btn-outline btn-sm"><i class="fa-solid fa-users" aria-hidden="true"></i> Roles</button>
             </div>
         </div>

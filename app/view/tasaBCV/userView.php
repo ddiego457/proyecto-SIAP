@@ -30,7 +30,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Tasas BCV</span>
             <div class="card-header-actions">
-                <a href="?url=tasaBCV&type=register" class="btn btn-success btn-sm">&#43; Registrar</a>
+                <a href="?url=tasaBCV&type=register" class="btn btn-success btn-sm">Registrar</a>
             </div>
         </div>
         <div class="card-body">
