@@ -15,7 +15,6 @@ include_once 'app/view/layout/head.php';
             <span class="card-title">Items asignados por partida</span>
             <div class="card-header-actions">
                 <a href="?url=productosServicios&type=register" class="btn btn-success btn-sm">Registrar</a>
-                <button type="button" id="btnImportarExcel" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar Excel</button>
                 <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
             </div>
         </div>
