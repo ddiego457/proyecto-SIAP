@@ -1,16 +1,58 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
-    // Validaciones en el cliente (plugin siapValidar).
+    // ─── Año fiscal activo (lo inyecta la vista desde anio_fiscal) ─────
+    const anioFiscalActivo = (typeof window.SIAP_ANIO_FISCAL_ACTIVO === 'number')
+        ? window.SIAP_ANIO_FISCAL_ACTIVO
+        : null;
+
+    // Motivo de error de la fecha de registro (null si es válida):
+    // formato AAAA-MM-DD y año exactamente igual al fiscal activo
+    // (se rechazan años anteriores y posteriores).
+    function motivoFechaTasa(valor) {
+        const fecha = String(valor || '').trim();
+        if (!fecha) return 'La fecha de registro es obligatoria.';
+        if (!ValidacionesSIAP.validarFechaISO(fecha)) return 'Use el formato AAAA-MM-DD.';
+        if (anioFiscalActivo === null) return 'No hay un año fiscal activo configurado.';
+        const anio = parseInt(fecha.substring(0, 4), 10);
+        if (anio < anioFiscalActivo) {
+            return 'La fecha no puede ser anterior al año fiscal activo (' + anioFiscalActivo + ').';
+        }
+        if (anio > anioFiscalActivo) {
+            return 'La fecha no puede ser posterior al año fiscal activo (' + anioFiscalActivo + ').';
+        }
+        return null;
+    }
+
+    // Validaciones en el cliente (plugin siapValidar). Los errores de año
+    // fiscal se muestran dentro del propio campo (small.field-error).
     $('#formRegistro').siapValidar({
         tasa_bcv_usd: { regla: 'tasa' },
-        fecha_reg: { regla: 'fecha' }
+        fecha_reg: {
+            test: function(valor) { return motivoFechaTasa(valor) === null; },
+            mensaje: function() {
+                return motivoFechaTasa($('#formRegistro [name="fecha_reg"]').val()) || 'La fecha no es válida.';
+            }
+        }
     });
 
     $('#formEditar').siapValidar({
         tasa_bcv_usd: { regla: 'tasa' },
-        fecha_reg: { regla: 'fecha' }
+        fecha_reg: {
+            test: function(valor) { return motivoFechaTasa(valor) === null; },
+            mensaje: function() {
+                return motivoFechaTasa($('#edit_fecha_reg').val()) || 'La fecha no es válida.';
+            }
+        }
     });
+
+    // Restringir el selector de fechas al año fiscal activo (si existe)
+    if (anioFiscalActivo !== null) {
+        $('input[name="fecha_reg"]').attr({
+            min: anioFiscalActivo + '-01-01',
+            max: anioFiscalActivo + '-12-31'
+        });
+    }
 
     function formatDateForDisplay(value) {
         if (!value) return '';
@@ -56,6 +98,11 @@ $(document).ready(function() {
                 return n.toFixed(2);
             } },
             { data: 'fecha_reg', render: (data) => formatDateForDisplay(data) },
+            { data: 'estado', render: (d) => {
+                return (d == 1)
+                    ? '<span class="badge badge-success">Activo</span>'
+                    : '<span class="badge badge-danger">Inactivo</span>';
+            } },
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_tasa}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {
@@ -66,6 +113,7 @@ $(document).ready(function() {
                 return actions;
             }}
         ],
+        order: [],
         autoWidth: false,
         language: {
             url: "assets/js/DataTables/spanish.json"
@@ -121,7 +169,12 @@ $(document).ready(function() {
                     $('#formRegistro').siapValidar('limpiar');
                     tabla.ajax.reload();
                 } else {
-                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
+                    const mensaje = (res && res.message) || 'Error al registrar. Verifique los datos.';
+                    alert(mensaje);
+                    // Si el motivo es la fecha/año fiscal, marcarlo dentro del campo
+                    if (/fecha|año/i.test(mensaje)) {
+                        ValidacionesSIAP.marcarError($('#formRegistro [name="fecha_reg"]'), mensaje);
+                    }
                 }
             },
             error: function() {
@@ -154,6 +207,12 @@ $(document).ready(function() {
     // Abrir modal edición
     $(document).on('click', '.btn-modificar', function() {
         const data = tabla.row($(this).closest('tr')).data();
+        // No permitir modificar tasas de un año fiscal que no sea el activo
+        const anioTasa = parseInt(String(data.fecha_reg || '').substring(0, 4), 10);
+        if (anioFiscalActivo !== null && !Number.isNaN(anioTasa) && anioTasa !== anioFiscalActivo) {
+            alert('No se puede modificar una tasa de un año fiscal que no está activo (año activo: ' + anioFiscalActivo + ').');
+            return;
+        }
         $('#edit_id_tasa').val(data.id_tasa);
         // Asegurar visualización con 2 decimales
         $('#edit_tasa_bcv_usd').val(Number(data.tasa_bcv_usd || 0).toFixed(2));
@@ -182,12 +241,17 @@ $(document).ready(function() {
             url: currentUrl, method: 'POST', data: formData,
             dataType: 'json', processData: false, contentType: false,
             success: function(res) {
-                if (res == true) {
-                    alert('Registro actualizado exitosamente');
+                if (res === true || (res && res.success)) {
+                    alert((res && res.message) || 'Registro actualizado exitosamente');
                     $('#modalEditar').hide();
                     tabla.ajax.reload();
                 } else {
-                    alert('Error al actualizar.');
+                    const mensaje = (res && res.message) || 'Error al actualizar.';
+                    alert(mensaje);
+                    // Si el motivo es la fecha/año fiscal, marcarlo dentro del campo
+                    if (/fecha|año/i.test(mensaje)) {
+                        ValidacionesSIAP.marcarError($('#edit_fecha_reg'), mensaje);
+                    }
                 }
             }
         });

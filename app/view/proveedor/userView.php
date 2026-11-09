@@ -71,13 +71,6 @@ include_once 'app/view/layout/head.php';
                     <label class="field-label">Descripción</label>
                     <textarea id="edit_descripcion" name="descripcion" class="field-input" rows="3" required></textarea>
                 </div>
-                <div class="field-group">
-                    <label class="field-label">Estado</label>
-                    <select id="edit_estado" name="estado" class="field-input field-select" required>
-                        <option value="1">Activo</option>
-                        <option value="0">Inactivo</option>
-                    </select>
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModal2" class="btn btn-outline">Cancelar</button>

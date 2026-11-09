@@ -49,15 +49,15 @@ class tasaBCVModel extends ConnectDB
     }
 
     // [U] - ACTUALIZAR
-    // Devuelve bool: el controlador descarta el mensaje y el JS lee res == true.
-    public function update(int $id, string $valorUsd, string $fechaRegistro, int $estado): bool
+    // Devuelve {success, message}: el controlador lo reenvía tal cual al JS.
+    public function update(int $id, string $valorUsd, string $fechaRegistro, int $estado): array
     {
         $error = $this->validar('tasa', $valorUsd);
         if ($error === null) {
             $error = $this->validar('fecha_registro', $fechaRegistro);
         }
         if ($error !== null) {
-            return false;
+            return ['success' => false, 'message' => $error];
         }
 
         return $this->executeUpdate($id, round((float)$valorUsd, 2), $fechaRegistro, $estado);
@@ -72,6 +72,13 @@ class tasaBCVModel extends ConnectDB
     // Obtener la última tasa activa (por fecha de registro)
     public function getLatestActive() {
         return $this->executeGetLatestActive();
+    }
+
+    // Año fiscal activo (anio_fiscal.activo = 1) o null si no hay ninguno.
+    // Delegador puro: la consulta SQL vive en el privado (regla del archivo).
+    public function getAnioFiscalActivo(): ?int
+    {
+        return $this->executeGetAnioFiscalActivo();
     }
 
     // Inhabilitar una tasa por id (marcar estado = 0)
@@ -107,6 +114,17 @@ class tasaBCVModel extends ConnectDB
     private function executeInsert(float $valorUsd, string $fechaRegistro, int $estado): array
     {
         try {
+            // La fecha debe pertenecer exactamente al año fiscal activo
+            // (ni año anterior ni posterior): validación de respaldo del JS.
+            $anioActivo = $this->executeGetAnioFiscalActivo();
+            if ($anioActivo === null) {
+                return ['success' => false, 'message' => 'No hay un año fiscal activo configurado. Configure el año fiscal antes de registrar tasas.'];
+            }
+            $anioFecha = (int)substr($fechaRegistro, 0, 4);
+            if ($anioFecha !== $anioActivo) {
+                return ['success' => false, 'message' => 'La fecha debe corresponder al año fiscal activo (' . $anioActivo . '). No se permiten años anteriores ni posteriores.'];
+            }
+
             // Evitar duplicados para la misma fecha de registro (antes de
             // desactivar las demás: así un duplicado no deja la BD sin tasa activa)
             if ($this->executeExistsByFecha($fechaRegistro)) {
@@ -134,9 +152,32 @@ class tasaBCVModel extends ConnectDB
         }
     }
 
-    private function executeUpdate(int $id, float $valorUsd, string $fechaRegistro, int $estado): bool
+    private function executeUpdate(int $id, float $valorUsd, string $fechaRegistro, int $estado): array
     {
         try {
+            // Año fiscal activo obligatorio para modificar
+            $anioActivo = $this->executeGetAnioFiscalActivo();
+            if ($anioActivo === null) {
+                return ['success' => false, 'message' => 'No hay un año fiscal activo configurado. No se puede modificar la tasa.'];
+            }
+
+            // 1) La tasa existente debe pertenecer al año fiscal activo
+            $stmt = $this->conex->prepare("SELECT fecha_reg FROM tasa_bcv WHERE id_tasa = ?");
+            $stmt->execute([$id]);
+            $fechaActual = $stmt->fetchColumn();
+            if ($fechaActual === false || $fechaActual === null) {
+                return ['success' => false, 'message' => 'Tasa no encontrada.'];
+            }
+            if ((int)substr((string)$fechaActual, 0, 4) !== $anioActivo) {
+                return ['success' => false, 'message' => 'No se puede modificar una tasa de un año fiscal que no está activo (año activo: ' . $anioActivo . ').'];
+            }
+
+            // 2) La nueva fecha también debe permanecer en el año fiscal activo
+            $anioFecha = (int)substr($fechaRegistro, 0, 4);
+            if ($anioFecha !== $anioActivo) {
+                return ['success' => false, 'message' => 'La fecha debe corresponder al año fiscal activo (' . $anioActivo . '). No se permiten años anteriores ni posteriores.'];
+            }
+
             // Si se marca como activa, inhabilitar otras
             if ($estado === 1) {
                 $this->deactivateAllActive();
@@ -148,9 +189,12 @@ class tasaBCVModel extends ConnectDB
             $stmt->bindValue(2, $fechaRegistro);
             $stmt->bindValue(3, $estado, \PDO::PARAM_INT);
             $stmt->bindValue(4, $id, \PDO::PARAM_INT);
-            return $stmt->execute();
+            if (!$stmt->execute()) {
+                return ['success' => false, 'message' => 'Error al actualizar la tasa.'];
+            }
+            return ['success' => true, 'message' => 'Tasa actualizada'];
         } catch (\PDOException $e) {
-            return false;
+            return ['success' => false, 'message' => 'Error al actualizar la tasa.'];
         }
     }
 
@@ -170,6 +214,19 @@ class tasaBCVModel extends ConnectDB
         $stmt = $this->conex->prepare("SELECT id_tasa, fecha_reg, tasa_bcv_usd, estado FROM tasa_bcv WHERE estado = 1 ORDER BY fecha_reg DESC, id_tasa DESC LIMIT 1");
         $stmt->execute();
         return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    // Año fiscal activo (anio_fiscal.activo = 1) o null si no hay ninguno.
+    private function executeGetAnioFiscalActivo(): ?int
+    {
+        try {
+            $stmt = $this->conex->prepare("SELECT anio FROM anio_fiscal WHERE activo = 1 LIMIT 1");
+            $stmt->execute();
+            $anio = $stmt->fetchColumn();
+            return ($anio === false || $anio === null) ? null : (int)$anio;
+        } catch (\PDOException $e) {
+            return null;
+        }
     }
 
     private function executeInactivate(int $id): bool

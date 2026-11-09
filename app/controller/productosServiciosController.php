@@ -96,6 +96,17 @@ if (isset($_GET['type'])) {
             sendJsonResponse(['success' => (bool)$res, 'message' => $res ? 'Registro inhabilitado' : 'Error al inhabilitar']);
         }
 
+        if (isset($_POST['activateItem'])) {
+            $idItem = isset($_POST['idItem']) ? (int)$_POST['idItem'] : 0;
+
+            if ($idItem <= 0) {
+                sendJsonResponse(['success' => false, 'message' => 'Producto o servicio no valido.']);
+            }
+
+            $res = $object->activar($idItem);
+            sendJsonResponse(['success' => (bool)$res, 'message' => $res ? 'Registro activado' : 'Error al activar']);
+        }
+
         if (isset($_POST['getAllPartidas'])) {
             sendJsonResponse($object->getAllPartidas());
         }

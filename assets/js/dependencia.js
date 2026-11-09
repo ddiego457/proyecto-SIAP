@@ -20,6 +20,11 @@ $(document).ready(function() {
         columns: [
             { data: 'id_dep' },
             { data: 'nombre_dep' },
+            { data: 'estado', render: (d) => {
+                return (d == 1)
+                    ? '<span class="badge badge-success">Activo</span>'
+                    : '<span class="badge badge-danger">Inactivo</span>';
+            } },
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_dep}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {

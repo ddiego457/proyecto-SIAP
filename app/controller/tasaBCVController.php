@@ -61,6 +61,8 @@
                 echo json_encode($result);
                 die();
             }
+            // Año fiscal activo: se pasa a la vista para la validación en JS
+            $anioFiscalActivo = $object->getAnioFiscalActivo();
             include 'app/view/tasaBCV/userView.php';
 
         } elseif ($_GET['type'] == 'current') {

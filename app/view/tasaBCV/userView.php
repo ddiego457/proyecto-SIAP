@@ -36,7 +36,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-body">
             <div class="table-wrapper">
                 <table id="tablaMain" class="siap-table" style="width:100%">
-                    <thead><tr><th>ID</th><th>Tasa BCV (USD)</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Tasa BCV (USD)</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -101,5 +101,11 @@ include_once 'app/view/layout/head.php';
         </form>
     </div>
 </div>
+
+<script>
+    // Año fiscal activo (anio_fiscal.activo = 1): lo consume tasaBCV.js
+    // para impedir registrar o modificar fechas de otros años.
+    window.SIAP_ANIO_FISCAL_ACTIVO = <?php echo (isset($anioFiscalActivo) && $anioFiscalActivo !== null) ? (int)$anioFiscalActivo : 'null'; ?>;
+</script>
 
 <?php include_once 'app/view/layout/foot.php'; ?>

@@ -81,10 +81,10 @@ $(document).ready(function() {
                 let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.estado) === 1) {
                     if (Number(d.id_responsable) === idResponsablePropio) {
-                        // Un usuario no puede eliminarse a sí mismo
-                        actions += ` <button class="btn btn-danger btn-sm btn-eliminar" disabled aria-label="Eliminar" title="No puede eliminar su propia cuenta"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                        // Un usuario no puede inhabilitarse a sí mismo
+                        actions += ` <button class="btn btn-warning btn-sm btn-inactivar" disabled aria-label="Inhabilitar" title="No puede inhabilitar su propia cuenta"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                     } else {
-                        actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                        actions += ` <button value="${d.id_responsable}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                     }
                 } else {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
@@ -176,15 +176,15 @@ $(document).ready(function() {
         });
     });
 
-    $(document).on('click', '.btn-eliminar', function() {
+    $(document).on('click', '.btn-inactivar', function() {
         if (this.disabled) return;
         const id = this.value;
-        // Un usuario no puede eliminarse a sí mismo (también validado en el servidor)
+        // Un usuario no puede inhabilitarse a sí mismo (también validado en el servidor)
         if (Number(id) === idResponsablePropio) {
-            alert('No puede eliminar su propia cuenta.');
+            alert('No puede inhabilitar su propia cuenta.');
             return;
         }
-        if (confirm('¿Está seguro de eliminar este responsable? Esto cambiará el estado de su cargo a 0 y lo dará como disponible para reasignación.')) {
+        if (confirm('¿Está seguro de inhabilitar este responsable? Esto cambiará el estado de su cargo a 0 y lo dará como disponible para reasignación.')) {
             $.ajax({
                 url: currentUrl,
                 method: 'POST',
@@ -193,13 +193,13 @@ $(document).ready(function() {
                 success: function(res) {
                     if (res && typeof res === 'object') {
                         if (res.success) {
-                            alert(res.message || 'Responsable eliminado');
+                            alert(res.message || 'Responsable inhabilitado');
                         } else {
-                            alert(res.message || 'Error al eliminar. ' + res);
+                            alert(res.message || 'Error al inhabilitar. ' + res);
                             console.log(res);
                         }
                     } else {
-                        alert('Error al eliminar. ' + res);
+                        alert('Error al inhabilitar. ' + res);
                         console.log(res);
                     }
                     tabla.ajax.reload();
@@ -304,7 +304,7 @@ $(document).ready(function() {
                 if (d.descripcion === ROL_PROTEGIDO) {
                     actions += ` <span class="badge badge-gray">protegido</span>`;
                 } else if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-danger btn-sm btn-inactivar-rol" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_rol}" class="btn btn-warning btn-sm btn-inactivar-rol" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                 } else {
                     actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }

@@ -60,10 +60,13 @@ $(document).ready(function() {
         }
       },
       { data: null, render: (d) => {
-          return `
-            <button value="${d.id_prod}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
-            <button value="${d.id_prod}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-          `;
+          let acciones = `<button value="${d.id_prod}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+          if ((d.estado|0) === 1) {
+            acciones += ` <button value="${d.id_prod}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+          } else {
+            acciones += ` <button value="${d.id_prod}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+          }
+          return acciones;
         }
       }
     ],
@@ -403,7 +406,7 @@ $(document).ready(function() {
     });
   });
 
-  $(document).on('click', '.btn-eliminar', function() {
+  $(document).on('click', '.btn-inactivar', function() {
     if (!confirm('¿Inhabilitar este item?')) return;
     const idItem = this.value;
 
@@ -423,6 +426,31 @@ $(document).ready(function() {
       error: function(xhr, status, error) {
         console.error('AJAX delete error:', status, error, xhr.responseText);
         alert('Error en la petición de inhabilitación. Revise la consola.');
+      }
+    });
+  });
+
+  // Activar item (estado = 1)
+  $(document).on('click', '.btn-activar', function() {
+    if (!confirm('¿Activar este item?')) return;
+    const idItem = this.value;
+
+    $.ajax({
+      url: currentUrl,
+      method: 'POST',
+      dataType: 'json',
+      data: { idItem: idItem, activateItem: true },
+      success: function(res) {
+        if (res && res.success) {
+          alert(res.message || 'Registro activado');
+          tabla.ajax.reload();
+        } else {
+          alert(res.message || 'Error al activar.');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX activate error:', status, error, xhr.responseText);
+        alert('Error en la petición de activación. Revise la consola.');
       }
     });
   });

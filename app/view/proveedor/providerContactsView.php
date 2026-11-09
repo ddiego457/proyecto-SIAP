@@ -50,13 +50,6 @@ include_once 'app/view/layout/head.php';
                     <label class="field-label">Teléfono</label>
                     <input type="text" id="edit_telefono" name="telefono" class="field-input" required>
                 </div>
-                <div class="field-group">
-                    <label class="field-label">Estado</label>
-                    <select id="edit_estadoContacto" name="estado" class="field-input field-select" required>
-                        <option value="1">Activo</option>
-                        <option value="0">Inactivo</option>
-                    </select>
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModalContacto2" class="btn btn-outline">Cancelar</button>

@@ -47,7 +47,7 @@ class productosServiciosModel extends ConnectDB
                 FROM productos pro
                 JOIN partidas p ON pro.id_partida = p.id_partida
                 JOIN proveedores pr ON pro.id_proveedor = pr.id_proveedor
-                WHERE pro.estado = 1";
+                ";
 
         if ($partidaId !== null) {
             $sql .= " AND pro.id_partida = ?";
@@ -137,6 +137,25 @@ class productosServiciosModel extends ConnectDB
             $stmt = $this->conex->prepare(
                 "UPDATE productos
                  SET estado = 0
+                 WHERE id_prod = ?"
+            );
+            return $stmt->execute([$idItem]);
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    public function activar(int $idItem): bool
+    {
+        return $this->executeActivar($idItem);
+    }
+
+    private function executeActivar(int $idItem): bool
+    {
+        try {
+            $stmt = $this->conex->prepare(
+                "UPDATE productos
+                 SET estado = 1
                  WHERE id_prod = ?"
             );
             return $stmt->execute([$idItem]);

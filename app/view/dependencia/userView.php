@@ -22,7 +22,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-body">
             <div class="table-wrapper">
                 <table id="tablaMain" class="siap-table" style="width:100%">
-                    <thead><tr><th>ID</th><th>Nombre Dependencia</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Nombre Dependencia</th><th>Estado</th><th>Acciones</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>

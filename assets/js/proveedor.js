@@ -13,8 +13,7 @@ $(document).ready(function() {
 
     $('#formEditar').siapValidar({
         nombre: { regla: 'nombreProveedor' },
-        descripcion: { regla: 'descripcionProveedor' },
-        estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
+        descripcion: { regla: 'descripcionProveedor' }
     });
 
     $('#formAgregarContacto').siapValidar({
@@ -22,8 +21,7 @@ $(document).ready(function() {
     });
 
     $('#formEditarContacto').siapValidar({
-        telefono: { regla: 'telefono' },
-        estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
+        telefono: { regla: 'telefono' }
     });
 
     const tabla = $('#tablaMain').DataTable({
@@ -151,7 +149,6 @@ $(document).ready(function() {
         $('#edit_idItem').val(data.id_proveedor);
         $('#edit_nombre').val(data.nombre);
         $('#edit_descripcion').val(data.descripcion);
-        $('#edit_estado').val(data.estado);
         $('#formEditar').siapValidar('limpiar');
         $('#modalEditar').show();
     });
@@ -293,7 +290,7 @@ $(document).ready(function() {
                     } else {
                         actions += ` <button value="${d.id_telf}" class="btn btn-success btn-sm btn-activar-contacto" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                     }
-                    actions += ` <button value="${d.id_telf}" class="btn btn-danger btn-sm btn-eliminar-contacto" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    actions += ` <button value="${d.id_telf}" class="btn btn-danger btn-sm btn-eliminar-contacto" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                     return actions;
                 }}
             ],
@@ -327,7 +324,6 @@ $(document).ready(function() {
             const row = contactosTabla.row($(this).closest('tr')).data();
             $('#edit_idContacto').val(idContacto);
             $('#edit_telefono').val(row.telefono);
-            $('#edit_estadoContacto').val(row.estado);
             $('#formEditarContacto').siapValidar('limpiar');
             $('#modalEditarContacto').show();
         });
@@ -379,6 +375,11 @@ $(document).ready(function() {
 
         $('#btnCerrarModalContacto, #btnCerrarModalContacto2').on('click', function() {
             $('#modalEditarContacto').hide();
+        });
+
+        // Cerrar haciendo clic fuera del panel (igual que los demás modales)
+        $('#modalEditarContacto').on('click', function(e) {
+            if (e.target === this) $(this).hide();
         });
 
         $('#formEditarContacto').on('submit', function(e) {
