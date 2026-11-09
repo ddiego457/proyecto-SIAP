@@ -2374,7 +2374,7 @@ input[type="submit"].btn {
         border-color: var(--btn-edit-hover);
     }
     .btn-outline:not(:disabled):hover {
-        background: var(--bg);
+        background: var(--blue-hover);
         border-color: #b0bbcc;
     }
     .btn-ghost:not(:disabled):hover {
