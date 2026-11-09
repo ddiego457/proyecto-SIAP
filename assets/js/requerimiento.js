@@ -766,7 +766,7 @@ $(document).ready(function() {
     
     const currentURL = "?url=requerimiento&type=register";
 
-    // Inicializamos tablaRegistro solo si estamos en la vista de registro
+    // Inicializamos tablaRegistro solo si la vista de registro (modal) está presente
     if ($('#tabla-registro').length > 0) {
         
         const tablaRegistro = $('#tabla-registro').DataTable({
@@ -806,6 +806,21 @@ $(document).ready(function() {
             return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0" class="form-control form-control-sm text-center" style="width: 60px;">';
         }
 
+        // ─── Modal de registro (asistente de partidas) ───────────────
+        $('#btnNuevoRegistro').on('click', function() {
+            $('#modalRegistro').show();
+            // La tabla estaba oculta: recalcular anchos de columna
+            tablaRegistro.columns.adjust().draw();
+        });
+
+        $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+            $('#modalRegistro').hide();
+        });
+
+        $('#modalRegistro').on('click', function(e) {
+            if (e.target === this) $(this).hide();
+        });
+
         // Guardar la partida y avanzar
         $('#btn-guardar').click(function() {
             var btn = $(this);
@@ -826,17 +841,27 @@ $(document).ready(function() {
                         idReq = respuesta.id_req;
                         
                         if(respuesta.siguiente_partida === 'FINAL') {
-                            $('#btn-guardar').addClass('d-none');
+                            // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
                             alert("Todas las partidas han sido guardadas en borrador de manera exitosa.");
-                            window.location.href = "?url=requerimiento&type=main";
+                            $('#modalRegistro').hide();
+                            // Reiniciar el asistente para una próxima carga
+                            $('#partida_actual').val('401');
+                            $('#titulo-partida').text('401');
+                            $('#btn-guardar').removeClass('d-none');
+                            tablaRegistro.ajax.reload(null, false);
+                            // Refrescar el listado consolidado
+                            if ($('#tablaMain').length && $.fn.DataTable.isDataTable('#tablaMain')) {
+                                $('#tablaMain').DataTable().ajax.reload(null, false);
+                            }
                         } else {
                             $('#partida_actual').val(respuesta.siguiente_partida);
                             $('#titulo-partida').text(respuesta.siguiente_partida);
                             tablaRegistro.ajax.reload(null, false);
                         }
                     } else {
+                        // La modal permanece abierta para que el usuario corrija el error
                         console.log("Error en el servidor: " + respuesta.message);
-                        window.location.href = "?url=requerimiento&type=main";
+                        alert(respuesta.message || 'No se pudo guardar la partida.');
                     }
                 },
                 error: function(xhr, status, error) {

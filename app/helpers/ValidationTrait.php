@@ -16,7 +16,7 @@ trait ValidationTrait
     public $expDescripcionPartida = '/^[^<>\x00-\x1F\x7F]{1,150}$/';
     // Proveedor
     public $expNombreProv = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\.\-\&\(\)]{3,100}$/';
-    public $expDescripcionProv = '/^[^<>\x00-\x1F\x7F]{0,150}$/';
+    public $expDescripcionProv = '/^(?=.*[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])[^\x00-\x1F\x7F<>]{3,150}$/u';
     public $expTelefono = '/^\+?[0-9][0-9\-\s]{6,}$/';
     // Requerimiento
     public $expPartidaActual = '/^[0-9]+(\.[0-9]+)?$/';
@@ -192,10 +192,10 @@ trait ValidationTrait
     {
         $descripcion = trim((string)$descripcion);
         if ($descripcion === '') {
-            return null;
+            return 'La descripción del proveedor es obligatoria.';
         }
         if (!preg_match($this->expDescripcionProv, $descripcion)) {
-            return 'La descripción solo puede contener texto (sin etiquetas HTML) de hasta 150 caracteres.';
+            return 'La descripción es obligatoria y debe contener texto (al menos una letra), sin etiquetas HTML ni caracteres de control, entre 3 y 150 caracteres.';
         }
         return null;
     }

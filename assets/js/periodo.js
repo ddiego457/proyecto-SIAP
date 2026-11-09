@@ -73,24 +73,44 @@ $(document).ready(function() {
         }
     });
 
-    function validatePeriodoDates(start, end) {
-        return start && end && start <= end;
+    // ─── Validación cruzada en vivo del orden de fechas ─────────────
+    // El error rojo de orden vive en fecha_fin (test 'valor >= fecha_inicio'
+    // configurado arriba con el plugin siapValidar). Al cambiar cualquier
+    // fecha se re-evalúa para que el mensaje aparezca o desaparezca de
+    // inmediato, sin esperar al blur ni al intento de envío.
+    // (Al enviar, el plugin ya bloquea el formulario con ese mismo error.)
+    function revalidarOrdenFechas($campo) {
+        if ($campo.val()) $campo.trigger('focusout');
     }
+
+    $('#fecha_inicio').on('change', function() { revalidarOrdenFechas($('#fecha_fin')); });
+    $('#fecha_fin').on('change', function() { revalidarOrdenFechas($(this)); });
+    $('#edit_fecha_inicio').on('change', function() { revalidarOrdenFechas($('#edit_fecha_fin')); });
+    $('#edit_fecha_fin').on('change', function() { revalidarOrdenFechas($(this)); });
+
+    // ─── Modal de registro ─────────────────────────────────────────
+    $('#btnNuevoRegistro').on('click', function() {
+        $('#formRegistro')[0].reset();
+        $('#formRegistro').siapValidar('limpiar');
+        $('#modalRegistro').show();
+        $('#fecha_inicio').focus();
+    });
+
+    $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+        $('#modalRegistro').hide();
+    });
+
+    $('#modalRegistro').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
 
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
         const $btn = $(this).find('button[type="submit"]');
         if ($btn.prop('disabled')) return;
-        const start = $('#fecha_inicio').val();
-        const end = $('#fecha_fin').val();
-        if (!validatePeriodoDates(start, end)) {
-            alert('La fecha de inicio no puede ser posterior a la fecha fin.');
-            return;
-        }
         $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('registerPeriodo', true);
-        console.log('Registrar periodo:', Array.from(formData.entries()));
         $.ajax({
             url: currentUrl,
             method: 'POST',
@@ -99,21 +119,22 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                console.log('Respuesta registrar periodo:', res);
+                $btn.prop('disabled', false).text('✓ Registrar');
                 if (res && res.success) {
-                    // Permanece en la vista de registro para dar de alta otro periodo
-                    siapToast(res.message || 'Registro exitoso', 'success');
-                    siapResetFormulario('#formRegistro', 'input[name="fecha_inicio"]');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                    // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+                    alert(res.message || 'Periodo registrado exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
                 } else {
-                    siapToast((res && res.message) || 'Error al registrar. Verifique los datos.', 'error');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
                 }
             },
             error: function(xhr, status, error) {
-                siapToast('Error en la petición de registro. Revise la consola para más detalles.', 'error');
-                console.error('AJAX register error:', status, error, xhr.responseText);
                 $btn.prop('disabled', false).text('✓ Registrar');
+                console.error('AJAX register error:', status, error, xhr.responseText);
+                alert('Error en la petición de registro. Revise la consola para más detalles.');
             }
         });
     });
@@ -154,12 +175,6 @@ $(document).ready(function() {
 
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
-        const start = $('#edit_fecha_inicio').val();
-        const end = $('#edit_fecha_fin').val();
-        if (!validatePeriodoDates(start, end)) {
-            alert('La fecha de inicio no puede ser posterior a la fecha fin.');
-            return;
-        }
         const formData = new FormData(e.target);
         formData.append('updateItem', true);
         console.log('Actualizar periodo:', Array.from(formData.entries()));
@@ -202,7 +217,13 @@ $(document).ready(function() {
             { data: 'anio_fiscal' },
             { data: 'activo', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let acciones = `<button value="${d.id_anioFis}" class="btn btn-sm btn-edit btn-modificar-anio" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                let acciones;
+                if (Number(d.tiene_periodo) === 1) {
+                    // El año fiscal ya tiene periodo(s) asociado(s): no aparece la opción modificar
+                    acciones = `<span class="btn btn-sm" role="img" aria-label="No editable" title="Este año fiscal ya tiene periodos asociados; no se puede modificar." style="cursor:default; opacity:.65;"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>`;
+                } else {
+                    acciones = `<button value="${d.id_anioFis}" class="btn btn-sm btn-edit btn-modificar-anio" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                }
                 if (Number(d.activo) === 1) {
                     acciones += ` <button value="${d.id_anioFis}" class="btn btn-warning btn-sm btn-inactivar-anio" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                 } else {

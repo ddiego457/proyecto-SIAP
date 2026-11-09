@@ -53,6 +53,13 @@ class periodoModel extends ConnectDB
         return $this->executeHasActivePeriodForYear($anioFiscalId);
     }
 
+    // Validación: ¿el año fiscal tiene periodos de entrega asociados
+    // (activos o inactivos)? Si es así no se puede modificar el año.
+    public function hasPeriodsForYear(int $anioFiscalId): bool
+    {
+        return $this->executeHasPeriodsForYear($anioFiscalId);
+    }
+
     // [C] - CREAR PERIODO
     // Devuelve {success, message[, diagnostic]}: el controlador lo reenvía tal cual.
     public function add($fechaInicio, $fechaFin, $anioFiscalId): array
@@ -131,6 +138,12 @@ class periodoModel extends ConnectDB
         $error = $this->validar('anio_fiscal', $anioFiscal);
         if ($error !== null) {
             return ['success' => false, 'message' => $error];
+        }
+
+        // Un año fiscal con periodos de entrega asociados no se puede modificar
+        // (en la lista se oculta el botón de editar y aquí se bloquea el endpoint)
+        if ($this->executeHasPeriodsForYear($id)) {
+            return ['success' => false, 'message' => 'Este año fiscal ya tiene periodos asociados y no se puede modificar.'];
         }
 
         return $this->executeUpdateAnioFiscal($id, $anioFiscal, $activo);
@@ -263,6 +276,18 @@ class periodoModel extends ConnectDB
         $stmt = $this->conex->prepare("SELECT 1 FROM periodos_entrega WHERE id_aniof = ? AND activo = 1 LIMIT 1");
         $stmt->execute([$anioFiscalId]);
         return (bool)$stmt->fetchColumn();
+    }
+
+    private function executeHasPeriodsForYear(int $anioFiscalId): bool
+    {
+        try {
+            $stmt = $this->conex->prepare("SELECT 1 FROM periodos_entrega WHERE id_aniof = ? LIMIT 1");
+            $stmt->execute([$anioFiscalId]);
+            return (bool)$stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            // Ante la duda se bloquea la edición (protección de datos)
+            return true;
+        }
     }
 
     private function executeAdd($fechaInicio, $fechaFin, $anioFiscalId): array
@@ -413,10 +438,15 @@ class periodoModel extends ConnectDB
     private function executeGetAllAniosFiscales() {
         try {
             // Mantener compatibilidad con el JS: el JS espera 'id_anioFis' y 'anio_fiscal'
+            // 'tiene_periodo' = 1 si el año ya tiene periodo(s) de entrega asociado(s)
+            // (activos o inactivos): en ese caso el JS oculta la opción de modificar.
             $stmt = $this->conex->prepare(
-                "SELECT id_aniof AS id_anioFis, anio AS anio_fiscal, activo
-                 FROM anio_fiscal
-                 ORDER BY anio DESC"
+                "SELECT a.id_aniof AS id_anioFis,
+                        a.anio AS anio_fiscal,
+                        a.activo,
+                        EXISTS(SELECT 1 FROM periodos_entrega p WHERE p.id_aniof = a.id_aniof) AS tiene_periodo
+                 FROM anio_fiscal a
+                 ORDER BY a.anio DESC"
             );
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);

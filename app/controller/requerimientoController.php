@@ -13,6 +13,8 @@ if (isset($_GET['type'])) {
 
     if ($_GET['type'] == 'register') {
     
+    // La vista de registro es un modal dentro de la vista principal (type=main).
+    // Esta ruta solo atiende las peticiones AJAX del asistente de partidas.
     $periodExpired = false;
     $prevReqError = false;
     
@@ -23,20 +25,6 @@ if (isset($_GET['type'])) {
     if ($object->verifyPreviusReq($idDep)){
         $prevReqError = true;
     }
-    
-    // Si hay error de período, no continuar con el registro
-    if ($periodExpired || $prevReqError) {
-        // Si es petición AJAX con guardarPartida, responder JSON
-        header("Location: ?url=requerimiento&type=main");
-        if (isset($_POST['guardarPartida'])) {
-            $msg = $periodExpired ? "El período de carga de requerimientos ha vencido o no está activo." : "Ya existe un requerimiento previo o no está activo.";
-            echo json_encode(["status" => "error", "message" => $msg]);
-            die();
-        }
-        // Para petición normal (URL directa), continuaremos al incluir la vista
-        // que mostrará los mensajes correspondientes
-    }
-
 
         // 1. Petición para listar productos en la tabla
         if(isset($_POST['getProductos'])){
@@ -45,8 +33,14 @@ if (isset($_GET['type'])) {
             die();
         }
         
-        // 2. NUEVO: Petición AJAX para guardar los detalles de la partida actual
+        // 2. Petición AJAX para guardar los detalles de la partida actual
         if(isset($_POST['guardarPartida'])){
+            // Si hay error de período o de requerimiento previo, no guardar
+            if ($periodExpired || $prevReqError) {
+                $msg = $periodExpired ? "El período de carga de requerimientos ha vencido o no está activo." : "Ya existe un requerimiento previo o no está activo.";
+                echo json_encode(["status" => "error", "message" => $msg]);
+                die();
+            }
             // Priorizar id_req del POST (enviado por JS), fallback a sesión
             $idReq = isset($_POST['id_req']) && $_POST['id_req'] > 0 ? (int)$_POST['id_req'] : (isset($_SESSION['id_req']) ? $_SESSION['id_req'] : 0);
             $partida = isset($_POST['partida_actual']) ? $_POST['partida_actual'] : '401';
@@ -73,9 +67,9 @@ if (isset($_GET['type'])) {
             die();
         }
     
-        // Inicializamos la variable por si la vista la requiere vacía al principio
-        $canRegister = false; 
-        include 'app/view/requerimiento/registerView.php';
+        // Petición normal (URL directa o enlace guardado): volver a la vista principal
+        header('Location: ?url=requerimiento&type=main');
+        exit;
     }
     elseif ($_GET['type'] == 'main') {
         $time = $object->verifyPeriod();
@@ -101,9 +95,8 @@ if (isset($_GET['type'])) {
             $reporte = $object->getAll();
             
             // Almacenar id_req en sesión para uso posterior sin exponerlo en el HTML
-            $rol = $_SESSION['rol'] ?? 'Usuario';
-            $idDepFiltrar = ($rol === 'Administrador' && isset($_POST['id_dep_filtro'])) ? $_POST['id_dep_filtro'] : $_SESSION['id_dep'];
-            $activeReqId = $object->getActiveReqIdBySession($idDepFiltrar, $rol);
+            $idDepFiltrar = ($this->esAdmin() && isset($_POST['id_dep_filtro'])) ? $_POST['id_dep_filtro'] : $_SESSION['id_dep'];
+            $activeReqId = $object->getActiveReqIdBySession($idDepFiltrar);
             if ($activeReqId > 0) {
                 $_SESSION['id_req'] = $activeReqId;
             }
@@ -144,10 +137,9 @@ if (isset($_GET['type'])) {
     }
 
     if (isset($_POST['cambiarEstado'])) {
-        $rol = $_SESSION['rol'] ?? 'Usuario';
         $idDep = $_SESSION['id_dep'];
         // Priorizar id_req del POST, fallback a consulta de sesión
-        $idReq = (int)($_POST['id_req'] ?? $object->getActiveReqIdBySession($idDep, $rol));
+        $idReq = (int)($_POST['id_req'] ?? $object->getActiveReqIdBySession($idDep));
         
         if ($idReq <= 0) {
             echo json_encode(['status' => 'error', 'message' => 'No hay requerimiento activo para enviar.']);
@@ -165,8 +157,8 @@ if (isset($_GET['type'])) {
     }
 
     if (isset($_POST['eliminarRequerimiento'])) {
-        // Solo administradores
-        if (($_SESSION['rol'] ?? '') !== 'Administrador') {
+        // Solo administradores (Administrador o Superadmin)
+        if (!$this->esAdmin()) {
             echo json_encode(['status' => 'error', 'message' => 'No tiene permisos para eliminar requerimientos.']);
             die();
         }
@@ -193,12 +185,21 @@ if (isset($_GET['type'])) {
         // Inicializar $_SESSION['id_req'] para la vista si no existe
         // Solo dentro del bloque main para no interferir con el registro
         if (empty($_SESSION['id_req'] ?? null)) {
-            $rol = $_SESSION['rol'] ?? 'Usuario';
-            $idDepFiltrar = ($rol === 'Administrador' && isset($_POST['id_dep_filtro'])) ? $_POST['id_dep_filtro'] : $_SESSION['id_dep'];
-            $activeReqId = $object->getActiveReqIdBySession($idDepFiltrar, $rol);
+            $idDepFiltrar = ($this->esAdmin() && isset($_POST['id_dep_filtro'])) ? $_POST['id_dep_filtro'] : $_SESSION['id_dep'];
+            $activeReqId = $object->getActiveReqIdBySession($idDepFiltrar);
             if ($activeReqId > 0) {
                 $_SESSION['id_req'] = $activeReqId;
             }
+        }
+
+        // Estados del período para los avisos del modal de registro
+        $periodExpired = false;
+        $prevReqError = false;
+        if (!$object->verifyPeriod()) {
+            $periodExpired = true;
+        }
+        if ($object->verifyPreviusReq($idDep)) {
+            $prevReqError = true;
         }
 
         include 'app/view/requerimiento/userView.php';

@@ -1,6 +1,12 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
+    // Roles protegidos (coinciden con las constantes del responsableController)
+    const ROL_PROTEGIDO = 'Administrador';
+    const ROL_SUPERADMIN = 'Superadmin';
+    // ID de la cuenta logueada (expuesto desde layout/head.php)
+    const idResponsablePropio = Number(window.SIAP_ID_RESPONSABLE || 0);
+
     // ─── Validaciones SIAP (plugin jQuery) ──────────────────────
     $('#formRegistro').siapValidar({
         nom_rep: { regla: 'nombre' },
@@ -68,9 +74,18 @@ $(document).ready(function() {
             { data: 'dependencia_actual' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
+                // Rol Superadmin: cuenta protegida, no se edita ni se elimina desde el sistema
+                if (d.rol === ROL_SUPERADMIN) {
+                    return '<span class="badge badge-gray">protegido</span>';
+                }
                 let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    if (Number(d.id_responsable) === idResponsablePropio) {
+                        // Un usuario no puede eliminarse a sí mismo
+                        actions += ` <button class="btn btn-danger btn-sm btn-eliminar" disabled aria-label="Eliminar" title="No puede eliminar su propia cuenta"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    } else {
+                        actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    }
                 } else {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
@@ -79,6 +94,23 @@ $(document).ready(function() {
         ],
         autoWidth: false,
         language: { url: "assets/js/DataTables/spanish.json" }
+    });
+
+    // ─── Modal de registro ─────────────────────────────────────────
+    $('#btnNuevoRegistro').on('click', function() {
+        $('#formRegistro')[0].reset();
+        $('#register_id_dep').val('');
+        $('#formRegistro').siapValidar('limpiar');
+        $('#modalRegistro').show();
+        $('#formRegistro').find('input[name="nom_rep"]').focus();
+    });
+
+    $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+        $('#modalRegistro').hide();
+    });
+
+    $('#modalRegistro').on('click', function(e) {
+        if (e.target === this) $(this).hide();
     });
 
     $('#formRegistro').on('submit', function(e) {
@@ -102,22 +134,22 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                if (res && typeof res === 'object') {
-                    if (res.success) {
-                        // Permanece en la vista de registro para dar de alta otro responsable
-                        siapToast(res.message || 'Responsable registrado exitosamente', 'success');
-                        siapResetFormulario('#formRegistro', 'input[name="nom_rep"]');
-                    } else {
-                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
-                    }
-                } else {
-                    siapToast('Error al registrar. Verifique los datos.', 'error');
-                }
                 $btn.prop('disabled', false).text('✓ Registrar');
+                if (res && typeof res === 'object' && res.success) {
+                    // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+                    alert(res.message || 'Responsable registrado exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#register_id_dep').val('');
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
+                } else {
+                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
+                }
             },
             error: function() {
-                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
+                alert('Error de conexión.');
             }
         });
     });
@@ -145,7 +177,13 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-eliminar', function() {
+        if (this.disabled) return;
         const id = this.value;
+        // Un usuario no puede eliminarse a sí mismo (también validado en el servidor)
+        if (Number(id) === idResponsablePropio) {
+            alert('No puede eliminar su propia cuenta.');
+            return;
+        }
         if (confirm('¿Está seguro de eliminar este responsable? Esto cambiará el estado de su cargo a 0 y lo dará como disponible para reasignación.')) {
             $.ajax({
                 url: currentUrl,
@@ -252,8 +290,6 @@ $(document).ready(function() {
     });
 
     // ─── Roles: alta, edición y eliminación lógica ───────────────────
-    const ROL_PROTEGIDO = 'Administrador';
-
     const tablaRoles = $('#tablaRoles').length ? $('#tablaRoles').DataTable({
         ajax: { url: currentUrl, method: 'POST', data: { getAllRoles: true }, dataSrc: function(json) {
             return (json && Array.isArray(json)) ? json : [];

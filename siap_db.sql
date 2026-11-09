@@ -2799,7 +2799,8 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 (1, 'Administrador', 1),
 (2, 'Usuario', 1),
-(3, 'Coordinador', 1);
+(3, 'Coordinador', 1),
+(4, 'Superadmin', 1);
 
 -- --------------------------------------------------------
 
@@ -3023,7 +3024,7 @@ ALTER TABLE `responsables`
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `tasa_bcv`

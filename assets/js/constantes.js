@@ -35,7 +35,9 @@ const regexNombreDependencia = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.\-&()]
 
 const regexNombreProveedor = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.\-&()]{3,100}$/;
 
-const regexDescripcionProveedor = /^[^<>\x00-\x1F\x7F]{0,150}$/;
+// Descripción del proveedor: obligatoria, mínimo 3 caracteres y con al menos
+// una letra (texto real). Sin etiquetas HTML ni caracteres de control, máx. 150.
+const regexDescripcionProveedor = /^(?=[\s\S]*[A-Za-záéíóúüÁÉÍÓÚÜñÑ])[^\x00-\x1F\x7F<>]{3,150}$/;
 
 const regexNombreProducto = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.,\-()/"%|]{2,150}$/;
 
@@ -44,28 +46,6 @@ const regexCodigoPartida = /^(?=.{1,10}$)[0-9]+(?:\.[0-9]+)?$/;
 const regexTasa = /^(?!0+(?:\.0+)?$)\d{1,10}(?:\.\d{1,2})?$/;
 
 const regexCantidadMes = /^\d{1,9}$/;
-
-/*
- * Notificación flotante reutilizable.
- * Usa los estilos globales .toast / .toast-success / .toast-error de siap.css.
- * Disponible en todas las páginas (constantes.js se incluye en el layout).
- */
-function siapToast(mensaje, tipo) {
-    tipo = tipo || 'success';
-    var previo = document.querySelector('.toast');
-    if (previo) previo.remove();
-
-    var toast = document.createElement('div');
-    toast.className = 'toast toast-' + tipo;
-    toast.textContent = mensaje;
-    document.body.appendChild(toast);
-
-    setTimeout(function () {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s';
-        setTimeout(function () { toast.remove(); }, 300);
-    }, 4000);
-}
 
 /*
  * Restablece un formulario tras un alta exitosa para poder registrar otro

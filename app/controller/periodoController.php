@@ -21,6 +21,10 @@ if (isset($_GET['type'])) {
         $result = $object->getAll();
         include 'app/view/periodo/listView.php';
     } elseif ($_GET['type'] == 'register') {
+        // El registro ahora es un modal dentro de la vista principal
+        header('Location: ?url=periodo&type=main');
+        exit;
+    } elseif ($_GET['type'] == 'main') {
         if (isset($_POST['registerPeriodo'])) {
             if (isset($_POST['fecha_inicio']) && isset($_POST['fecha_fin']) && isset($_POST['anio_fiscal_id'])) {
                 // Validaciones (fechas, año fiscal, solapamiento) viven en el modelo
@@ -32,9 +36,7 @@ if (isset($_GET['type'])) {
                 sendJsonResponse($resultado);
             }
         }
-        $anioFiscales = $object->getAniosFiscalesActivos();
-        include 'app/view/periodo/registerView.php';
-    } elseif ($_GET['type'] == 'main') {
+
         if (isset($_POST['getAll'])) {
             sendJsonResponse($object->getAll());
         }

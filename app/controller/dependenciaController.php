@@ -15,6 +15,12 @@
 
         } elseif ($_GET['type'] == 'register') {
 
+            // El registro ahora es un modal dentro de la vista principal
+            header('Location: ?url=dependencia&type=main');
+            exit;
+
+        } elseif ($_GET['type'] == 'main') {
+
             if (isset($_POST['registerDependencia'])) {
                 if (isset($_POST['nombre_dep'])) {
                     $nombre = trim($_POST['nombre_dep']);
@@ -37,9 +43,6 @@
                     die();
                 }
             }
-            include 'app/view/dependencia/registerView.php';
-
-        } elseif ($_GET['type'] == 'main') {
 
             if (isset($_POST['getAll'])) {
                 echo json_encode($object->getAll());

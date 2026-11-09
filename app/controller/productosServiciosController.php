@@ -51,6 +51,42 @@ if (isset($_GET['type'])) {
             $partidaSeleccionada = (int)$_POST['partidaId'];
         }
 
+        if (isset($_POST['registerProductosServicios'])) {
+            $idPartida = isset($_POST['id_partida']) ? (int)$_POST['id_partida'] : 0;
+            $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
+            $nombre = isset($_POST['nom_item']) ? trim((string)$_POST['nom_item']) : '';
+            $precio = isset($_POST['precio']) ? (float)$_POST['precio'] : null;
+
+            $validPartidaIds = array_map('intval', array_column($partidas, 'id_partida'));
+            $validProveedorIds = array_map('intval', array_column($proveedores, 'id_proveedor'));
+            if ($idPartida <= 0 || !in_array($idPartida, $validPartidaIds, true) ||
+                $idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true)
+            ) {
+                sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida o proveedor inválido.']);
+            }
+
+            $errorValidacion = $object->validar('nombre_producto', $nombre);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+            $errorValidacion = $object->validar('precio', (string)($_POST['precio'] ?? ''));
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+
+            // Evitar duplicados (misma partida + proveedor + nombre)
+            if ($object->existsByKey($idPartida, $idProveedor, $nombre)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe un producto/servicio con ese nombre para la misma partida y proveedor.']);
+            }
+
+            $result = $object->add($idPartida, $idProveedor, $nombre, $precio);
+            // El JS cierra el modal de registro y recarga el listado.
+            sendJsonResponse([
+                'success' => (bool)$result,
+                'message' => $result ? 'Producto o servicio registrado' : 'Error al guardar el registro (duplicado o error BD).'
+            ]);
+        }
+
         if (isset($_POST['getAll'])) {
             sendJsonResponse($object->getAll($partidaSeleccionada));
         }
@@ -176,45 +212,9 @@ if (isset($_GET['type'])) {
     }
 
     if ($_GET['type'] === 'register') {
-        if (isset($_POST['registerProductosServicios'])) {
-            $idPartida = isset($_POST['id_partida']) ? (int)$_POST['id_partida'] : 0;
-            $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
-            $nombre = isset($_POST['nom_item']) ? trim((string)$_POST['nom_item']) : '';
-            $precio = isset($_POST['precio']) ? (float)$_POST['precio'] : null;
-
-            $validPartidaIds = array_map('intval', array_column($partidas, 'id_partida'));
-            $validProveedorIds = array_map('intval', array_column($proveedores, 'id_proveedor'));
-            if ($idPartida <= 0 || !in_array($idPartida, $validPartidaIds, true) ||
-                $idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true)
-            ) {
-                sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida o proveedor inválido.']);
-            }
-
-            $errorValidacion = $object->validar('nombre_producto', $nombre);
-            if ($errorValidacion !== null) {
-                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
-            }
-            $errorValidacion = $object->validar('precio', (string)($_POST['precio'] ?? ''));
-            if ($errorValidacion !== null) {
-                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
-            }
-
-            // Evitar duplicados (misma partida + proveedor + nombre)
-            if ($object->existsByKey($idPartida, $idProveedor, $nombre)) {
-                sendJsonResponse(['success' => false, 'message' => 'Ya existe un producto/servicio con ese nombre para la misma partida y proveedor.']);
-            }
-
-            $result = $object->add($idPartida, $idProveedor, $nombre, $precio);
-            // No se envía 'redirect': el JS permanece en la vista de registro
-            // para permitir registrar varios items seguidos.
-            sendJsonResponse([
-                'success' => (bool)$result,
-                'message' => $result ? 'Producto o servicio registrado' : 'Error al guardar el registro (duplicado o error BD).'
-            ]);
-        }
-
-        include 'app/view/productosServicios/registerView.php';
-        return;
+        // El registro ahora es un modal dentro de la vista principal
+        header('Location: ?url=productosServicios&type=main');
+        exit;
     }
 
     echo "Error: Tipo de vista no valido.";

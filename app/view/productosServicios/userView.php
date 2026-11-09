@@ -14,7 +14,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Items asignados por partida</span>
             <div class="card-header-actions">
-                <a href="?url=productosServicios&type=register" class="btn btn-success btn-sm">Registrar</a>
+                <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
                 <button type="button" id="btnImportarExcel" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar Excel</button>
                 <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
             </div>
@@ -54,6 +54,69 @@ include_once 'app/view/layout/head.php';
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div id="modalRegistro" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nuevo registro &mdash; Producto o Servicio</h3>
+            <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>
+        </div>
+        <?php if (empty($partidas) || empty($proveedores)): ?>
+            <div class="modal-body">
+                <?php if (empty($partidas)): ?>
+                    <div class="alert-banner-sub">No se encontraron partidas existentes. Cree primero las partidas 401, 402, 403, 404 o 407 en el catálogo correspondiente.</div>
+                <?php endif; ?>
+                <?php if (empty($proveedores)): ?>
+                    <div class="alert-banner-sub">No se encontraron proveedores activos. Cree primero un proveedor en el catálogo correspondiente.</div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalRegistro2" class="btn btn-success">Cerrar</button>
+            </div>
+        <?php else: ?>
+            <form id="formRegistroPS">
+                <div class="modal-body">
+                    <div class="field-group">
+                        <label class="field-label">Partida</label>
+                        <select name="id_partida" class="field-input field-select" required>
+                            <?php foreach ($partidas as $partida): ?>
+                                <option value="<?php echo htmlspecialchars((string)$partida['id_partida']); ?>">
+                                    <?php echo htmlspecialchars($partida['cod_partida'] . ' - ' . $partida['descripcion']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Proveedor</label>
+                        <select name="id_proveedor" class="field-input field-select" required>
+                            <?php foreach ($proveedores as $proveedor): ?>
+                                <option value="<?php echo htmlspecialchars((string)$proveedor['id_proveedor']); ?>">
+                                    <?php echo htmlspecialchars($proveedor['nombre']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Nombre del producto o servicio</label>
+                        <input type="text" name="nom_item" class="field-input" placeholder="Ej. Resma de papel" required />
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Precio unitario (USD)</label>
+                        <input type="number" name="precio" class="field-input" step="0.01" min="0" placeholder="Ej. 5.50" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-success">&#10003; Registrar</button>
+                </div>
+            </form>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -136,7 +199,6 @@ include_once 'app/view/layout/head.php';
         <div class="modal-footer">
             <button type="button" id="btnNuevaPartida" class="btn btn-outline" style="margin-right:auto;">&#43; Nueva partida</button>
             <button type="button" id="btnCerrarModalPartidas2" class="btn btn-success">Cerrar</button>
-            <button type="button" id="btnImportarExcel" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar Excel</button>
         </div>
     </div>
 </div>

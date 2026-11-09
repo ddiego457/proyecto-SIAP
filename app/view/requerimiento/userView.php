@@ -53,7 +53,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
         <div class="row mb-3"> 
             <!-- si es administrador carga las opciones del select para seleccionar la dependencia a revisar -->
             <!-- si seleciona todos, entoces va a buscar a todas las dependencias -->
-        <?php if(($_SESSION['rol'] ?? '') == "Administrador"){?>
+        <?php if($this->esAdmin()){?>
             <div class="col-md-4">
                 <label>Seleccionar Dependencia:</label>
                 <input list="select-dep-list" id="select-dependencia" class="field-input" placeholder="Buscar dependencia...">
@@ -80,8 +80,8 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
         <?php } ?>
         </div>
         <div class="card-header-actions">
-            <?php if((($_SESSION['rol'] ?? '') !== "Administrador") && !empty($prevReq) && !empty($perAct)){?>
-            <a href="?url=requerimiento&type=register" class="btn btn-success btn-sm">Registrar</a>
+            <?php if(!$this->esAdmin() && !empty($prevReq) && !empty($perAct)){?>
+            <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
             <?php }?>
         </div>
         </div>
@@ -182,7 +182,62 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
     </div>
 </div>
 
+<!-- MODAL REGISTRO DE REQUERIMIENTO -->
+<div id="modalRegistro" class="modal-backdrop" style="display:none; z-index:210;">
+    <div class="modal-panel" style="max-width: min(92vw, 1100px); max-height: 88vh;">
+        <div class="modal-header">
+            <h3>&#128203; Registrar Requerimiento &mdash; Partida <span id="titulo-partida">401</span></h3>
+            <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" style="overflow:auto;">
+            <?php if (isset($periodExpired) && $periodExpired): ?>
+                <div class="alert-banner alert-danger" style="margin-bottom:14px;">
+                    <div class="alert-banner-title"><strong>&#9888;&#65039; Per&iacute;odo vencido</strong></div>
+                    <div class="alert-banner-sub">
+                        El per&iacute;odo de carga de requerimientos ha finalizado. Espere a que se abra el pr&oacute;ximo per&iacute;odo para realizar sus solicitudes.
+                    </div>
+                </div>
+            <?php endif; ?>
+            <?php if (isset($prevReqError) && $prevReqError): ?>
+                <div class="alert-banner alert-danger" style="margin-bottom:14px;">
+                    <div class="alert-banner-title"><strong>&#9888;&#65039; Ya existe un requerimiento</strong></div>
+                    <div class="alert-banner-sub">
+                        Ya tiene un requerimiento previo activo para este per&iacute;odo.
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <form id="form-registro">
+                <input type="hidden" id="partida_actual" name="partida_actual" value="401">
+
+                <div class="table-wrapper">
+                    <table id="tabla-registro" class="siap-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th>
+                                <th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="button" id="btn-guardar" class="btn btn-primary">
+                        Guardar y Avanzar a Siguiente Partida
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const esAdmin = '<?php echo $_SESSION["rol"] ?? ""; ?>' == 'Administrador';
+    const esAdmin = <?php echo $this->esAdmin() ? 'true' : 'false'; ?>;
     let idReq = <?php echo json_encode($_SESSION['id_req'] ?? 0); ?>;
 </script>

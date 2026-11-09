@@ -28,7 +28,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Periodos</span>
             <div class="card-header-actions">
-                <a href="?url=periodo&type=register" class="btn btn-success btn-sm">Registrar</a>
+                <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
                 <button type="button" id="btnAniosFiscales" class="btn btn-outline btn-sm"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> A&ntilde;os fiscales</button>
             </div>
         </div>
@@ -40,6 +40,50 @@ include_once 'app/view/layout/head.php';
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div id="modalRegistro" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nuevo registro &mdash; Periodo</h3>
+            <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>
+        </div>
+        <form id="formRegistro">
+            <input type="hidden" name="registerPeriodo" value="1">
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Fecha Inicio</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Fecha Fin</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Año Fiscal</label>
+                    <select name="anio_fiscal_id" class="field-input field-select" required>
+                        <?php if (empty($anioFiscales)): ?>
+                            <option value="">No hay años fiscales disponibles</option>
+                        <?php else: ?>
+                            <?php foreach ($anioFiscales as $af): ?>
+                                <option value="<?php echo (int)$af['id_aniof']; ?>">
+                                    <?php echo htmlspecialchars($af['anio'] ?? $af['anio_fiscal'] ?? 'Año no disponible', ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <p class="field-note">El periodo se desactivara automaticamente cuando la fecha fin haya pasado.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Registrar</button>
+            </div>
+        </form>
     </div>
 </div>
 

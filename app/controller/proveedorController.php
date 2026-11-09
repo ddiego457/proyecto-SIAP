@@ -14,34 +14,9 @@
 
         } elseif ($_GET['type'] == 'register') {
 
-            if (isset($_POST['registerProveedor'])) {
-                if (isset($_POST['nombre']) && isset($_POST['descripcion'])) {
-                    $nombre = trim($_POST['nombre']);
-                    $errorValidacion = $object->validar('nombre_proveedor', $nombre);
-                    if ($errorValidacion !== null) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
-                        die();
-                    }
-                    $errorValidacion = $object->validar('descripcion_proveedor', $_POST['descripcion']);
-                    if ($errorValidacion !== null) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
-                        die();
-                    }
-                    // Evitar duplicados por nombre (case-insensitive)
-                    if ($object->existsByNombre($nombre)) {
-                        header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => false, 'message' => 'Ya existe un proveedor con ese nombre.']);
-                        die();
-                    }
-                    $result = $object->add($nombre, $_POST['descripcion']);
-                    header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).']);
-                    die();
-                }
-            }
-            include 'app/view/proveedor/registerView.php';
+            // El registro ahora es un modal dentro de la vista principal
+            header('Location: ?url=proveedor&type=main');
+            exit;
 
         } elseif ($_GET['type'] == 'contacts') {
             if (isset($_POST['getContacts'])) {
@@ -122,6 +97,34 @@
 
         } elseif ($_GET['type'] == 'main') {
 
+            if (isset($_POST['registerProveedor'])) {
+                if (isset($_POST['nombre']) && isset($_POST['descripcion'])) {
+                    $nombre = trim($_POST['nombre']);
+                    $errorValidacion = $object->validar('nombre_proveedor', $nombre);
+                    if ($errorValidacion !== null) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                        die();
+                    }
+                    $errorValidacion = $object->validar('descripcion_proveedor', $_POST['descripcion']);
+                    if ($errorValidacion !== null) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                        die();
+                    }
+                    // Evitar duplicados por nombre (case-insensitive)
+                    if ($object->existsByNombre($nombre)) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'Ya existe un proveedor con ese nombre.']);
+                        die();
+                    }
+                    $result = $object->add($nombre, $_POST['descripcion']);
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).']);
+                    die();
+                }
+            }
+
             if (isset($_POST['getAll'])) {
                 echo json_encode($object->getAll());
                 die();
@@ -134,7 +137,7 @@
                     $errorValidacion = $object->validar('descripcion_proveedor', (string)$_POST['descripcion']);
                 }
                 if ($errorValidacion !== null) {
-                    echo json_encode(false);
+                    echo json_encode(['success' => false, 'message' => $errorValidacion]);
                     die();
                 }
                 $result = $object->update(

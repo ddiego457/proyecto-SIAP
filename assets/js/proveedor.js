@@ -58,6 +58,22 @@ $(document).ready(function() {
         }
     });
 
+    // ─── Modal de registro ─────────────────────────────────────────
+    $('#btnNuevoRegistro').on('click', function() {
+        $('#formRegistro')[0].reset();
+        $('#formRegistro').siapValidar('limpiar');
+        $('#modalRegistro').show();
+        $('#formRegistro').find('input[name="nombre"]').focus();
+    });
+
+    $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+        $('#modalRegistro').hide();
+    });
+
+    $('#modalRegistro').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
         const $btn = $(this).find('button[type="submit"]');
@@ -73,25 +89,27 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                if (res && typeof res === 'object') {
-                    if (res.success) {
-                        // Permanece en la vista de registro para dar de alta otro proveedor
-                        siapToast(res.message || 'Proveedor registrado exitosamente', 'success');
-                        siapResetFormulario('#formRegistro', 'input[name="nombre"]');
-                    } else {
-                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
-                    }
-                } else if (res == true) {
-                    siapToast('Proveedor registrado exitosamente', 'success');
-                    siapResetFormulario('#formRegistro', 'input[name="nombre"]');
-                } else {
-                    siapToast('Error al registrar. Verifique los datos.', 'error');
-                }
                 $btn.prop('disabled', false).text('✓ Registrar');
+                if (res && typeof res === 'object' && res.success) {
+                    // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+                    alert(res.message || 'Proveedor registrado exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
+                } else if (res === true) {
+                    alert('Proveedor registrado exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
+                } else {
+                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
+                }
             },
             error: function() {
-                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
+                alert('Error de conexión.');
             }
         });
     });
@@ -159,12 +177,13 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                if (res == true) {
-                    alert('Proveedor actualizado exitosamente');
+                if (res === true || (res && res.success === true)) {
+                    alert((res && res.message) || 'Proveedor actualizado exitosamente');
                     $('#modalEditar').hide();
                     tabla.ajax.reload();
                 } else {
-                    alert('Error al actualizar.');
+                    // Muestra el motivo devuelto por el servidor (ej. descripción vacía)
+                    alert((res && res.message) || 'Error al actualizar.');
                 }
             }
         });
@@ -211,15 +230,15 @@ $(document).ready(function() {
 
         const archivo = $('#pdf_archivo')[0].files[0];
         if (!archivo) {
-            siapToast('Seleccione un archivo PDF.', 'error');
+            alert('Seleccione un archivo PDF.');
             return;
         }
         if (!/\.pdf$/i.test(archivo.name)) {
-            siapToast('Solo se permiten archivos con extensión .pdf.', 'error');
+            alert('Solo se permiten archivos con extensión .pdf.');
             return;
         }
         if (archivo.size > maximoBytesPdf) {
-            siapToast('El archivo no debe superar los 10 MB.', 'error');
+            alert('El archivo no debe superar los 10 MB.');
             return;
         }
 
@@ -240,16 +259,16 @@ $(document).ready(function() {
             success: function(res) {
                 $btn.prop('disabled', false).text('Guardar PDF');
                 if (res && res.success) {
-                    siapToast(res.message || 'PDF guardado correctamente.', 'success');
+                    alert(res.message || 'PDF guardado correctamente.');
                     $('#modalPdf').hide();
                     tabla.ajax.reload();
                 } else {
-                    siapToast((res && res.message) || 'Error al guardar el PDF.', 'error');
+                    alert((res && res.message) || 'Error al guardar el PDF.');
                 }
             },
             error: function() {
                 $btn.prop('disabled', false).text('Guardar PDF');
-                siapToast('Error de conexión.', 'error');
+                alert('Error de conexión.');
             }
         });
     });

@@ -101,10 +101,8 @@
     }
 
     function validarDescripcionProveedor(valor) {
-        var rec = recortar(valor);
-        // Campo opcional: vacío siempre es válido.
-        if (rec === '') return true;
-        return regexDescripcionProveedor.test(rec);
+        // Campo obligatorio: debe contener texto real (al menos una letra).
+        return regexDescripcionProveedor.test(recortar(valor));
     }
 
     function validarNombreProducto(valor) {
@@ -147,7 +145,7 @@
         requerido: 'Este campo es obligatorio.',
         nombreDependencia: 'El nombre de la dependencia debe tener entre 3 y 100 caracteres y solo letras, números, espacios, puntos, guiones y paréntesis.',
         nombreProveedor: 'El nombre del proveedor debe tener entre 3 y 100 caracteres y solo letras, números, espacios, puntos, guiones y paréntesis.',
-        descripcionProveedor: 'La descripción no puede contener etiquetas HTML ni caracteres de control, máximo 150 caracteres.',
+        descripcionProveedor: 'La descripción es obligatoria y debe contener texto (al menos una letra), sin etiquetas HTML ni caracteres de control, entre 3 y 150 caracteres.',
         nombreProducto: 'El nombre del producto solo puede contener letras, números, espacios y los caracteres . , - ( ) / % " |, entre 2 y 150 caracteres.',
         codigoPartida: 'El código de la partida solo puede contener números y puntos, máximo 10 caracteres. Ej: 401 o 4.01',
         tasa: 'La tasa debe ser un número positivo con hasta 2 decimales (ej. 36.50).',

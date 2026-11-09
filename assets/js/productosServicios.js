@@ -77,6 +77,25 @@ $(document).ready(function() {
     tabla.ajax.reload();
   });
 
+  // ─── Modal de registro ───────────────────────────────────────────
+  $('#btnNuevoRegistro').on('click', function() {
+    const $form = $('#formRegistroPS');
+    if ($form.length) {
+      $form[0].reset();
+      $form.siapValidar('limpiar');
+      $form.find('input[name="nom_item"]').focus();
+    }
+    $('#modalRegistro').show();
+  });
+
+  $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+    $('#modalRegistro').hide();
+  });
+
+  $('#modalRegistro').on('click', function(e) {
+    if (e.target === this) $(this).hide();
+  });
+
   $('#formRegistroPS').on('submit', function(e) {
     e.preventDefault();
     const $btn = $(this).find('button[type="submit"]');
@@ -93,27 +112,28 @@ $(document).ready(function() {
       processData: false,
       contentType: false,
       success: function(res) {
-          if (res && typeof res === 'object') {
-            if (res.success) {
-              // Permanece en la vista de registro: se limpia el formulario
-              // para poder registrar otro item sin salir de la página.
-              siapToast(res.message || 'Producto o servicio registrado', 'success');
-              siapResetFormulario('#formRegistroPS', 'input[name="nom_item"]');
-            } else {
-              siapToast(res.message || 'Error al registrar el item.', 'error');
-            }
-          } else if (res === true) {
-            siapToast('Registro guardado correctamente', 'success');
-            siapResetFormulario('#formRegistroPS', 'input[name="nom_item"]');
-          } else {
-            siapToast('Error al registrar el item.', 'error');
-          }
           $btn.prop('disabled', false).text('✓ Registrar');
+          if (res && typeof res === 'object' && res.success) {
+            // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+            alert(res.message || 'Producto o servicio registrado');
+            $('#modalRegistro').hide();
+            $('#formRegistroPS')[0].reset();
+            $('#formRegistroPS').siapValidar('limpiar');
+            tabla.ajax.reload();
+          } else if (res === true) {
+            alert('Producto o servicio registrado');
+            $('#modalRegistro').hide();
+            $('#formRegistroPS')[0].reset();
+            $('#formRegistroPS').siapValidar('limpiar');
+            tabla.ajax.reload();
+          } else {
+            alert((res && res.message) || 'Error al registrar el item.');
+          }
       },
       error: function(xhr, status, error) {
         console.error('AJAX error:', status, error, xhr.responseText);
-        siapToast('Error en la petición. Revise la consola.', 'error');
         $btn.prop('disabled', false).text('✓ Registrar');
+        alert('Error en la petición. Revise la consola.');
       }
     });
   });

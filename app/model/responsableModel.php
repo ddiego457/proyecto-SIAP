@@ -94,6 +94,30 @@ class responsableModel extends ConnectDB
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 
+    // Descripción del rol vigente de un responsable (para proteger cuentas
+    // Superadmin desde el controlador). null si el responsable no existe.
+    public function getRolDeResponsable(int $idResponsable): ?string
+    {
+        return $this->executeGetRolDeResponsable($idResponsable);
+    }
+
+    private function executeGetRolDeResponsable(int $idResponsable): ?string
+    {
+        try {
+            $stmt = $this->conex->prepare(
+                "SELECT ro.descripcion
+                 FROM responsables r
+                 JOIN roles ro ON ro.id_rol = r.id_rol
+                 WHERE r.id_responsable = ? LIMIT 1"
+            );
+            $stmt->execute([$idResponsable]);
+            $descripcion = $stmt->fetchColumn();
+            return $descripcion === false ? null : (string)$descripcion;
+        } catch (\PDOException $e) {
+            return null;
+        }
+    }
+
     // Verificación pública para evitar descripciones duplicadas
     public function existsRol(string $descripcion, ?int $excludeId = null): bool
     {

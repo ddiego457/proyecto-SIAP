@@ -2,10 +2,12 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\SessionTrait;
 use EquipoSiap\Siap\helpers\ValidationTrait;
 use DateTime;
 
 class requerimientoModel extends ConnectDB {
+    use SessionTrait;
     use ValidationTrait;
 
     private $conex;
@@ -57,8 +59,8 @@ class requerimientoModel extends ConnectDB {
         return $this->executeCambiarEstadoRequerimiento($idReq);
     }
 
-    public function getActiveReqIdBySession($idDep, $rol) {
-        return $this->getActiveReqId($idDep, $rol);
+    public function getActiveReqIdBySession($idDep) {
+        return $this->getActiveReqId($idDep);
     }
 
     // =========================================================================
@@ -83,24 +85,23 @@ class requerimientoModel extends ConnectDB {
             return [];
         }
 
-        $rol = $_SESSION['rol'] ?? 'Usuario';
         // si es admin y ya se selecciono el id de la dependencia que va a revisar, el valor se almacena
-        $idDepFiltrar = $this->resolveTargetDependency($rol);
+        $idDepFiltrar = $this->resolveTargetDependency();
 
         // si aun no ha seleccionada nada devuelve vacio para que la tabla no lance un error
-        if ($rol === 'Administrador' && empty($idDepFiltrar)) {
+        if ($this->esAdmin() && empty($idDepFiltrar)) {
             return [];
         }
 
         
         $joinType = ($idDepFiltrar === 'todos') ? ' INNER JOIN ' : ' LEFT JOIN ';
         // funciona como buscador de requerimientos
-        $idReqActivo = $this->getActiveReqId($idDepFiltrar,$rol); 
+        $idReqActivo = $this->getActiveReqId($idDepFiltrar); 
         if($idReqActivo === 0){
             return [];
         }
         //filtros extra de seguridad para la consulta
-        $filtrosSQL = $this->buildQueryFilters($idDepFiltrar, $rol);
+        $filtrosSQL = $this->buildQueryFilters($idDepFiltrar);
 
         //finalmente devuelve el reporte con todos los datos
         return $this->fetchMainReport($joinType, $idReqActivo, $filtrosSQL);
@@ -228,25 +229,25 @@ class requerimientoModel extends ConnectDB {
 
     //valid req se encarga especialmente de trabajar con las dependencias para el borrador
     private function validReq() {
-        if($_SESSION['rol'] === 'Administrador') return true;
+        if ($this->esAdmin()) return true;
         $checkReq = $this->conex->prepare("SELECT id_req FROM requerimientos WHERE id_dep = ? AND estado = 1 AND estado_envio = 0");
         $checkReq->execute([$this->idDepAct]);
         return $checkReq->fetch();
     }
 
-    private function resolveTargetDependency($rol) {
-        if ($rol === 'Administrador') {
+    private function resolveTargetDependency() {
+        if ($this->esAdmin()) {
             return isset($_POST['id_dep_filtro']) ? $_POST['id_dep_filtro'] : null;
         }
         return $this->idDepAct;
     }
 
-    private function getActiveReqId($idDepFiltrar, $rol) {
+    private function getActiveReqId($idDepFiltrar) {
         if ($idDepFiltrar === 'todos') {
             return "0";
         }
 
-        $estadoEnv = ($rol === 'Administrador') ? 1 : 0;
+        $estadoEnv = ($this->esAdmin()) ? 1 : 0;
 
         $stmtCheck = $this->conex->prepare("SELECT r.id_req 
             FROM requerimientos r
@@ -258,10 +259,10 @@ class requerimientoModel extends ConnectDB {
         return $reqExistente ? $reqExistente['id_req'] : 0;
     }
 
-    private function buildQueryFilters($id, $rol) {
-        if ($rol === 'Administrador' && $id === 'todos') {
+    private function buildQueryFilters($id) {
+        if ($this->esAdmin() && $id === 'todos') {
             return " AND r.estado_envio = 1 AND r.estado = 1";
-        } elseif ($rol === 'Administrador') {
+        } elseif ($this->esAdmin()) {
             return " AND r.estado_envio = 1 AND r.estado = 1 AND d.id_dep = " . (int)$id;
         } else {
             return " AND d.id_dep = " . (int)$id . " AND r.estado_envio = 0 AND r.estado = 1";

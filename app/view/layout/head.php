@@ -31,5 +31,10 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
         aria-label="Colapsar menú"
         aria-expanded="true">
     </button>
+    <script>
+        // ID del responsable logueado: permite a los JS ocultar acciones
+        // sobre la propia cuenta (p. ej. no poder eliminarse a sí mismo).
+        window.SIAP_ID_RESPONSABLE = <?php echo (int)(isset($_SESSION['id_responsable']) ? $_SESSION['id_responsable'] : 0); ?>;
+    </script>
     <?php include_once 'app/view/layout/sidebar.php'; ?>
     <div class="main-content">

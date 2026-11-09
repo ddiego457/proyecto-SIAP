@@ -29,7 +29,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Responsables</span>
             <div class="card-header-actions">
-                <a href="?url=responsable&type=register" class="btn btn-success btn-sm">Registrar</a>
+                <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
                 <button type="button" id="btnRoles" class="btn btn-outline btn-sm"><i class="fa-solid fa-users" aria-hidden="true"></i> Roles</button>
             </div>
         </div>
@@ -41,6 +41,65 @@ include_once 'app/view/layout/head.php';
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div id="modalRegistro" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nuevo Responsable</h3>
+            <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>
+        </div>
+        <form id="formRegistro">
+            <div class="modal-body">
+                <?php if (empty($dependenciasDisponibles)): ?>
+                    <div class="alert-banner alert-info" style="margin-bottom:15px;">
+                        <div class="alert-banner-sub">
+                            <strong>Atención:</strong> No hay dependencias disponibles. Todas tienen un responsable asignado. Para reutilizar una, primero elimine o inactive su responsable actual.
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <div class="field-group">
+                    <label class="field-label">Nombre</label>
+                    <input type="text" name="nom_rep" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Correo electrónico</label>
+                    <input type="email" name="email" class="field-input" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Contraseña</label>
+                    <input type="password" name="contrasena" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Rol</label>
+                    <div class="field-select-wrap">
+                        <select name="id_rol" class="field-input field-select" required>
+                            <option value="">— Seleccione rol —</option>
+                            <?php foreach ($roles as $rol): ?>
+                                <option value="<?php echo $rol['id_rol']; ?>"><?php echo htmlspecialchars($rol['descripcion']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Dependencia</label>
+                    <input list="dependenciasList" id="register_dependencia_search" name="dependencia_search" class="field-input" placeholder="Escriba para buscar dependencia" autocomplete="off" required>
+                    <datalist id="dependenciasList">
+                        <?php foreach ($dependenciasDisponibles as $dep): ?>
+                            <option value="<?php echo htmlspecialchars($dep['nom_dep']); ?>" data-id="<?php echo $dep['id_dep']; ?>"></option>
+                        <?php endforeach; ?>
+                    </datalist>
+                    <input type="hidden" id="register_id_dep" name="id_dep">
+                    <p class="field-hint">Escriba y seleccione una dependencia existente de la lista.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Registrar</button>
+            </div>
+        </form>
     </div>
 </div>
 

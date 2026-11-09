@@ -72,6 +72,22 @@ $(document).ready(function() {
         }
     });
 
+    // ─── Modal de registro ─────────────────────────────────────────
+    $('#btnNuevoRegistro').on('click', function() {
+        $('#formRegistro')[0].reset();
+        $('#formRegistro').siapValidar('limpiar');
+        $('#modalRegistro').show();
+        $('#formRegistro').find('input[name="tasa_bcv_usd"]').focus();
+    });
+
+    $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+        $('#modalRegistro').hide();
+    });
+
+    $('#modalRegistro').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
     // Registrar
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
@@ -90,28 +106,27 @@ $(document).ready(function() {
             url: currentUrl, method: 'POST', data: formData,
             dataType: 'json', processData: false, contentType: false,
             success: function(res) {
-                if (res && typeof res === 'object') {
-                    if (res.success) {
-                        // Permanece en la vista de registro para dar de alta otra tasa
-                        siapToast(res.message || 'Registro exitoso', 'success');
-                        siapResetFormulario('#formRegistro', 'input[name="tasa_bcv_usd"]');
-                        $btn.prop('disabled', false).text('✓ Registrar');
-                    } else {
-                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
-                        $btn.prop('disabled', false).text('✓ Registrar');
-                    }
-                } else if (res == true) {
-                    siapToast('Registro exitoso', 'success');
-                    siapResetFormulario('#formRegistro', 'input[name="tasa_bcv_usd"]');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                $btn.prop('disabled', false).text('✓ Registrar');
+                if (res && typeof res === 'object' && res.success) {
+                    // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+                    alert(res.message || 'Tasa BCV registrada exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
+                } else if (res === true) {
+                    alert('Tasa BCV registrada exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
                 } else {
-                    siapToast('Error al registrar. Verifique los datos.', 'error');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
                 }
             },
             error: function() {
-                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
+                alert('Error de conexión.');
             }
         });
     });

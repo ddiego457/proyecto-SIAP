@@ -6,11 +6,16 @@ trait SessionTrait {
     private $loginUrl = '?url=inicio';
     // Módulos permitidos por rol. '*' = todos los módulos.
     // ('perfil' = cambio de foto de perfil desde la sidebar, accesible a todos los roles)
+    // 'Superadmin': rol oculto en la UI (no aparece en el listado de roles ni en los
+    // selects de rol), se asigna directamente en la BD y accede a todo como Administrador.
     private $modulosPorRol = [
         'Administrador' => '*',
+        'Superadmin'    => '*',
         'Coordinador'   => ['proveedor', 'productosServicios', 'periodo', 'reporte', 'perfil'],
         'Usuario'       => ['requerimiento', 'reporte', 'perfil'],
     ];
+    // Roles con permisos de administración total (usado por esAdmin())
+    private $rolesAdmin = ['Administrador', 'Superadmin'];
     // Destino tras login / redirecciones, según rol
     private $homeUrlPorRol = [
         'Coordinador' => '?url=productosServicios&type=main',
@@ -64,6 +69,13 @@ trait SessionTrait {
     private function homeForRole(): string {
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
         return isset($this->homeUrlPorRol[$rol]) ? $this->homeUrlPorRol[$rol] : $this->homeUrl;
+    }
+
+    // ¿El rol tiene permisos de administración? (Administrador o Superadmin)
+    public function esAdmin(): bool {
+        $this->startSession();
+        $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
+        return in_array($rol, $this->rolesAdmin, true);
     }
 
     // ¿El rol tiene acceso al módulo? '*' = acceso total

@@ -124,6 +124,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 'rol'            => $loginResult['data'][0]['rol'],
                 'id_dep'         => $loginResult['data'][0]['id_dep'],
                 'usuario'        => $loginResult['data'][0]['dependencia'],
+                'nombre'         => $loginResult['data'][0]['responsable'],
                 'id_responsable' => $loginResult['data'][0]['id_responsable'],
                 'foto'           => $loginResult['data'][0]['foto']
             ]);

@@ -11,6 +11,13 @@
         define('ROL_PROTEGIDO', 'Administrador');
     }
 
+    // Rol oculto en la UI: existe solo en la BD (no aparece en el modal de
+    // Roles ni en los selects de rol al crear/editar usuarios) y sus cuentas
+    // no se gestionan desde el sistema. Accede a todo como Administrador.
+    if (!defined('ROL_SUPERADMIN')) {
+        define('ROL_SUPERADMIN', 'Superadmin');
+    }
+
     if (!function_exists('sendJson')) {
         function sendJson($payload)
         {
@@ -20,11 +27,37 @@
         }
     }
 
+    // Excluye el rol Superadmin de los listados visibles (selects de rol y modal de Roles)
+    if (!function_exists('rolesVisibles')) {
+        function rolesVisibles(array $roles): array
+        {
+            return array_values(array_filter($roles, function ($rol) {
+                return ($rol['descripcion'] ?? '') !== ROL_SUPERADMIN;
+            }));
+        }
+    }
+
+    // Devuelve true y responde JSON si la cuenta pertenece al rol Superadmin
+    if (!function_exists('bloquearCuentaSuperadmin')) {
+        function bloquearCuentaSuperadmin($object, int $idResponsable): void
+        {
+            if ($object->getRolDeResponsable($idResponsable) === ROL_SUPERADMIN) {
+                sendJson(['success' => false, 'message' => 'La cuenta Superadmin no puede modificarse desde el sistema.']);
+            }
+        }
+    }
+
     if (isset($_GET['type'])) {
 
         if ($_GET['type'] == 'register') {
 
-            $roles = $object->getRoles();
+            // El registro ahora es un modal dentro de la vista principal
+            header('Location: ?url=responsable&type=main');
+            exit;
+
+        } elseif ($_GET['type'] == 'main') {
+
+            $roles = rolesVisibles($object->getRoles());
             $dependenciasDisponibles = $object->getAvailableDependencias();
 
             if (isset($_POST['registerResponsable'])) {
@@ -82,12 +115,6 @@
                     die();
                 }
             }
-            include 'app/view/responsable/registerView.php';
-
-        } elseif ($_GET['type'] == 'main') {
-
-            $roles = $object->getRoles();
-
             if (isset($_POST['getAll'])) {
                 echo json_encode($object->getAll());
                 die();
@@ -95,6 +122,7 @@
 
             if (isset($_POST['updateItem'])) {
                 $id = (int)$_POST['idItem'];
+                bloquearCuentaSuperadmin($object, $id);
                 $nom = (string)($_POST['nom_rep'] ?? '');
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
@@ -127,6 +155,7 @@
             }
             if (isset($_POST['toggleEstado'])) {
                 $id = (int)$_POST['idItem'];
+                bloquearCuentaSuperadmin($object, $id);
                 $newEstado = isset($_POST['newState']) ? (int)$_POST['newState'] : null;
                 $result = false;
                 if ($newEstado !== 1) {
@@ -141,6 +170,17 @@
             }
             if (isset($_POST['deleteResponsable'])) {
                 $id = (int)$_POST['idItem'];
+
+                // Nadie puede eliminar su propia cuenta (en la práctica solo
+                // Administrador/Superadmin llegan a esta vista)
+                $idPropio = isset($_SESSION['id_responsable']) ? (int)$_SESSION['id_responsable'] : 0;
+                if ($idPropio > 0 && $id === $idPropio) {
+                    sendJson(['success' => false, 'message' => 'No puede eliminar su propia cuenta.']);
+                }
+
+                // Las cuentas Superadmin no se gestionan desde el sistema
+                bloquearCuentaSuperadmin($object, $id);
+
                 $result = $object->delete($id);
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Responsable eliminado' : 'Error al eliminar']);
@@ -161,6 +201,9 @@
                 $idResponsable = isset($_POST['id_responsable']) ? (int)$_POST['id_responsable'] : 0;
                 $idDep = isset($_POST['id_dep']) ? (int)$_POST['id_dep'] : 0;
                 $fechaInicio = isset($_POST['fecha_inicio']) ? trim((string)$_POST['fecha_inicio']) : date('Y-m-d');
+
+                // Las cuentas Superadmin no se gestionan desde el sistema
+                bloquearCuentaSuperadmin($object, $idResponsable);
 
                 if ($idResponsable <= 0 || $idDep <= 0) {
                     header('Content-Type: application/json; charset=utf-8');
@@ -217,7 +260,7 @@
 
             // ─── Roles: alta, edición y eliminación lógica ─────────────
             if (isset($_POST['getAllRoles'])) {
-                sendJson($object->getAllRoles());
+                sendJson(rolesVisibles($object->getAllRoles()));
             }
 
             if (isset($_POST['registerRol'])) {
@@ -242,6 +285,14 @@
 
                 if ($idRol <= 0) {
                     sendJson(['success' => false, 'message' => 'Rol no válido.']);
+                }
+
+                $rol = $object->getRolById($idRol);
+                if (!$rol) {
+                    sendJson(['success' => false, 'message' => 'El rol no existe.']);
+                }
+                if ($rol['descripcion'] === ROL_SUPERADMIN) {
+                    sendJson(['success' => false, 'message' => 'El rol ' . ROL_SUPERADMIN . ' no está disponible en el sistema.']);
                 }
 
                 $errorValidacion = $object->validar('descripcion_rol', $descripcion);
@@ -269,6 +320,10 @@
                     sendJson(['success' => false, 'message' => 'El rol no existe.']);
                 }
 
+                if ($rol['descripcion'] === ROL_SUPERADMIN) {
+                    sendJson(['success' => false, 'message' => 'El rol ' . ROL_SUPERADMIN . ' no está disponible en el sistema.']);
+                }
+
                 if ($rol['descripcion'] === ROL_PROTEGIDO) {
                     sendJson(['success' => false, 'message' => 'No se puede eliminar el rol ' . ROL_PROTEGIDO . '.']);
                 }
@@ -290,6 +345,11 @@
 
                 if ($idRol <= 0) {
                     sendJson(['success' => false, 'message' => 'Rol no válido.']);
+                }
+
+                $rol = $object->getRolById($idRol);
+                if ($rol && $rol['descripcion'] === ROL_SUPERADMIN) {
+                    sendJson(['success' => false, 'message' => 'El rol ' . ROL_SUPERADMIN . ' no está disponible en el sistema.']);
                 }
 
                 $res = $object->activateRol($idRol);

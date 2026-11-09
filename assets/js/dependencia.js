@@ -36,6 +36,22 @@ $(document).ready(function() {
         }
     });
 
+    // ─── Modal de registro ─────────────────────────────────────────
+    $('#btnNuevoRegistro').on('click', function() {
+        $('#formRegistro')[0].reset();
+        $('#formRegistro').siapValidar('limpiar');
+        $('#modalRegistro').show();
+        $('#formRegistro').find('input[name="nombre_dep"]').focus();
+    });
+
+    $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+        $('#modalRegistro').hide();
+    });
+
+    $('#modalRegistro').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
     // Registrar
     $('#formRegistro').on('submit', function(e) {
         e.preventDefault();
@@ -52,22 +68,21 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                if (res && typeof res === 'object') {
-                    if (res.success) {
-                        // Permanece en la vista de registro para dar de alta otra dependencia
-                        siapToast(res.message || 'Registro exitoso', 'success');
-                        siapResetFormulario('#formRegistro', 'input[name="nombre_dep"]');
-                    } else {
-                        siapToast(res.message || 'Error al registrar. Verifique los datos.', 'error');
-                    }
-                } else {
-                    siapToast('Error al registrar. Verifique los datos.', 'error');
-                }
                 $btn.prop('disabled', false).text('✓ Registrar');
+                if (res && typeof res === 'object' && res.success) {
+                    // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+                    alert(res.message || 'Dependencia registrada exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#formRegistro').siapValidar('limpiar');
+                    tabla.ajax.reload();
+                } else {
+                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
+                }
             },
             error: function() {
-                siapToast('Error de conexión.', 'error');
                 $btn.prop('disabled', false).text('✓ Registrar');
+                alert('Error de conexión.');
             }
         });
     });

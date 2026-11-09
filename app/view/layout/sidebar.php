@@ -1,7 +1,8 @@
 <?php
 // Detectar modulo activo desde la URL
 $urlActual = isset($_GET['url']) ? $_GET['url'] : '';
-$esAdmin = isset($_SESSION['rol']) && $_SESSION['rol'] === 'Administrador';
+// Administrador y Superadmin ven todos los módulos (ver SessionTrait::esAdmin)
+$esAdmin = $this->esAdmin();
 $esCoordinador = isset($_SESSION['rol']) && $_SESSION['rol'] === 'Coordinador';
 
 if (!function_exists('sidebarLink')) {

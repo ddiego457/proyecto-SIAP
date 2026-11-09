@@ -30,7 +30,7 @@ include_once 'app/view/layout/head.php';
         <div class="card-header">
             <span class="card-title">Tasas BCV</span>
             <div class="card-header-actions">
-                <a href="?url=tasaBCV&type=register" class="btn btn-success btn-sm">Registrar</a>
+                <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
             </div>
         </div>
         <div class="card-body">
@@ -41,6 +41,34 @@ include_once 'app/view/layout/head.php';
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div id="modalRegistro" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nuevo registro &mdash; Tasa BCV</h3>
+            <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>
+        </div>
+        <form id="formRegistro">
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Tasa BCV (USD)</label>
+                    <input type="number" name="tasa_bcv_usd" class="field-input"
+                           step="0.01" min="0" placeholder="Ej. 36.52" required>
+                    <input type="hidden" name="estado" value="1">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Fecha de Registro</label>
+                    <input type="date" name="fecha_reg" class="field-input" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Registrar</button>
+            </div>
+        </form>
     </div>
 </div>
 

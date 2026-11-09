@@ -13,6 +13,12 @@
 
         } elseif ($_GET['type'] == 'register') {
 
+            // El registro ahora es un modal dentro de la vista principal
+            header('Location: ?url=tasaBCV&type=main');
+            exit;
+
+        } elseif ($_GET['type'] == 'main') {
+
             if (isset($_POST['registerTasa'])) {
                 if (isset($_POST['tasa_bcv_usd']) && isset($_POST['fecha_reg'])) {
                     // El formulario usa los nombres exactos de columnas de tasa_bcv.
@@ -27,9 +33,6 @@
                     die();
                 }
             }
-            include 'app/view/tasaBCV/registerView.php';
-
-        } elseif ($_GET['type'] == 'main') {
 
             if (isset($_POST['getAll'])) {
                 echo json_encode($object->getAll());
