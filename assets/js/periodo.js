@@ -2,30 +2,75 @@ $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
     console.log('periodo.js loaded', currentUrl);
 
-    // Validaciones en el cliente (plugin siapValidar).
-    $('#formRegistro').siapValidar({
-        fecha_inicio: { regla: 'fecha' },
-        fecha_fin: {
-            test: function(valor) {
-                var inicio = $('#fecha_inicio').val();
-                return ValidacionesSIAP.validarFechaISO(valor) && inicio && valor >= inicio;
-            },
-            mensaje: 'La fecha fin debe ser igual o posterior a la fecha inicio, en formato AAAA-MM-DD.'
-        },
-        anio_fiscal_id: { regla: 'requerido', mensaje: 'Seleccione un año fiscal.' }
-    });
+    // ─── Validación de fechas (plugin siapValidar) ───────────────────
+    // Cada formulario tiene su select de año fiscal (el <option> muestra el
+    // año, p. ej. "2026"; su value es el id). El error se marca SIEMPRE en
+    // el input que lo provoca:
+    //   - fecha_inicio: formato, orden (inicio <= fin) y año fiscal.
+    //   - fecha_fin:    formato y año fiscal.
+    var selAnioReg = $('#formRegistro select[name="anio_fiscal_id"]');
+    var selAnioEdit = $('#edit_anio_fiscal_id');
 
-    $('#formEditar').siapValidar({
-        fecha_inicio: { regla: 'fecha' },
-        fecha_fin: {
-            test: function(valor) {
-                var inicio = $('#edit_fecha_inicio').val();
-                return ValidacionesSIAP.validarFechaISO(valor) && inicio && valor >= inicio;
+    // Año fiscal seleccionado (número) o null si no hay uno reconocible
+    function anioFiscalDe($select) {
+        var texto = $select.find('option:selected').text().trim();
+        return /^\d{4}$/.test(texto) ? parseInt(texto, 10) : null;
+    }
+
+    // Motivo de error de fecha_inicio (null si es válida). El orden de
+    // fechas se evalúa aquí y no en fecha_fin.
+    function motivoFechaInicio(valor, valorFin, $selAnio) {
+        if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Use el formato AAAA-MM-DD.';
+        if (ValidacionesSIAP.validarFechaISO(valorFin) && valor > valorFin) {
+            return 'La fecha de inicio no puede ser superior a la fecha fin.';
+        }
+        var anio = anioFiscalDe($selAnio);
+        if (anio !== null) {
+            var anioFecha = parseInt(valor.substring(0, 4), 10);
+            if (anioFecha > anio) return 'La fecha de inicio no puede ser posterior al año fiscal seleccionado (' + anio + ').';
+            if (anioFecha < anio) return 'La fecha de inicio debe corresponder al año fiscal seleccionado (' + anio + ').';
+        }
+        return null;
+    }
+
+    // Motivo de error de fecha_fin (null si es válida): formato y año fiscal
+    // (el servidor exige que ambas fechas pertenezcan al año fiscal activo).
+    function motivoFechaFin(valor, $selAnio) {
+        if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Use el formato AAAA-MM-DD.';
+        var anio = anioFiscalDe($selAnio);
+        if (anio !== null) {
+            var anioFecha = parseInt(valor.substring(0, 4), 10);
+            if (anioFecha > anio) return 'La fecha fin no puede ser posterior al año fiscal seleccionado (' + anio + ').';
+            if (anioFecha < anio) return 'La fecha fin debe corresponder al año fiscal seleccionado (' + anio + ').';
+        }
+        return null;
+    }
+
+    // Configuración de validación de un formulario de fechas
+    function configFechas($selAnio, $inicio, $fin) {
+        return {
+            fecha_inicio: {
+                test: function(valor) {
+                    return motivoFechaInicio(valor, $fin.val(), $selAnio) === null;
+                },
+                mensaje: function() {
+                    return motivoFechaInicio($inicio.val(), $fin.val(), $selAnio) || 'La fecha de inicio no es válida.';
+                }
             },
-            mensaje: 'La fecha fin debe ser igual o posterior a la fecha inicio, en formato AAAA-MM-DD.'
-        },
-        anio_fiscal_id: { regla: 'requerido', mensaje: 'Seleccione un año fiscal.' }
-    });
+            fecha_fin: {
+                test: function(valor) {
+                    return motivoFechaFin(valor, $selAnio) === null;
+                },
+                mensaje: function() {
+                    return motivoFechaFin($fin.val(), $selAnio) || 'La fecha fin no es válida.';
+                }
+            },
+            anio_fiscal_id: { regla: 'requerido', mensaje: 'Seleccione un año fiscal.' }
+        };
+    }
+
+    $('#formRegistro').siapValidar(configFechas(selAnioReg, $('#fecha_inicio'), $('#fecha_fin')));
+    $('#formEditar').siapValidar(configFechas(selAnioEdit, $('#edit_fecha_inicio'), $('#edit_fecha_fin')));
 
     $('#formAnioFiscal').siapValidar({
         anio_fiscal: { regla: 'anio' }
@@ -73,20 +118,37 @@ $(document).ready(function() {
         }
     });
 
-    // ─── Validación cruzada en vivo del orden de fechas ─────────────
-    // El error rojo de orden vive en fecha_fin (test 'valor >= fecha_inicio'
-    // configurado arriba con el plugin siapValidar). Al cambiar cualquier
-    // fecha se re-evalúa para que el mensaje aparezca o desaparezca de
-    // inmediato, sin esperar al blur ni al intento de envío.
-    // (Al enviar, el plugin ya bloquea el formulario con ese mismo error.)
-    function revalidarOrdenFechas($campo) {
+    // ─── Re-validación en vivo ──────────────────────────────────────
+    // Al cambiar cualquier fecha o el año fiscal se re-evalúan de inmediato
+    // los campos afectados para mostrar/ocultar el error rojo existente
+    // (.field-error / .is-invalid), sin esperar al blur ni al envío.
+    // (Al enviar, el plugin ya bloquea el formulario con estos mismos errores.)
+    function revalidarCampo($campo) {
         if ($campo.val()) $campo.trigger('focusout');
     }
 
-    $('#fecha_inicio').on('change', function() { revalidarOrdenFechas($('#fecha_fin')); });
-    $('#fecha_fin').on('change', function() { revalidarOrdenFechas($(this)); });
-    $('#edit_fecha_inicio').on('change', function() { revalidarOrdenFechas($('#edit_fecha_fin')); });
-    $('#edit_fecha_fin').on('change', function() { revalidarOrdenFechas($(this)); });
+    // Registro: al cambiar fecha_fin puede cambiar el orden de la fecha
+    // de inicio; al cambiar el año fiscal, ambas fechas.
+    $('#fecha_inicio').on('change', function() { $(this).trigger('focusout'); });
+    $('#fecha_fin').on('change', function() {
+        $(this).trigger('focusout');
+        revalidarCampo($('#fecha_inicio'));
+    });
+    selAnioReg.on('change', function() {
+        revalidarCampo($('#fecha_inicio'));
+        revalidarCampo($('#fecha_fin'));
+    });
+
+    // Edición: mismas reglas con los campos del modal de edición.
+    $('#edit_fecha_inicio').on('change', function() { $(this).trigger('focusout'); });
+    $('#edit_fecha_fin').on('change', function() {
+        $(this).trigger('focusout');
+        revalidarCampo($('#edit_fecha_inicio'));
+    });
+    selAnioEdit.on('change', function() {
+        revalidarCampo($('#edit_fecha_inicio'));
+        revalidarCampo($('#edit_fecha_fin'));
+    });
 
     // ─── Modal de registro ─────────────────────────────────────────
     $('#btnNuevoRegistro').on('click', function() {

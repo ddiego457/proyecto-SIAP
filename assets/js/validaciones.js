@@ -225,6 +225,10 @@
     }
 
     function mensajeDe(opciones) {
+        // 'mensaje' puede ser una cadena o una función que devuelva la cadena:
+        // útil cuando el mismo campo puede fallar por varios motivos
+        // (formato, orden, año fiscal, etc.) y cada uno tiene su mensaje.
+        if (opciones && typeof opciones.mensaje === 'function') return opciones.mensaje();
         if (opciones && opciones.mensaje) return opciones.mensaje;
         var nombreRegla = (opciones && opciones.regla) || 'requerido';
         var regla = reglas[nombreRegla];
