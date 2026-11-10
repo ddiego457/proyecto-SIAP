@@ -28,6 +28,9 @@ $(document).ready(function() {
         // Con la opción "todos" la tabla es un consolidado de varias dependencias,
         // así que no se puede modificar: se actualizaría el requerimiento equivocado.
         function hayDependenciaElegida() {
+            // El usuario normal no tiene selector de dependencia: siempre ve
+            // datos de su propia dependencia, así que puede modificar en la modal.
+            if (!esAdmin) return true;
             var seleccion = $('#select-dependencia').val();
             return seleccion !== '' && seleccion !== undefined && seleccion !== 'todos';
         }
@@ -694,7 +697,7 @@ $(document).ready(function() {
             $('#modalViewToggle').prop('checked', false).prop('disabled', true);
             // Se oculta el contenedor completo (no solo slider/label) para liberar
             // su slot en el flex y que el botón ocupe ese hueco.
-            $('#modalViewToggle').closest('.col-md-4').hide();
+            $('#ver-resumen-wrap').hide();
             $('#btn-ver-cantidades').hide();
             $('#modalCantidades').hide();
             $('#btn-modificar-modal').hide().prop('disabled', true);
@@ -712,8 +715,8 @@ $(document).ready(function() {
 
             modoPartidas = false;
             $('#modalViewToggle').prop('disabled', false);
-            // Se restaura el display flex inline del contenedor (ver userView.php)
-            $('#modalViewToggle').closest('.col-md-4').css('display', 'flex');
+            // Se restaura el display inline-flex del contenedor (ver userView.php)
+            $('#ver-resumen-wrap').css('display', 'inline-flex');
             $('#btn-vista-partidas').html('<i class="fa-solid fa-table-list" aria-hidden="true"></i> Totales POA');
         }
 
@@ -803,7 +806,7 @@ $(document).ready(function() {
         });
 
         function crearInput(id_prod, mes, valor_actual) {
-            return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0" class="form-control form-control-sm text-center" style="width: 60px;">';
+            return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0" class="form-control form-control-sm text-center" style="width: 48px; padding: 9px 4px; font-size: 13px; text-align: center;">';
         }
 
         // ─── Modal de registro (asistente de partidas) ───────────────

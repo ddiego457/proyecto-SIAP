@@ -50,40 +50,55 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
     <div class="card">
         <div class="card-header">
             <span class="card-title">Requerimientos Consolidados</span>
-        <div class="row mb-3"> 
-            <!-- si es administrador carga las opciones del select para seleccionar la dependencia a revisar -->
-            <!-- si seleciona todos, entoces va a buscar a todas las dependencias -->
-        <?php if($this->esAdmin()){?>
-            <div class="col-md-4">
-                <label>Seleccionar Dependencia:</label>
-                <input list="select-dep-list" id="select-dependencia" class="field-input" placeholder="Buscar dependencia...">
-                <input type="hidden" id="id_dep_seleccionado" value="">
-                <datalist id="select-dep-list">
-                    <option value="todos" data-id_dep="todos"></option>
-                    <?php foreach($dependencias as $dep): ?>
-                        <option value="<?php echo htmlspecialchars($dep['nom_dep']);?>" data-id_dep="<?php echo $dep['id_dep']; ?>"></option>
-                    <?php endforeach; ?>
-                </datalist>
+            <!-- Selector de dependencia: solo administrador -->
+            <?php if($this->esAdmin()){?>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label>Seleccionar Dependencia:</label>
+                    <input list="select-dep-list" id="select-dependencia" class="field-input" placeholder="Buscar dependencia...">
+                    <input type="hidden" id="id_dep_seleccionado" value="">
+                    <datalist id="select-dep-list">
+                        <option value="todos" data-id_dep="todos"></option>
+                        <?php foreach($dependencias as $dep): ?>
+                            <option value="<?php echo htmlspecialchars($dep['nom_dep']);?>" data-id_dep="<?php echo $dep['id_dep']; ?>"></option>
+                        <?php endforeach; ?>
+                    </datalist>
+                </div>
             </div>
-            <div class="col-md-4" style="display: inline-flex; gap: 12px; align-items: baseline;">
-                <label class="field-switch">
-                    <input type="checkbox" id="modalViewToggle">
-                    <span class="switch-slider"></span>
-                </label>
-                <span id="verCant"  style="font-size: 13px; color: var(--text-muted); margin: 0 8px;">Ver resumen</span>
+            <?php } ?>
+            <!-- Acciones principales: todos los botones en una sola fila -->
+            <div class="card-header-actions">
+                <?php if(!$this->esAdmin() && !empty($prevReq) && !empty($perAct)){?>
+                <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
+                <?php }?>
+                <button type="button" id="btn-modificar" class="btn btn-success btn-sm" style="display: none;">
+                    Modificar
+                </button>
+                <button type="button" id="btn-eliminar" class="btn btn-danger btn-sm" style="display: none;">
+                    Eliminar
+                </button>
+                <button type="button" id="btn-cambiar-estado" class="btn btn-primary btn-sm" style="display: none;">
+                    Enviar Definitivo
+                </button>
+                <?php if($this->esAdmin()){?>
+                <button type="button" id="btn-vista-partidas" class="btn btn-blue btn-sm" style="display: none;">
+                    <i class="fa-solid fa-table-list" aria-hidden="true"></i> Totales POA
+                </button>
+                <?php } ?>
+                <button type="button" id="btn-ver-cantidades" class="btn btn-blue btn-sm" style="display: none;">
+                    <i class="fa-solid fa-chart-column" aria-hidden="true"></i> Ver Cantidades
+                </button>
+                <!-- "Ver resumen": visible para todos los roles (Admin y Usuario).
+                     align-items:baseline reproduce la alineación original: el
+                     offset top:10px de .switch-slider está calibrado para ella. -->
+                <div id="ver-resumen-wrap" style="display: inline-flex; gap: 8px; align-items: baseline;">
+                    <label class="field-switch">
+                        <input type="checkbox" id="modalViewToggle">
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span id="verCant" style="font-size: 13px; color: var(--text-muted);">Ver resumen</span>
+                </div>
             </div>
-            <button id="btn-ver-cantidades" class="btn btn-blue" style="display: none;">
-                <i class="fa-solid fa-chart-column" aria-hidden="true"></i> Ver Cantidades
-            </button>
-            <button id="btn-vista-partidas" class="btn btn-blue" style="display: none;">
-                <i class="fa-solid fa-table-list" aria-hidden="true"></i> Totales POA</button>
-        <?php } ?>
-        </div>
-        <div class="card-header-actions">
-            <?php if(!$this->esAdmin() && !empty($prevReq) && !empty($perAct)){?>
-            <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
-            <?php }?>
-        </div>
         </div>
         <div class="card-body">
             <div class="table-wrap">
@@ -126,17 +141,6 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                                 </tr>
                             </tfoot>
                     </table>
-                    <div id='contenedor-acciones'>
-                        <button  id="btn-modificar" class="btn btn-success" style="display: none;">
-                            Modificar
-                        </button>
-                        <button  id="btn-eliminar" class="btn btn-danger" style="display: none;">
-                            Eliminar
-                        </button>
-                        <button  id="btn-cambiar-estado" class="btn btn-primary" style="display: none;">
-                            Enviar Definitivo
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -184,7 +188,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
 
 <!-- MODAL REGISTRO DE REQUERIMIENTO -->
 <div id="modalRegistro" class="modal-backdrop" style="display:none; z-index:210;">
-    <div class="modal-panel" style="max-width: min(92vw, 1100px); max-height: 88vh;">
+    <div class="modal-panel" style="max-width: min(96vw, 1350px); max-height: 88vh;">
         <div class="modal-header">
             <h3>&#128203; Registrar Requerimiento &mdash; Partida <span id="titulo-partida">401</span></h3>
             <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>

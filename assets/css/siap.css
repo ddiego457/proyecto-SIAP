@@ -690,12 +690,16 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* ─── CARD HEADER — ACCIONES (botones movidos desde el topbar) ─ */
+/* min-width:0 + flex-shrink:1 permite que la fila envuelva los botones
+   en pantallas angostas en vez de desbordarse (los .btn son
+   white-space:nowrap, por lo que nunca se encogen: solo envuelven). */
 .card-header-actions {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .page-body {
@@ -1945,16 +1949,8 @@ table.siap-table {
     }
 }
 
-/* Botón Ver Cantidades */
-#btn-ver-cantidades {
-    flex: 0 0 auto;
-    min-height: 42px;
-    align-self: flex-end;
-    justify-content: center;
-    padding: 10px 17px;
-    border-radius: 9px;
-    font-size: 13px;
-}
+/* Botón Ver Cantidades: ahora vive en .card-header-actions junto al resto
+   de los botones, por lo que hereda el tamaño de .btn-sm sin overrides. */
 
 
 /* ============================================================
@@ -2030,14 +2026,11 @@ table.siap-table {
         flex-basis: auto;
     }
 
-    .card-header > .row > .col-md-4:has(#modalViewToggle) {
-        align-self: stretch;
-        justify-content: flex-start;
-    }
-
-    #btn-ver-cantidades {
-        width: 100%;
-    }
+    /* El switch "Ver resumen" ya no vive en .row (ahora está en
+       .card-header-actions junto a los botones), por lo que las reglas
+       :has(#modalViewToggle) y #btn-ver-cantidades { width:100% } se
+       eliminaron: forzarían el ancho completo y separarían el botón del
+       resto de la fila de acciones. */
 }
 
 
