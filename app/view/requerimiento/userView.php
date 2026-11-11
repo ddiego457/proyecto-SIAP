@@ -48,25 +48,14 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
     </div>
 
     <div class="card">
-        <div class="card-header">
+        <!-- La clase card-header-with-search solo va en la cabecera con
+             buscador (administrador): agrupa botones + buscador contra el
+             borde derecho y controla el envoltorio en pantallas estrechas.
+             Sin buscador no hace falta, se conserva el layout original. -->
+        <div class="card-header<?php echo $this->esAdmin() ? ' card-header-with-search' : ''; ?>">
             <span class="card-title">Requerimientos Consolidados</span>
-            <!-- Selector de dependencia: solo administrador -->
-            <?php if($this->esAdmin()){?>
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label>Seleccionar Dependencia:</label>
-                    <input list="select-dep-list" id="select-dependencia" class="field-input" placeholder="Buscar dependencia...">
-                    <input type="hidden" id="id_dep_seleccionado" value="">
-                    <datalist id="select-dep-list">
-                        <option value="todos" data-id_dep="todos"></option>
-                        <?php foreach($dependencias as $dep): ?>
-                            <option value="<?php echo htmlspecialchars($dep['nom_dep']);?>" data-id_dep="<?php echo $dep['id_dep']; ?>"></option>
-                        <?php endforeach; ?>
-                    </datalist>
-                </div>
-            </div>
-            <?php } ?>
-            <!-- Acciones principales: todos los botones en una sola fila -->
+            <!-- Acciones principales: todos los botones en una sola fila.
+                 Van ANTES del buscador para que ninguno quede a su derecha. -->
             <div class="card-header-actions">
                 <?php if(!$this->esAdmin() && !empty($prevReq) && !empty($perAct)){?>
                 <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
@@ -99,6 +88,23 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                     <span id="verCant" style="font-size: 13px; color: var(--text-muted);">Ver resumen</span>
                 </div>
             </div>
+            <!-- Selector de dependencia: solo administrador.
+                 Va DESPUÉS de las acciones para que ningún botón quede a su derecha. -->
+            <?php if($this->esAdmin()){?>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label>Seleccionar Dependencia:</label>
+                    <input list="select-dep-list" id="select-dependencia" class="field-input" placeholder="Buscar dependencia...">
+                    <input type="hidden" id="id_dep_seleccionado" value="">
+                    <datalist id="select-dep-list">
+                        <option value="todos" data-id_dep="todos"></option>
+                        <?php foreach($dependencias as $dep): ?>
+                            <option value="<?php echo htmlspecialchars($dep['nom_dep']);?>" data-id_dep="<?php echo $dep['id_dep']; ?>"></option>
+                        <?php endforeach; ?>
+                    </datalist>
+                </div>
+            </div>
+            <?php } ?>
         </div>
         <div class="card-body">
             <div class="table-wrap">

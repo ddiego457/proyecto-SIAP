@@ -320,6 +320,8 @@ a { text-decoration: none; color: inherit; }
 .btn-full { width: 100%; justify-content: center; }
 .btn-sm { padding: 6px 12px; font-size: 12.5px; }
 .btn-lg { padding: 13px 28px; font-size: 15px; }
+/* Botón "Usar tasa de la API" bajo el campo de tasa en los modales */
+.btn-api-tasa { margin-top: 8px; }
 
 /* Acciones de tabla: botón-icono cuadrado 36x36 */
 .siap-table .btn-sm {
@@ -884,6 +886,40 @@ a { text-decoration: none; color: inherit; }
     padding: 0;
 }
 
+/* Requerimientos — la cabecera lleva el buscador a la derecha y los
+   botones inmediatamente a su izquierda:
+   [Título] .............. [Botones] [Buscador]
+
+   Antes .row (el buscador) tenía flex:1 1 auto y absorbía todo el
+   espacio libre, con lo que el título quedaba pegado a los botones y
+   el buscador al fondo. Ahora el que crece es el título y .row
+   conserva solo su ancho, de modo que botones y buscador viajan
+   pegados contra el borde derecho.
+
+   flex-shrink:0 en el título conserva la intención de la regla base
+   ("evitar que se comprima"); solo se le añade flex-grow.
+
+   Todo va bajo .card-header-with-search para no tocar a las otras 7
+   vistas que usan .card-header / .card-header-actions. */
+/* flex-grow:1 absorbe el espacio libre para empujar acciones+buscador
+   contra el borde derecho. flex-shrink:0 para que el título (ancho
+   natural 220px = 1 línea) nunca se parta: comprimirlo a ~116px lo
+   rompía en 2 líneas ya desde 1440px. El que cede sitio son las
+   acciones, que envuelven. */
+.card-header-with-search > .card-title {
+    flex: 1 0 auto;
+}
+
+/* flex-grow:0 para no comerse el espacio libre (lo absorbe el título) y
+   flex-shrink:0 porque .col-md-4 tiene min-width:210px: si la fila
+   pudiera encogerse, el input desbordaría por main-start (row-reverse)
+   hacia la IZQUIEDA y pisaría los botones. Así la fila conserva su
+   ancho y, si falta sitio, se encogen las acciones (que sí envuelven). */
+.card-header-with-search > .row {
+    flex: 0 0 auto;
+    min-width: 250px;
+}
+
 /* ─── INFO GRID (fields) ────────────────────────────────────── */
 .info-grid {
   display: grid;
@@ -1230,18 +1266,25 @@ table.siap-table {
     text-align: left;
     font-weight: 500;
 }
-/* Inputs de cantidades dentro de la tabla del modal */
-#tablaModalCantidades input[type="number"] {
-    width: 50px;
-    padding: 4px 3px;
+/* Inputs de cantidades: estilo común para la tabla principal (#tablaMain),
+   el modal de edición de cantidades (#tablaModalCantidades) y el modal de
+   registro de requerimientos (#tabla-registro). Dimensiones tomadas del
+   estilo original del modal de registro (48px / padding 9px 4px / 13px). */
+#tablaMain input[type="number"],
+#tablaModalCantidades input[type="number"],
+#tabla-registro input[type="number"] {
+    width: 48px;
+    padding: 9px 4px;
     text-align: center;
-    border: 1px solid var(--border-light);
-    border-radius: 4px;
-    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
     outline: none;
     transition: border-color .15s;
 }
-#tablaModalCantidades input[type="number"]:focus {
+#tablaMain input[type="number"]:focus,
+#tablaModalCantidades input[type="number"]:focus,
+#tabla-registro input[type="number"]:focus {
     border-color: var(--blue);
 }
 /* Controles de DataTable dentro del modal
@@ -1966,6 +2009,33 @@ table.siap-table {
 /* ============================================================
     RESPONSIVE — TABLET
    ============================================================ */
+
+/* ─── CABECERA CON BUSCADOR: envuelve cuando no cabe todo en una línea ───
+   Entre ~905px y ~1100px (la ventana previa a la media query de 900px)
+   la cabecera va en nowrap y NO caben título(220) + botones + buscador
+   (250): .card-header-actions se aplastaba hasta 33px y sus botones
+   (nowrap) desbordaban su caja, llegando a rozar el input del buscador.
+
+   En vez de comprimir nada (romper el título en 2 líneas, o estrechar
+   el input), el título toma línea propia a ancho completo y las acciones
+   y el buscador comparten la de abajo. .row necesita width:100% aquí:
+   al ir solo en su línea, space-between coloca un hijo único en
+   flex-start y el input se quedaría pegado a la IZQUIEDA. Por debajo de
+   900px ya lo fija la regla global (.row width:100%). */
+@media (max-width: 1100px) {
+    .card-header-with-search {
+        flex-wrap: wrap;
+    }
+
+    .card-header-with-search > .card-title {
+        flex-basis: 100%;
+    }
+
+    .card-header-with-search > .row {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 
 @media (max-width: 900px) {
 

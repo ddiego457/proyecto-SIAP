@@ -434,8 +434,9 @@ $(document).ready(function() {
         });
 
         function loadData(data, row, mes) {
+            // El estilo lo aporta el CSS común (siap.css) para #tablaMain,
+            // #tablaModalCantidades y #tabla-registro.
             return `<input type="number" 
-                           style="width: 55px; padding: 8px 5px; font-size: 14px; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; outline: none; transition: border-color 0.2s ease;" 
                            name="cantidades[${row.id_prod}][${mes}]"
                            min="0" 
                            value="${data}">`;
@@ -806,7 +807,9 @@ $(document).ready(function() {
         });
 
         function crearInput(id_prod, mes, valor_actual) {
-            return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0" class="form-control form-control-sm text-center" style="width: 48px; padding: 9px 4px; font-size: 13px; text-align: center;">';
+            // Sin clases ni estilos inline: el mismo estilo que la tabla
+            // principal y el modal de edición lo aporta siap.css (#tabla-registro).
+            return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0">';
         }
 
         // ─── Modal de registro (asistente de partidas) ───────────────
