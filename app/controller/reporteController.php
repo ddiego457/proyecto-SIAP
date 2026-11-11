@@ -94,4 +94,11 @@ if ($type === 'export') {
     exit;
 }
 }
-echo 'Error: Tipo de vista no válido.';
+if (!isset($_GET['type'])) {
+    header('Location: ?url=reporte&type=main');
+    exit;
+}
+http_response_code(400);
+$failDescript = "Tipo de vista no válido en el módulo 'reporte': '" . $_GET['type'] . "'.";
+require_once dirname(__DIR__) . '/view/errorView.php';
+exit;

@@ -10,8 +10,8 @@
 
         if ($_GET['type'] == 'list') {
 
-            $result = $object->getAll();
-            include 'app/view/dependencia/listView.php';
+            header('Location: ?url=dependencia&type=main');
+            exit;
 
         } elseif ($_GET['type'] == 'register') {
 
@@ -83,14 +83,18 @@
                 echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Dependencia actualizada' : 'Error al actualizar']);
                 die();
             }
-            include 'app/view/dependencia/userView.php';
+            include 'app/view/dependencia/dependenciaUserView.php';
 
         } else {
-            echo "Error: Tipo de vista no valido.";
+            http_response_code(400);
+            $failDescript = "Tipo de vista no válido en el módulo 'dependencia': '" . $_GET['type'] . "'.";
+            require_once dirname(__DIR__) . '/view/errorView.php';
+            exit;
         }
 
     } else {
-        include 'app/view/welcomeView.php';
+        header('Location: ?url=dependencia&type=main');
+        exit;
     }
 
 ?>

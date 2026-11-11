@@ -8,8 +8,8 @@
 
         if ($_GET['type'] == 'list') {
 
-            $result = $object->getAll();
-            include 'app/view/tasaBCV/listView.php';
+            header('Location: ?url=tasaBCV&type=main');
+            exit;
 
         } elseif ($_GET['type'] == 'register') {
 
@@ -69,7 +69,7 @@
             }
             // Año fiscal activo: se pasa a la vista para la validación en JS
             $anioFiscalActivo = $object->getAnioFiscalActivo();
-            include 'app/view/tasaBCV/userView.php';
+            include 'app/view/tasaBCV/tasaBCVUserView.php';
 
         } elseif ($_GET['type'] == 'current') {
             // Devuelve la tasa activa más reciente (JSON)
@@ -78,11 +78,15 @@
             die();
 
         } else {
-            echo "Error: Tipo de vista no valido.";
+            http_response_code(400);
+            $failDescript = "Tipo de vista no válido en el módulo 'tasaBCV': '" . $_GET['type'] . "'.";
+            require_once dirname(__DIR__) . '/view/errorView.php';
+            exit;
         }
 
     } else {
-        include 'app/view/welcomeView.php';
+        header('Location: ?url=tasaBCV&type=main');
+        exit;
     }
 
 ?>

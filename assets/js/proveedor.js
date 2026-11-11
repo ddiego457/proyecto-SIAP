@@ -4,6 +4,9 @@ $(document).ready(function() {
     const pdfUrl = currentUrl.replace(/([?].*)?$/, '') + '?url=proveedor&type=pdf';
     // Límite de tamaño del PDF en el cliente (10 MB)
     const maximoBytesPdf = 10 * 1024 * 1024;
+    // Estado del modal de contactos (se abre desde la tabla de proveedores)
+    let contactosIdProveedor = 0;
+    let contactosTabla = null;
 
     // Validaciones en el cliente (plugin siapValidar).
     $('#formRegistro').siapValidar({
@@ -154,8 +157,21 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-contactos', function() {
-        const idProveedor = this.value;
-        window.location.href = currentUrl.replace(/([?].*)?$/, '') + '?url=proveedor&type=contacts&idProveedor=' + idProveedor;
+        const data = tabla.row($(this).closest('tr')).data();
+        if (!data) return;
+
+        contactosIdProveedor = Number(data.id_proveedor) || 0;
+        $('#contact_id_proveedor').val(contactosIdProveedor);
+        $('#contact_proveedorNombre').val(data.nombre);
+        $('#contact_telefono').val('');
+        $('#formAgregarContacto').siapValidar('limpiar');
+        // Se muestra antes de crear/recargar la tabla para que DataTables mida bien las columnas
+        $('#modalContactos').show();
+        if (!contactosTabla) {
+            contactosTabla = crearTablaContactos();
+        } else {
+            contactosTabla.ajax.reload();
+        }
     });
 
     $('#btnCerrarModal, #btnCerrarModal2').on('click', function() {
@@ -219,7 +235,10 @@ $(document).ready(function() {
     });
 
     $(document).on('keydown', function(e) {
-        if (e.key === 'Escape') $('#modalPdf').hide();
+        if (e.key !== 'Escape') return;
+        $('#modalEditarContacto').hide();
+        $('#modalContactos').hide();
+        $('#modalPdf').hide();
     });
 
     $('#formSubirPdf').on('submit', function(e) {
@@ -270,13 +289,18 @@ $(document).ready(function() {
         });
     });
 
-    if ($('#tablaContactos').length) {
-        const idProveedor = Number($('#contact_id_proveedor').val());
-        const contactosTabla = $('#tablaContactos').DataTable({
+    // ─── Modal de contactos del proveedor ────────────────────────
+    // La tabla se crea en la primera apertura para que DataTables calcule
+    // los anchos con el modal ya visible; luego solo se recarga.
+    function crearTablaContactos() {
+        return $('#tablaContactos').DataTable({
             ajax: {
                 url: currentUrl,
                 method: 'POST',
-                data: { getContacts: true, idProveedor: idProveedor },
+                data: function(d) {
+                    d.getContacts = true;
+                    d.idProveedor = contactosIdProveedor;
+                },
                 dataSrc: ''
             },
             columns: [
@@ -295,114 +319,126 @@ $(document).ready(function() {
                 }}
             ],
             autoWidth: false,
-            language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" }
-        });
-
-        // Validación de teléfono delegada a siapValidar (focusout + bloqueo de submit).
-        $('#formAgregarContacto').on('submit', function(e) {
-            e.preventDefault();
-            const telefono = $('#contact_telefono').val().trim();
-            $.ajax({
-                url: currentUrl,
-                method: 'POST',
-                dataType: 'json',
-                data: { addContact: true, idProveedor: idProveedor, telefono: telefono },
-                success: function(res) {
-                    if (res == true) {
-                        alert('Contacto agregado.');
-                        $('#contact_telefono').val('');
-                        contactosTabla.ajax.reload();
-                    } else {
-                        alert('Error al agregar contacto.');
-                    }
-                }
-            });
-        });
-
-        $(document).on('click', '.btn-modificar-contacto', function() {
-            const idContacto = this.value;
-            const row = contactosTabla.row($(this).closest('tr')).data();
-            $('#edit_idContacto').val(idContacto);
-            $('#edit_telefono').val(row.telefono);
-            $('#formEditarContacto').siapValidar('limpiar');
-            $('#modalEditarContacto').show();
-        });
-
-        $(document).on('click', '.btn-eliminar-contacto', function() {
-            if (!confirm('¿Está seguro de eliminar este contacto?')) return;
-            const idContacto = this.value;
-            $.ajax({
-                url: currentUrl,
-                method: 'POST',
-                dataType: 'json',
-                data: { deleteContact: true, idContacto: idContacto },
-                success: function(res) {
-                    alert(res ? 'Contacto eliminado' : 'Error al eliminar');
-                    contactosTabla.ajax.reload();
-                }
-            });
-        });
-
-        $(document).on('click', '.btn-inactivar-contacto', function() {
-            if (!confirm('¿Inactivar este contacto?')) return;
-            const idContacto = this.value;
-            $.ajax({
-                url: currentUrl,
-                method: 'POST',
-                dataType: 'json',
-                data: { inactivateContact: true, idContacto: idContacto },
-                success: function(res) {
-                    alert(res ? 'Contacto inactivado' : 'Error al inactivar');
-                    contactosTabla.ajax.reload();
-                }
-            });
-        });
-
-        $(document).on('click', '.btn-activar-contacto', function() {
-            if (!confirm('¿Activar este contacto?')) return;
-            const idContacto = this.value;
-            $.ajax({
-                url: currentUrl,
-                method: 'POST',
-                dataType: 'json',
-                data: { activateContact: true, idContacto: idContacto },
-                success: function(res) {
-                    alert(res ? 'Contacto activado' : 'Error al activar');
-                    contactosTabla.ajax.reload();
-                }
-            });
-        });
-
-        $('#btnCerrarModalContacto, #btnCerrarModalContacto2').on('click', function() {
-            $('#modalEditarContacto').hide();
-        });
-
-        // Cerrar haciendo clic fuera del panel (igual que los demás modales)
-        $('#modalEditarContacto').on('click', function(e) {
-            if (e.target === this) $(this).hide();
-        });
-
-        $('#formEditarContacto').on('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            formData.append('updateContact', true);
-            $.ajax({
-                url: currentUrl,
-                method: 'POST',
-                data: formData,
-                dataType: 'json',
-                processData: false,
-                contentType: false,
-                success: function(res) {
-                    if (res == true) {
-                        alert('Contacto actualizado.');
-                        $('#modalEditarContacto').hide();
-                        contactosTabla.ajax.reload();
-                    } else {
-                        alert('Error al actualizar contacto.');
-                    }
-                }
-            });
+            language: { url: "assets/js/DataTables/spanish.json" }
         });
     }
+
+    // Validación de teléfono delegada a siapValidar (focusout + bloqueo de submit).
+    $('#formAgregarContacto').on('submit', function(e) {
+        e.preventDefault();
+        const telefono = $('#contact_telefono').val().trim();
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: { addContact: true, idProveedor: contactosIdProveedor, telefono: telefono },
+            success: function(res) {
+                if (res == true) {
+                    alert('Contacto agregado.');
+                    $('#contact_telefono').val('');
+                    if (contactosTabla) contactosTabla.ajax.reload();
+                } else {
+                    alert('Error al agregar contacto.');
+                }
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-modificar-contacto', function() {
+        if (!contactosTabla) return;
+        const idContacto = this.value;
+        const row = contactosTabla.row($(this).closest('tr')).data();
+        if (!row) return;
+        $('#edit_idContacto').val(idContacto);
+        $('#edit_telefono').val(row.telefono);
+        $('#formEditarContacto').siapValidar('limpiar');
+        $('#modalEditarContacto').show();
+    });
+
+    $(document).on('click', '.btn-eliminar-contacto', function() {
+        if (!confirm('¿Está seguro de eliminar este contacto?')) return;
+        const idContacto = this.value;
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: { deleteContact: true, idContacto: idContacto },
+            success: function(res) {
+                alert(res ? 'Contacto eliminado' : 'Error al eliminar');
+                if (contactosTabla) contactosTabla.ajax.reload();
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-inactivar-contacto', function() {
+        if (!confirm('¿Inactivar este contacto?')) return;
+        const idContacto = this.value;
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: { inactivateContact: true, idContacto: idContacto },
+            success: function(res) {
+                alert(res ? 'Contacto inactivado' : 'Error al inactivar');
+                if (contactosTabla) contactosTabla.ajax.reload();
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-activar-contacto', function() {
+        if (!confirm('¿Activar este contacto?')) return;
+        const idContacto = this.value;
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: { activateContact: true, idContacto: idContacto },
+            success: function(res) {
+                alert(res ? 'Contacto activado' : 'Error al activar');
+                if (contactosTabla) contactosTabla.ajax.reload();
+            }
+        });
+    });
+
+    // Cierres del modal de edición de contacto
+    $('#btnCerrarModalContacto, #btnCerrarModalContacto2').on('click', function() {
+        $('#modalEditarContacto').hide();
+    });
+
+    // Cerrar haciendo clic fuera del panel (igual que los demás modales)
+    $('#modalEditarContacto').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
+    $('#formEditarContacto').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        formData.append('updateContact', true);
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if (res == true) {
+                    alert('Contacto actualizado.');
+                    $('#modalEditarContacto').hide();
+                    if (contactosTabla) contactosTabla.ajax.reload();
+                } else {
+                    alert('Error al actualizar contacto.');
+                }
+            }
+        });
+    });
+
+    // Cierres del modal de contactos
+    $('#btnCerrarModalContactos, #btnCerrarModalContactos2').on('click', function() {
+        $('#modalContactos').hide();
+    });
+
+    $('#modalContactos').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
 });

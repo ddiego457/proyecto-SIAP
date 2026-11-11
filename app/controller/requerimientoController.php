@@ -202,15 +202,19 @@ if (isset($_GET['type'])) {
             $prevReqError = true;
         }
 
-        include 'app/view/requerimiento/userView.php';
+        include 'app/view/requerimiento/requerimientoUserView.php';
 
     } else {
-        echo "Error: Tipo de vista no valido.";
+        http_response_code(400);
+        $failDescript = "Tipo de vista no válido en el módulo 'requerimiento': '" . $_GET['type'] . "'.";
+        require_once dirname(__DIR__) . '/view/errorView.php';
+        exit;
     }
 
 } 
 else {
-    include 'app/view/requerimiento/userView.php';
+    header('Location: ?url=requerimiento&type=main');
+    exit;
 }
 
 ?>

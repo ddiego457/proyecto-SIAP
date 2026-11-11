@@ -356,14 +356,18 @@
                 sendJson(['success' => (bool)$res, 'message' => $res ? 'Rol activado' : 'Error al activar el rol.']);
             }
 
-            include 'app/view/responsable/userView.php';
+            include 'app/view/responsable/responsableUserView.php';
 
         } else {
-            echo "Error: Tipo de vista no valido.";
+            http_response_code(400);
+            $failDescript = "Tipo de vista no válido en el módulo 'responsable': '" . $_GET['type'] . "'.";
+            require_once dirname(__DIR__) . '/view/errorView.php';
+            exit;
         }
 
     } else {
-        include 'app/view/welcomeView.php';
+        header('Location: ?url=responsable&type=main');
+        exit;
     }
 
 ?>

@@ -120,4 +120,60 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
+<!-- MODAL CONTACTOS DEL PROVEEDOR -->
+<div id="modalContactos" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel" style="max-width:720px;">
+        <div class="modal-header">
+            <h3>Contactos del proveedor</h3>
+            <button id="btnCerrarModalContactos" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group">
+                <label class="field-label">Proveedor</label>
+                <input type="text" id="contact_proveedorNombre" class="field-input" readonly style="background:#f8fafc;">
+                <input type="hidden" id="contact_id_proveedor" value="">
+            </div>
+            <form id="formAgregarContacto">
+                <div class="field-group">
+                    <label class="field-label">Agregar teléfono</label>
+                    <input type="text" id="contact_telefono" name="telefono" class="field-input" placeholder="Ej. 0414-1234567">
+                    <button type="submit" id="btnAgregarContacto" class="btn btn-success btn-sm" style="margin-top:10px;">Agregar</button>
+                </div>
+            </form>
+            <div class="table-wrapper" style="margin-top:20px;">
+                <table id="tablaContactos" class="siap-table" style="width:100%">
+                    <thead><tr><th>ID</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnCerrarModalContactos2" class="btn btn-outline">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR CONTACTO -->
+<div id="modalEditarContacto" class="modal-backdrop" style="display:none;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Editar contacto</h3>
+            <button id="btnCerrarModalContacto" class="modal-close">&times;</button>
+        </div>
+        <form id="formEditarContacto">
+            <input type="hidden" id="edit_idContacto" name="idContacto">
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Teléfono</label>
+                    <input type="text" id="edit_telefono" name="telefono" class="field-input" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalContacto2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?php include_once 'app/view/layout/foot.php'; ?>

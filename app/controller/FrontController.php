@@ -39,7 +39,7 @@ class FrontController
             } else {
                 // Captura URL no válida (Error 404)
                 http_response_code(404);
-                $failDescript = "La ruta solicitada ('" . htmlspecialchars($this->url) . "') no existe en el sistema.";
+                $failDescript = "La ruta solicitada ('" . $this->url . "') no existe en el sistema.";
                 
                 // Ajusta esta ruta dependiendo de dónde guardes 'errorView.php'
                 require_once dirname(__DIR__) . '/view/errorView.php'; 

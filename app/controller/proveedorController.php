@@ -10,64 +10,13 @@
         if ($_GET['type'] == 'list') {
 
             $result = $object->getAll();
-            include 'app/view/proveedor/userView.php';
+            include 'app/view/proveedor/proveedorUserView.php';
 
         } elseif ($_GET['type'] == 'register') {
 
             // El registro ahora es un modal dentro de la vista principal
             header('Location: ?url=proveedor&type=main');
             exit;
-
-        } elseif ($_GET['type'] == 'contacts') {
-            if (isset($_POST['getContacts'])) {
-                echo json_encode($object->getContacts((int)$_POST['idProveedor']));
-                die();
-            }
-            if (isset($_POST['addContact'])) {
-                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
-                if ($errorValidacion !== null) {
-                    echo json_encode(false);
-                    die();
-                }
-                echo json_encode($object->addContact((int)$_POST['idProveedor'], (string)$_POST['telefono']));
-                die();
-            }
-            if (isset($_POST['updateContact'])) {
-                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
-                if ($errorValidacion !== null) {
-                    echo json_encode(false);
-                    die();
-                }
-                echo json_encode($object->updateContact((int)$_POST['idContacto'], (string)$_POST['telefono'], isset($_POST['estado']) ? (int)$_POST['estado'] : null));
-                die();
-            }
-            if (isset($_POST['deleteContact'])) {
-                echo json_encode($object->deleteContact((int)$_POST['idContacto']));
-                die();
-            }
-            if (isset($_POST['activateContact'])) {
-                echo json_encode($object->activateContact((int)$_POST['idContacto']));
-                die();
-            }
-            if (isset($_POST['inactivateContact'])) {
-                echo json_encode($object->inactivateContact((int)$_POST['idContacto']));
-                die();
-            }
-
-            $idProveedor = isset($_GET['idProveedor']) ? (int)$_GET['idProveedor'] : 0;
-            if ($idProveedor <= 0) {
-                echo "Proveedor no válido.";
-                die();
-            }
-            $proveedorInfo = $object->getById($idProveedor);
-            if (!$proveedorInfo) {
-                echo "Proveedor no encontrado.";
-                die();
-            }
-            $idProveedor = $proveedorInfo['id_proveedor'];
-            $proveedorNombre = $proveedorInfo['nombre'];
-            include 'app/view/proveedor/providerContactsView.php';
-            die();
 
         } elseif ($_GET['type'] == 'pdf') {
 
@@ -191,14 +140,18 @@
                 echo json_encode($object->inactivateContact((int)$_POST['idContacto']));
                 die();
             }
-            include 'app/view/proveedor/userView.php';
+            include 'app/view/proveedor/proveedorUserView.php';
 
         } else {
-            echo "Error: Tipo de vista no valido.";
+            http_response_code(400);
+            $failDescript = "Tipo de vista no válido en el módulo 'proveedor': '" . $_GET['type'] . "'.";
+            require_once dirname(__DIR__) . '/view/errorView.php';
+            exit;
         }
 
     } else {
-        include 'app/view/welcomeView.php';
+        header('Location: ?url=proveedor&type=main');
+        exit;
     }
 
 ?>

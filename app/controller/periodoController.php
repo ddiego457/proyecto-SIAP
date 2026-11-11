@@ -18,8 +18,8 @@ if (!function_exists('sendJsonResponse')) {
 
 if (isset($_GET['type'])) {
     if ($_GET['type'] == 'list') {
-        $result = $object->getAll();
-        include 'app/view/periodo/listView.php';
+        header('Location: ?url=periodo&type=main');
+        exit;
     } elseif ($_GET['type'] == 'register') {
         // El registro ahora es un modal dentro de la vista principal
         header('Location: ?url=periodo&type=main');
@@ -86,9 +86,12 @@ if (isset($_GET['type'])) {
         }
 
         $anioFiscales = $object->getAniosFiscalesActivos();
-        include 'app/view/periodo/userView.php';
+        include 'app/view/periodo/periodoUserView.php';
     } else {
-        echo "Error: Tipo de vista no valido.";
+        http_response_code(400);
+        $failDescript = "Tipo de vista no válido en el módulo 'periodo': '" . $_GET['type'] . "'.";
+        require_once dirname(__DIR__) . '/view/errorView.php';
+        exit;
     }
 } else {
     // Endpoint para obtener periodo activo
@@ -97,7 +100,8 @@ if (isset($_GET['type'])) {
         echo json_encode($object->getLatestActive());
         die();
     }
-    include 'app/view/welcomeView.php';
+    header('Location: ?url=periodo&type=main');
+    exit;
 }
 
 ?>

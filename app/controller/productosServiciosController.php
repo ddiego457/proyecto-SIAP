@@ -218,7 +218,7 @@ if (isset($_GET['type'])) {
             sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Registro actualizado' : 'Error al actualizar']);
         }
 
-        include 'app/view/productosServicios/userView.php';
+        include 'app/view/productosServicios/productosServiciosUserView.php';
         return;
     }
 
@@ -228,8 +228,11 @@ if (isset($_GET['type'])) {
         exit;
     }
 
-    echo "Error: Tipo de vista no valido.";
-    return;
+    http_response_code(400);
+    $failDescript = "Tipo de vista no válido en el módulo 'productosServicios': '" . $_GET['type'] . "'.";
+    require_once dirname(__DIR__) . '/view/errorView.php';
+    exit;
 }
 
-echo "Error: ruta no valida para productosServicios.";
+header('Location: ?url=productosServicios&type=main');
+exit;
