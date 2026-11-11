@@ -2,11 +2,14 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ReporteExcelGeneratorTrait;
+use EquipoSiap\Siap\helpers\ReportePdfGeneratorTrait;
 use EquipoSiap\Siap\helpers\ValidationTrait;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Mpdf\Mpdf;
+
 
 class reporteModel extends ConnectDB
 {
@@ -486,6 +489,9 @@ class reporteModel extends ConnectDB
     private function executeGetPdfProReport(array $datos): void
     {
         try {
+            // Los reportes grandes superan el límite por defecto de PCRE (1.000.000)
+            // que mPDF usa para analizar el HTML; se amplía antes de escribir.
+            ini_set('pcre.backtrack_limit', '10000000');
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => 'LETTER-L',
@@ -589,6 +595,9 @@ class reporteModel extends ConnectDB
     private function executeGetPdfDependenciasResponsable(array $datos): void
     {
         try {
+            // Los reportes grandes superan el límite por defecto de PCRE (1.000.000)
+            // que mPDF usa para analizar el HTML; se amplía antes de escribir.
+            ini_set('pcre.backtrack_limit', '10000000');
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => 'LETTER-L',
@@ -673,6 +682,9 @@ class reporteModel extends ConnectDB
     private function executeGetPdfReqReport(array $datos, string $tituloReporte = 'Consolidado POA'): void
     {
         try {
+            // Los reportes grandes superan el límite por defecto de PCRE (1.000.000)
+            // que mPDF usa para analizar el HTML; se amplía antes de escribir.
+            ini_set('pcre.backtrack_limit', '10000000');
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => 'LETTER-L',
@@ -761,7 +773,7 @@ class reporteModel extends ConnectDB
                         <td class="font-bold">' . htmlspecialchars($fila['codigo']) . '</td>
                         <td class="text-left">' . htmlspecialchars($descripcion) . '</td>
                         <td>' . htmlspecialchars($uMedida) . '</td>
-                        <td class="text-right">' . $fmt($fila['precio'] ?? $fila['precio_dolares'], true) . '</td>
+                        <td class="text-right">' . $fmt($fila['precio'] ?? ($fila['precio_dolares'] ?? 0), true) . '</td>
                         <td>' . $fmt($fila['Ene']) . '</td>
                         <td>' . $fmt($fila['Feb']) . '</td>
                         <td>' . $fmt($fila['Mar']) . '</td>
@@ -794,3 +806,5 @@ class reporteModel extends ConnectDB
         }
     }
 }
+
+
