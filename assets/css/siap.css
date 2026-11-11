@@ -228,6 +228,12 @@ a { text-decoration: none; color: inherit; }
   font-size: 12px;
 }
 
+/*input de las tablas buscar*/
+
+.dt-input{
+  border-color: #081e33;
+}
+
 /* ─── VALIDACIÓN DE CAMPOS ─────────────────────────────────── */
 .field-input.is-invalid,
 .field-select.is-invalid {
