@@ -35,7 +35,9 @@ class tasaBCVModel extends ConnectDB
 
     // [C] - CREAR
     // Devuelve {success, message}: el controlador lo reenvía tal cual al JS.
-    public function add(string $valorUsd, string $fechaRegistro, int $estado = 1): array
+    // $origen: 'automatica' si el valor viene de la API dolarapi.com (comparado
+    // en el JS), 'manual' si el usuario lo escribió.
+    public function add(string $valorUsd, string $fechaRegistro, int $estado = 1, string $origen = 'manual'): array
     {
         $error = $this->validar('tasa', $valorUsd);
         if ($error === null) {
@@ -45,7 +47,12 @@ class tasaBCVModel extends ConnectDB
             return ['success' => false, 'message' => $error];
         }
 
-        return $this->executeInsert(round((float)$valorUsd, 2), $fechaRegistro, $estado);
+        // Origen: solo valores permitidos (validación pura, sin SQL)
+        if (!in_array($origen, ['manual', 'automatica'], true)) {
+            $origen = 'manual';
+        }
+
+        return $this->executeInsert(round((float)$valorUsd, 2), $fechaRegistro, $estado, $origen);
     }
 
     // [U] - ACTUALIZAR
@@ -98,8 +105,8 @@ class tasaBCVModel extends ConnectDB
     // ==================================================================
 
     private function executeSelectAll() {
-        // Campos reales según siap_db.sql: id_tasa, fecha_reg, tasa_bcv_usd, estado
-        $stmt = $this->conex->prepare("SELECT id_tasa, fecha_reg, tasa_bcv_usd, estado FROM tasa_bcv ORDER BY fecha_reg DESC");
+        // Campos reales según siap_db.sql: id_tasa, fecha_reg, tasa_bcv_usd, estado, origen
+        $stmt = $this->conex->prepare("SELECT id_tasa, fecha_reg, tasa_bcv_usd, estado, origen FROM tasa_bcv ORDER BY fecha_reg DESC");
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -111,7 +118,7 @@ class tasaBCVModel extends ConnectDB
         return (bool)$stmt->fetchColumn();
     }
 
-    private function executeInsert(float $valorUsd, string $fechaRegistro, int $estado): array
+    private function executeInsert(float $valorUsd, string $fechaRegistro, int $estado, string $origen): array
     {
         try {
             // La fecha debe pertenecer exactamente al año fiscal activo
@@ -136,11 +143,12 @@ class tasaBCVModel extends ConnectDB
                 $this->deactivateAllActive();
             }
 
-            $query = "INSERT INTO tasa_bcv (tasa_bcv_usd, fecha_reg, estado) VALUES (?, ?, ?)";
+            $query = "INSERT INTO tasa_bcv (tasa_bcv_usd, fecha_reg, estado, origen) VALUES (?, ?, ?, ?)";
             $stmt  = $this->conex->prepare($query);
             $stmt->bindValue(1, $valorUsd);
             $stmt->bindValue(2, $fechaRegistro);
             $stmt->bindValue(3, $estado, \PDO::PARAM_INT);
+            $stmt->bindValue(4, $origen);
 
             if (!$stmt->execute()) {
                 return ['success' => false, 'message' => 'Error al registrar (duplicado o error BD).'];
@@ -162,14 +170,21 @@ class tasaBCVModel extends ConnectDB
             }
 
             // 1) La tasa existente debe pertenecer al año fiscal activo
-            $stmt = $this->conex->prepare("SELECT fecha_reg FROM tasa_bcv WHERE id_tasa = ?");
+            $stmt = $this->conex->prepare("SELECT fecha_reg, estado, tasa_bcv_usd, origen FROM tasa_bcv WHERE id_tasa = ?");
             $stmt->execute([$id]);
-            $fechaActual = $stmt->fetchColumn();
-            if ($fechaActual === false || $fechaActual === null) {
+            $actual = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$actual) {
                 return ['success' => false, 'message' => 'Tasa no encontrada.'];
             }
+            $fechaActual = $actual['fecha_reg'];
             if ((int)substr((string)$fechaActual, 0, 4) !== $anioActivo) {
                 return ['success' => false, 'message' => 'No se puede modificar una tasa de un año fiscal que no está activo (año activo: ' . $anioActivo . ').'];
+            }
+
+            // 1b) Solo se modifica la tasa activa: las inhabilitadas no se
+            // editan (se reactivan con el botón "Activar" de la tabla).
+            if ((int)$actual['estado'] === 0) {
+                return ['success' => false, 'message' => 'No se puede modificar una tasa inhabilitada. Solo se permite modificar la tasa activa.'];
             }
 
             // 2) La nueva fecha también debe permanecer en el año fiscal activo
@@ -178,17 +193,25 @@ class tasaBCVModel extends ConnectDB
                 return ['success' => false, 'message' => 'La fecha debe corresponder al año fiscal activo (' . $anioActivo . '). No se permiten años anteriores ni posteriores.'];
             }
 
+            // Origen: si el valor cambió, el registro pasa a 'manual'; si se
+            // guarda sin tocarlo, conserva el origen actual.
+            $valorAnterior = round((float)$actual['tasa_bcv_usd'], 2);
+            $origenNuevo = ((float)$valorUsd !== $valorAnterior)
+                ? 'manual'
+                : (string)($actual['origen'] ?? 'manual');
+
             // Si se marca como activa, inhabilitar otras
             if ($estado === 1) {
                 $this->deactivateAllActive();
             }
 
-            $query = "UPDATE tasa_bcv SET tasa_bcv_usd = ?, fecha_reg = ?, estado = ? WHERE id_tasa = ?";
+            $query = "UPDATE tasa_bcv SET tasa_bcv_usd = ?, fecha_reg = ?, estado = ?, origen = ? WHERE id_tasa = ?";
             $stmt  = $this->conex->prepare($query);
             $stmt->bindValue(1, $valorUsd);
             $stmt->bindValue(2, $fechaRegistro);
             $stmt->bindValue(3, $estado, \PDO::PARAM_INT);
-            $stmt->bindValue(4, $id, \PDO::PARAM_INT);
+            $stmt->bindValue(4, $origenNuevo);
+            $stmt->bindValue(5, $id, \PDO::PARAM_INT);
             if (!$stmt->execute()) {
                 return ['success' => false, 'message' => 'Error al actualizar la tasa.'];
             }

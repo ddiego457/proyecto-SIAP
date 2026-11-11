@@ -23,10 +23,16 @@
                 if (isset($_POST['tasa_bcv_usd']) && isset($_POST['fecha_reg'])) {
                     // El formulario usa los nombres exactos de columnas de tasa_bcv.
                     // Las validaciones (formato y duplicado) viven en el modelo.
+                    // Origen del valor: 'automatica' si el JS confirmó que
+                    // coincide con la API dolarapi.com, si no 'manual'.
+                    $origen = (isset($_POST['origen']) && in_array($_POST['origen'], ['manual', 'automatica'], true))
+                        ? (string)$_POST['origen']
+                        : 'manual';
                     $resultado = $object->add(
                         (string)$_POST['tasa_bcv_usd'],
                         (string)$_POST['fecha_reg'],
-                        1
+                        1,
+                        $origen
                     );
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode($resultado);

@@ -2812,7 +2812,8 @@ CREATE TABLE `tasa_bcv` (
   `id_tasa` int(11) NOT NULL,
   `fecha_reg` date NOT NULL,
   `tasa_bcv_usd` decimal(12,2) NOT NULL,
-  `estado` tinyint(1) NOT NULL DEFAULT 1
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
+  `origen` varchar(10) NOT NULL DEFAULT 'manual'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --

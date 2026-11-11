@@ -246,8 +246,15 @@ class periodoModel extends ConnectDB
     private function executeGetAll() {
         try {
             // Columnas que el JS (periodo.js) espera:
-            // id_periodo, anio_fiscal_id, fecha_inicio, fecha_fin, activo
-            $stmt = $this->conex->prepare("SELECT id_periodo, id_aniof AS anio_fiscal_id, per_inicio AS fecha_inicio, per_fin AS fecha_fin, activo FROM periodos_entrega WHERE activo = 1 OR activo = 0");
+            // id_periodo, anio_fiscal_id, anio_fiscal, fecha_inicio, fecha_fin, activo
+            // (anio_fiscal: año visible en la tabla; anio_fiscal_id: id para el modal editar)
+            $stmt = $this->conex->prepare(
+                "SELECT p.id_periodo, p.id_aniof AS anio_fiscal_id, a.anio AS anio_fiscal,
+                        p.per_inicio AS fecha_inicio, p.per_fin AS fecha_fin, p.activo
+                 FROM periodos_entrega p
+                 LEFT JOIN anio_fiscal a ON a.id_aniof = p.id_aniof
+                 WHERE p.activo = 1 OR p.activo = 0"
+            );
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {

@@ -103,6 +103,11 @@ $(document).ready(function() {
                     ? '<span class="badge badge-success">Activo</span>'
                     : '<span class="badge badge-danger">Inactivo</span>';
             } },
+            { data: 'origen', render: (d) => {
+                return (d === 'automatica')
+                    ? '<span class="badge badge-blue">Automática</span>'
+                    : '<span class="badge badge-gray">Manual</span>';
+            } },
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_tasa}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {
@@ -120,10 +125,81 @@ $(document).ready(function() {
         }
     });
 
-    // ─── Modal de registro ─────────────────────────────────────────
+    // ─── API dolarapi.com: valor de la tasa del día ─────────────────
+    // Valor consultado a la API (fuente oficial/BCV). null mientras no
+    // haya consulta exitosa → el registro queda en 'manual'.
+    let tasaApiFormateada = null;
+
+    // Fecha de hoy en formato local AAAA-MM-DD (sin el desfase UTC de toISOString)
+    function fechaHoyISO() {
+        const d = new Date();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dia = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + m + '-' + dia;
+    }
+
+    // Consulta la tasa BCV del día – API dolarapi.com (enzonotario/dolarapi.com).
+    // onValor recibe el número redondeado a 2 decimales si hay resultado;
+    // notificar muestra un alert si la consulta falla (para el botón manual).
+    function consultarTasaBCV(onValor, notificar) {
+        tasaApiFormateada = null;
+        return $.ajax({
+            url: 'https://ve.dolarapi.com/v1/dolares/oficial',
+            method: 'GET',
+            dataType: 'json',
+            timeout: 10000,
+            success: function(res) {
+                const bruto = Number(res && (res.promedio ?? res.venta ?? res.compra));
+                if (isFinite(bruto) && bruto > 0) {
+                    tasaApiFormateada = Number(bruto.toFixed(2));
+                    if (typeof onValor === 'function') onValor(tasaApiFormateada);
+                } else if (notificar) {
+                    alert('La API no devolvió un valor de tasa válido. Intente de nuevo.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('No se pudo consultar la tasa BCV (dolarapi.com):', status, error);
+                if (notificar) {
+                    alert('No se pudo consultar la tasa de la API. Verifique su conexión e intente de nuevo.');
+                }
+            }
+        });
+    }
+
+    // Botón "Usar tasa de la API": consulta el valor del día y lo coloca en
+    // el campo indicado (para cuando el usuario cambió el valor y quiere
+    // volver al de la API). Se deshabilita durante la consulta.
+    function pedirTasaApi($boton, $destino) {
+        const contenido = $boton.html();
+        $boton.prop('disabled', true)
+              .html('<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Consultando…');
+        consultarTasaBCV(function(valor) {
+            $destino.val(valor.toFixed(2));
+        }, true).always(function() {
+            $boton.prop('disabled', false).html(contenido);
+        });
+    }
+
+    // Registro: recarga la tasa de la API en el campo si el usuario la cambió
+    $('#btnTasaApiRegistro').on('click', function() {
+        pedirTasaApi($(this), $('#formRegistro [name="tasa_bcv_usd"]'));
+    });
+
+    // Edición: mismo botón para cargar la tasa del día en el campo
+    $('#btnTasaApiEdicion').on('click', function() {
+        pedirTasaApi($(this), $('#edit_tasa_bcv_usd'));
+    });
+
     $('#btnNuevoRegistro').on('click', function() {
         $('#formRegistro')[0].reset();
         $('#formRegistro').siapValidar('limpiar');
+        // Fecha del día automáticamente en el campo de fecha
+        $('#formRegistro [name="fecha_reg"]').val(fechaHoyISO());
+        // Tasa del día desde la API (si falla, se registra como manual);
+        // el botón "Usar tasa de la API" permite recargarla después.
+        consultarTasaBCV(function(valor) {
+            $('#formRegistro [name="tasa_bcv_usd"]').val(valor.toFixed(2));
+        });
         $('#modalRegistro').show();
         $('#formRegistro').find('input[name="tasa_bcv_usd"]').focus();
     });
@@ -150,6 +226,13 @@ $(document).ready(function() {
         $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('registerTasa', true);
+        // Origen del valor: 'automatica' si coincide con el valor de la API
+        // (tolerancia 0.005 por el redondeo a 2 decimales), si no 'manual'.
+        const valorIngresado = parseFloat(input.val()) || 0;
+        const origen = (tasaApiFormateada !== null && Math.abs(valorIngresado - tasaApiFormateada) < 0.005)
+            ? 'automatica'
+            : 'manual';
+        formData.append('origen', origen);
         $.ajax({
             url: currentUrl, method: 'POST', data: formData,
             dataType: 'json', processData: false, contentType: false,
@@ -207,10 +290,15 @@ $(document).ready(function() {
     // Abrir modal edición
     $(document).on('click', '.btn-modificar', function() {
         const data = tabla.row($(this).closest('tr')).data();
-        // No permitir modificar tasas de un año fiscal que no sea el activo
+        // Solo se modifica la tasa activa: se rechazan años fiscales
+        // distintos al activo y tasas inhabilitadas, con mensajito.
         const anioTasa = parseInt(String(data.fecha_reg || '').substring(0, 4), 10);
         if (anioFiscalActivo !== null && !Number.isNaN(anioTasa) && anioTasa !== anioFiscalActivo) {
             alert('No se puede modificar una tasa de un año fiscal que no está activo (año activo: ' + anioFiscalActivo + ').');
+            return;
+        }
+        if (Number(data.estado) === 0) {
+            alert('No se puede modificar una tasa inhabilitada: solo se permite modificar la tasa activa. Actívela primero (botón Activar) para editarla.');
             return;
         }
         $('#edit_id_tasa').val(data.id_tasa);

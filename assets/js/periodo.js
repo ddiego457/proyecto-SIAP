@@ -20,7 +20,7 @@ $(document).ready(function() {
     // Motivo de error de fecha_inicio (null si es válida). El orden de
     // fechas se evalúa aquí y no en fecha_fin.
     function motivoFechaInicio(valor, valorFin, $selAnio) {
-        if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Use el formato AAAA-MM-DD.';
+        if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Seleccione la fecha de inicio.';
         if (ValidacionesSIAP.validarFechaISO(valorFin) && valor > valorFin) {
             return 'La fecha de inicio no puede ser superior a la fecha fin.';
         }
@@ -36,7 +36,7 @@ $(document).ready(function() {
     // Motivo de error de fecha_fin (null si es válida): formato y año fiscal
     // (el servidor exige que ambas fechas pertenezcan al año fiscal activo).
     function motivoFechaFin(valor, $selAnio) {
-        if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Use el formato AAAA-MM-DD.';
+        if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Seleccione la fecha fin.';
         var anio = anioFiscalDe($selAnio);
         if (anio !== null) {
             var anioFecha = parseInt(valor.substring(0, 4), 10);
@@ -80,6 +80,16 @@ $(document).ready(function() {
         anio_fiscal: { regla: 'anio' }
     });
 
+    // Formato dd/mm/aaaa para la tabla; el ISO se conserva para que
+    // DataTables ordene y filtre cronológicamente.
+    function renderFecha(data, type) {
+        if (!data) return '—';
+        const iso = String(data).substring(0, 10);
+        if (type === 'sort' || type === 'type') return iso;
+        const p = iso.split('-');
+        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : String(data);
+    }
+
     const tabla = $('#tablaMain').DataTable({
         ajax: {
             url: currentUrl,
@@ -98,9 +108,9 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'id_periodo' },
-            { data: 'anio_fiscal_id', defaultContent: '—' },
-            { data: 'fecha_inicio', defaultContent: '—' },
-            { data: 'fecha_fin', defaultContent: '—' },
+            { data: 'anio_fiscal', defaultContent: '—' },
+            { data: 'fecha_inicio', defaultContent: '—', render: renderFecha },
+            { data: 'fecha_fin', defaultContent: '—', render: renderFecha },
             { data: 'activo', defaultContent: 0, render: (d) => (d == 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>') },
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_periodo}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
@@ -127,10 +137,36 @@ $(document).ready(function() {
         if ($campo.val()) $campo.trigger('focusout');
     }
 
-    // Registro: al cambiar fecha_fin puede cambiar el orden de la fecha
-    // de inicio; al cambiar el año fiscal, ambas fechas.
-    $('#fecha_inicio').on('change', function() { $(this).trigger('focusout'); });
+    // Auto-seleccionar el año fiscal a partir de la fecha ingresada (registro):
+    // el <option> muestra el año (p. ej. "2026") y su value es el id.
+    function anioFiscalIdParaFecha(fecha) {
+        var anio = String(fecha || '').substring(0, 4);
+        if (!/^\d{4}$/.test(anio)) return null;
+        var id = null;
+        selAnioReg.find('option').each(function() {
+            if ($(this).text().trim() === anio) { id = $(this).val(); return false; }
+        });
+        return id;
+    }
+
+    function seleccionarAnioFiscalPorFecha(fecha) {
+        var id = anioFiscalIdParaFecha(fecha);
+        // Si el año de la fecha no está registrado, no se toca el select:
+        // el error queda sobre el campo de fecha (año no corresponde).
+        if (id !== null && selAnioReg.val() !== id) {
+            selAnioReg.val(id).trigger('change'); // re-valida ambas fechas
+        }
+    }
+
+    // Registro: al cambiar la fecha se auto-selecciona su año fiscal; al
+    // cambiar fecha_fin puede cambiar el orden de la fecha de inicio; al
+    // cambiar el año fiscal, ambas fechas.
+    $('#fecha_inicio').on('change', function() {
+        seleccionarAnioFiscalPorFecha($(this).val());
+        $(this).trigger('focusout');
+    });
     $('#fecha_fin').on('change', function() {
+        seleccionarAnioFiscalPorFecha($(this).val());
         $(this).trigger('focusout');
         revalidarCampo($('#fecha_inicio'));
     });

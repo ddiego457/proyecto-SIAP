@@ -56,10 +56,12 @@ include_once 'app/view/layout/head.php';
                 <div class="field-group">
                     <label class="field-label">Fecha Inicio</label>
                     <input type="date" id="fecha_inicio" name="fecha_inicio" class="field-input" required>
+                    <p class="field-note">Formato: d&iacute;a/mes/a&ntilde;o (dd/mm/aaaa)</p>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Fecha Fin</label>
                     <input type="date" id="fecha_fin" name="fecha_fin" class="field-input" required>
+                    <p class="field-note">Formato: d&iacute;a/mes/a&ntilde;o (dd/mm/aaaa)</p>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Año Fiscal</label>
@@ -101,10 +103,12 @@ include_once 'app/view/layout/head.php';
                 <div class="field-group">
                     <label class="field-label">Fecha Inicio</label>
                     <input type="date" id="edit_fecha_inicio" name="fecha_inicio" class="field-input" required>
+                    <p class="field-note">Formato: d&iacute;a/mes/a&ntilde;o (dd/mm/aaaa)</p>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Fecha Fin</label>
                     <input type="date" id="edit_fecha_fin" name="fecha_fin" class="field-input" required>
+                    <p class="field-note">Formato: d&iacute;a/mes/a&ntilde;o (dd/mm/aaaa)</p>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Año Fiscal</label>
