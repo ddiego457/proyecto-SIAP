@@ -72,7 +72,11 @@ class responsableModel extends ConnectDB
             "SELECT ro.id_rol,
                     ro.descripcion,
                     ro.estado,
-                    COUNT(CASE WHEN r.estado = 1 THEN 1 END) AS responsables
+                   COUNT(CASE WHEN r.estado = 1 THEN 1 END) AS responsables,
+                   CASE
+                       WHEN LOWER(TRIM(ro.descripcion)) IN ('administrador', 'coordinador') THEN 1
+                       ELSE 0
+                   END AS protegido
              FROM roles ro
              LEFT JOIN responsables r ON r.id_rol = ro.id_rol
              GROUP BY ro.id_rol, ro.descripcion, ro.estado
@@ -85,6 +89,17 @@ class responsableModel extends ConnectDB
     public function getRolById(int $idRol)
     {
         return $this->executeGetRolById($idRol);
+    }
+
+    public function isProtectedRole(int $idRol): bool
+    {
+        $role = $this->executeGetRolById($idRol);
+        return $role !== null && $this->isProtectedRoleDescription((string)$role['descripcion']);
+    }
+
+    private function isProtectedRoleDescription(string $description): bool
+    {
+        return in_array(mb_strtolower(trim($description), 'UTF-8'), ['administrador', 'coordinador'], true);
     }
 
     private function executeGetRolById(int $idRol)
@@ -184,12 +199,21 @@ class responsableModel extends ConnectDB
     private function executeUpdateRol(int $idRol, string $descripcion): bool
     {
         try {
+            if ($this->isProtectedRole($idRol)) {
+                return false;
+            }
             if ($this->executeExistsRol($descripcion, $idRol)) {
                 return false;
             }
 
-            $stmt = $this->conex->prepare("UPDATE roles SET descripcion = ? WHERE id_rol = ?");
-            return $stmt->execute([trim($descripcion), $idRol]);
+            $stmt = $this->conex->prepare(
+                "UPDATE roles
+                 SET descripcion = ?
+                 WHERE id_rol = ?
+                   AND LOWER(TRIM(descripcion)) NOT IN ('administrador', 'coordinador')"
+            );
+            $stmt->execute([trim($descripcion), $idRol]);
+            return $stmt->rowCount() > 0;
         } catch (\PDOException $e) {
             return false;
         }
@@ -204,8 +228,14 @@ class responsableModel extends ConnectDB
     private function executeDeleteRol(int $idRol): bool
     {
         try {
-            $stmt = $this->conex->prepare("UPDATE roles SET estado = 0 WHERE id_rol = ?");
-            return $stmt->execute([$idRol]);
+            $stmt = $this->conex->prepare(
+                "UPDATE roles
+                 SET estado = 0
+                 WHERE id_rol = ?
+                   AND LOWER(TRIM(descripcion)) NOT IN ('administrador', 'coordinador')"
+            );
+            $stmt->execute([$idRol]);
+            return $stmt->rowCount() > 0;
         } catch (\PDOException $e) {
             return false;
         }
@@ -390,6 +420,11 @@ class responsableModel extends ConnectDB
     // Eliminar responsable: primero cierra su cargo activo (si existe), luego elimina el responsable
     public function delete(int $idResponsable)
     {
+        if ($idResponsable <= 0
+            || (isset($_SESSION['id_responsable']) && (int)$_SESSION['id_responsable'] === $idResponsable)
+        ) {
+            return false;
+        }
         return $this->executeDelete($idResponsable);
     }
 

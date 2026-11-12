@@ -5,11 +5,6 @@
     $this->requireModule('responsable');
     $object = new responsableModel();
 
-    // Rol crítico: su descripción se compara como texto en el control de acceso.
-    if (!defined('ROL_PROTEGIDO')) {
-        define('ROL_PROTEGIDO', 'Administrador');
-    }
-
     if (!function_exists('sendJson')) {
         function sendJson($payload)
         {
@@ -257,6 +252,9 @@
                 if (!$rol) {
                     sendJson(['success' => false, 'message' => 'El rol no existe.']);
                 }
+                if ($object->isProtectedRole($idRol)) {
+                    sendJson(['success' => false, 'message' => 'No se puede modificar un rol protegido del sistema.']);
+                }
                 $errorValidacion = $object->validar('descripcion_rol', $descripcion);
                 if ($errorValidacion !== null) {
                     sendJson(['success' => false, 'message' => $errorValidacion]);
@@ -282,8 +280,8 @@
                     sendJson(['success' => false, 'message' => 'El rol no existe.']);
                 }
 
-                if ($rol['descripcion'] === ROL_PROTEGIDO) {
-                    sendJson(['success' => false, 'message' => 'No se puede eliminar el rol ' . ROL_PROTEGIDO . '.']);
+                if ($object->isProtectedRole($idRol)) {
+                    sendJson(['success' => false, 'message' => 'No se puede eliminar ni inhabilitar el rol protegido ' . $rol['descripcion'] . '.']);
                 }
 
                 $responsables = $object->countResponsablesActivos($idRol);

@@ -1,8 +1,6 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
-    // Roles protegidos (coinciden con las constantes del responsableController)
-    const ROL_PROTEGIDO = 'Administrador';
     const ROL_SUPERADMIN = 'Superadmin';
     // ID de la cuenta logueada (expuesto desde layout/head.php)
     const idResponsablePropio = Number(window.SIAP_ID_RESPONSABLE || 0);
@@ -313,13 +311,19 @@ $(document).ready(function() {
             { data: 'responsables' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_rol}" class="btn btn-sm btn-edit btn-editar-rol" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
-                if (d.descripcion === ROL_PROTEGIDO) {
-                    actions += ` <span class="badge badge-gray">protegido</span>`;
-                } else if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-warning btn-sm btn-inactivar-rol" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                let actions = '';
+                if (Number(d.protegido) === 1) {
+                    actions = '<span class="badge badge-gray">protegido</span>';
+                    if (Number(d.estado) !== 1) {
+                        actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    }
                 } else {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    actions = `<button value="${d.id_rol}" class="btn btn-sm btn-edit btn-editar-rol" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                    if (Number(d.estado) === 1) {
+                        actions += ` <button value="${d.id_rol}" class="btn btn-warning btn-sm btn-inactivar-rol" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    } else {
+                        actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    }
                 }
                 return actions;
             }}
