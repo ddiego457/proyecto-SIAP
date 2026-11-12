@@ -157,40 +157,6 @@
                 echo json_encode($object->activate((int)$_POST['idItem']));
                 die();
             }
-            if (isset($_POST['getContacts'])) {
-                echo json_encode($object->getContacts((int)$_POST['idProveedor']));
-                die();
-            }
-            if (isset($_POST['addContact'])) {
-                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
-                if ($errorValidacion !== null) {
-                    echo json_encode(false);
-                    die();
-                }
-                echo json_encode($object->addContact((int)$_POST['idProveedor'], (string)$_POST['telefono']));
-                die();
-            }
-            if (isset($_POST['updateContact'])) {
-                $errorValidacion = $object->validar('telefono', $_POST['telefono'] ?? '');
-                if ($errorValidacion !== null) {
-                    echo json_encode(false);
-                    die();
-                }
-                echo json_encode($object->updateContact((int)$_POST['idContacto'], (string)$_POST['telefono'], isset($_POST['estado']) ? (int)$_POST['estado'] : null));
-                die();
-            }
-            if (isset($_POST['deleteContact'])) {
-                echo json_encode($object->deleteContact((int)$_POST['idContacto']));
-                die();
-            }
-            if (isset($_POST['activateContact'])) {
-                echo json_encode($object->activateContact((int)$_POST['idContacto']));
-                die();
-            }
-            if (isset($_POST['inactivateContact'])) {
-                echo json_encode($object->inactivateContact((int)$_POST['idContacto']));
-                die();
-            }
             include 'app/view/proveedor/userView.php';
 
         } else {

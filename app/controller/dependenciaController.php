@@ -48,12 +48,6 @@
                 echo json_encode($object->getAll());
                 die();
             }
-            if (isset($_POST['deleteItem'])) {
-                $result = (bool)$object->delete((string)$_POST['idItem']);
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['success' => $result, 'message' => $result ? 'Registro eliminado' : 'Error al eliminar']);
-                die();
-            }
             if (isset($_POST['inactivateItem'])) {
                 $result = (bool)$object->delete((string)$_POST['idItem']);
                 header('Content-Type: application/json; charset=utf-8');

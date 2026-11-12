@@ -273,7 +273,8 @@ $(document).ready(function() {
         const idTasa = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json',
             data: { id_tasa: idTasa, inactivateItem: true },
-            success: function(res) { if (res == true) { alert('Tasa inhabilitada'); } else { alert('Error'); } tabla.ajax.reload(); }
+            success: function(res) { if (res == true) { alert('Tasa inhabilitada'); } else { alert('Error'); } tabla.ajax.reload(); },
+            error: function() { alert('Error de conexión.'); }
         });
     });
 
@@ -283,7 +284,8 @@ $(document).ready(function() {
         const idTasa = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json',
             data: { id_tasa: idTasa, activateItem: true },
-            success: function(res) { if (res == true) { alert('Tasa activada'); } else { alert('Error'); } tabla.ajax.reload(); }
+            success: function(res) { if (res == true) { alert('Tasa activada'); } else { alert('Error'); } tabla.ajax.reload(); },
+            error: function() { alert('Error de conexión.'); }
         });
     });
 
@@ -317,6 +319,10 @@ $(document).ready(function() {
     // Guardar edición
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         // Forzar 2 decimales antes de enviar
         const input = $(this).find('input[name="tasa_bcv_usd"]');
         if (input && input.length) {
@@ -329,6 +335,7 @@ $(document).ready(function() {
             url: currentUrl, method: 'POST', data: formData,
             dataType: 'json', processData: false, contentType: false,
             success: function(res) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res === true || (res && res.success)) {
                     alert((res && res.message) || 'Registro actualizado exitosamente');
                     $('#modalEditar').hide();
@@ -341,6 +348,10 @@ $(document).ready(function() {
                         ValidacionesSIAP.marcarError($('#edit_fecha_reg'), mensaje);
                     }
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text(textoOriginal);
+                alert('Error de conexión.');
             }
         });
     });

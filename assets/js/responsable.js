@@ -172,6 +172,9 @@ $(document).ready(function() {
                     alert('Error al cambiar estado.');
                 }
                 tabla.ajax.reload();
+            },
+            error: function() {
+                alert('Error de conexión.');
             }
         });
     });
@@ -196,13 +199,14 @@ $(document).ready(function() {
                             alert(res.message || 'Responsable inhabilitado');
                         } else {
                             alert(res.message || 'Error al inhabilitar. ' + res);
-                            console.log(res);
                         }
                     } else {
                         alert('Error al inhabilitar. ' + res);
-                        console.log(res);
                     }
                     tabla.ajax.reload();
+                },
+                error: function() {
+                    alert('Error de conexión.');
                 }
             });
         }
@@ -255,6 +259,10 @@ $(document).ready(function() {
 
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         const idDepSeleccionada = $('#edit_id_dep').val();
 
@@ -278,6 +286,7 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res && typeof res === 'object' && res.success) {
                     alert(res.message || 'Actualizado');
                     $('#modalEditar').hide();
@@ -285,6 +294,10 @@ $(document).ready(function() {
                 } else {
                     alert(res.message || 'Error al actualizar.');
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text(textoOriginal);
+                alert('Error de conexión.');
             }
         });
     });

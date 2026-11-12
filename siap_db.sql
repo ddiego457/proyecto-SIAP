@@ -2651,8 +2651,7 @@ CREATE TABLE `proveedores` (
   `nom_prov` varchar(100) NOT NULL,
   `descripcion` varchar(150) DEFAULT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1,
-  `archivo_pdf` varchar(255) DEFAULT NULL,
-  `nombre_pdf` varchar(150) DEFAULT NULL
+  `archivo_pdf` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
@@ -2817,8 +2816,7 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 (1, 'Administrador', 1),
 (2, 'Usuario', 1),
-(3, 'Coordinador', 1),
-(4, 'Superadmin', 1);
+(3, 'Coordinador', 1);
 
 -- --------------------------------------------------------
 

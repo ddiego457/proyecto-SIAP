@@ -125,6 +125,9 @@ $(document).ready(function() {
             success: function(res) {
                 alert(res ? 'Proveedor inhabilitado' : 'Error al inhabilitar');
                 tabla.ajax.reload();
+            },
+            error: function() {
+                alert('Error de conexión.');
             }
         });
     });
@@ -140,6 +143,9 @@ $(document).ready(function() {
             success: function(res) {
                 alert(res ? 'Proveedor activado' : 'Error al activar');
                 tabla.ajax.reload();
+            },
+            error: function() {
+                alert('Error de conexión.');
             }
         });
     });
@@ -164,6 +170,10 @@ $(document).ready(function() {
 
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('updateItem', true);
         $.ajax({
@@ -174,6 +184,7 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res === true || (res && res.success === true)) {
                     alert((res && res.message) || 'Proveedor actualizado exitosamente');
                     $('#modalEditar').hide();
@@ -182,6 +193,10 @@ $(document).ready(function() {
                     // Muestra el motivo devuelto por el servidor (ej. descripción vacía)
                     alert((res && res.message) || 'Error al actualizar.');
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text(textoOriginal);
+                alert('Error de conexión.');
             }
         });
     });
@@ -196,8 +211,8 @@ $(document).ready(function() {
         $('#pdf_archivo').val('');
 
         if (data.archivo_pdf) {
-            const nombre = data.nombre_pdf || data.archivo_pdf;
-            $('#pdfActualLink').attr('href', 'assets/uploads/productos/' + encodeURI(data.archivo_pdf));
+            const nombre = data.archivo_pdf;
+            $('#pdfActualLink').attr('href', 'assets/uploads/productos/' + encodeURIComponent(data.archivo_pdf));
             $('#pdfActualNombre').text(nombre);
             $('#pdfActualWrap').show();
             $('#pdfSinDocumento').hide();
@@ -295,12 +310,16 @@ $(document).ready(function() {
                 }}
             ],
             autoWidth: false,
-            language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" }
+            language: { url: "assets/js/DataTables/spanish.json" }
         });
 
         // Validación de teléfono delegada a siapValidar (focusout + bloqueo de submit).
         $('#formAgregarContacto').on('submit', function(e) {
             e.preventDefault();
+            const $btn = $(this).find('button[type="submit"]');
+            if ($btn.prop('disabled')) return;
+            const textoOriginal = $btn.text();
+            $btn.prop('disabled', true).text('Guardando…');
             const telefono = $('#contact_telefono').val().trim();
             $.ajax({
                 url: currentUrl,
@@ -308,6 +327,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 data: { addContact: true, idProveedor: idProveedor, telefono: telefono },
                 success: function(res) {
+                    $btn.prop('disabled', false).text(textoOriginal);
                     if (res == true) {
                         alert('Contacto agregado.');
                         $('#contact_telefono').val('');
@@ -315,6 +335,10 @@ $(document).ready(function() {
                     } else {
                         alert('Error al agregar contacto.');
                     }
+                },
+                error: function() {
+                    $btn.prop('disabled', false).text(textoOriginal);
+                    alert('Error de conexión.');
                 }
             });
         });
@@ -339,6 +363,9 @@ $(document).ready(function() {
                 success: function(res) {
                     alert(res ? 'Contacto eliminado' : 'Error al eliminar');
                     contactosTabla.ajax.reload();
+                },
+                error: function() {
+                    alert('Error de conexión.');
                 }
             });
         });
@@ -354,6 +381,9 @@ $(document).ready(function() {
                 success: function(res) {
                     alert(res ? 'Contacto inactivado' : 'Error al inactivar');
                     contactosTabla.ajax.reload();
+                },
+                error: function() {
+                    alert('Error de conexión.');
                 }
             });
         });
@@ -369,6 +399,9 @@ $(document).ready(function() {
                 success: function(res) {
                     alert(res ? 'Contacto activado' : 'Error al activar');
                     contactosTabla.ajax.reload();
+                },
+                error: function() {
+                    alert('Error de conexión.');
                 }
             });
         });
@@ -384,6 +417,10 @@ $(document).ready(function() {
 
         $('#formEditarContacto').on('submit', function(e) {
             e.preventDefault();
+            const $btn = $(this).find('button[type="submit"]');
+            if ($btn.prop('disabled')) return;
+            const textoOriginal = $btn.text();
+            $btn.prop('disabled', true).text('Guardando…');
             const formData = new FormData(e.target);
             formData.append('updateContact', true);
             $.ajax({
@@ -394,6 +431,7 @@ $(document).ready(function() {
                 processData: false,
                 contentType: false,
                 success: function(res) {
+                    $btn.prop('disabled', false).text(textoOriginal);
                     if (res == true) {
                         alert('Contacto actualizado.');
                         $('#modalEditarContacto').hide();
@@ -401,6 +439,10 @@ $(document).ready(function() {
                     } else {
                         alert('Error al actualizar contacto.');
                     }
+                },
+                error: function() {
+                    $btn.prop('disabled', false).text(textoOriginal);
+                    alert('Error de conexión.');
                 }
             });
         });

@@ -1,6 +1,5 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
-    console.log('periodo.js loaded', currentUrl);
 
     // ─── Validación de fechas (plugin siapValidar) ───────────────────
     // Cada formulario tiene su select de año fiscal (el <option> muestra el
@@ -96,7 +95,6 @@ $(document).ready(function() {
             method: 'POST',
             data: { getAll: true },
             dataSrc: function(json) {
-                console.log('DataTables getAll response:', json);
                 if (Array.isArray(json)) {
                     return json;
                 }
@@ -244,7 +242,8 @@ $(document).ready(function() {
         if (!confirm('¿Inhabilitar este periodo?')) return;
         const idItem = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json', data: { idItem: idItem, inactivateItem: true },
-            success: function(res) { alert(res.message || 'Periodo inhabilitado'); tabla.ajax.reload(); }
+            success: function(res) { alert(res.message || 'Periodo inhabilitado'); tabla.ajax.reload(); },
+            error: function() { alert('Error de conexión.'); }
         });
     });
 
@@ -253,7 +252,8 @@ $(document).ready(function() {
         if (!confirm('¿Activar este periodo y desactivar otros del mismo año?')) return;
         const idItem = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json', data: { idItem: idItem, activateItem: true },
-            success: function(res) { alert(res.message || 'Periodo activado'); tabla.ajax.reload(); }
+            success: function(res) { alert(res.message || 'Periodo activado'); tabla.ajax.reload(); },
+            error: function() { alert('Error de conexión.'); }
         });
     });
 
@@ -273,9 +273,12 @@ $(document).ready(function() {
 
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('updateItem', true);
-        console.log('Actualizar periodo:', Array.from(formData.entries()));
         $.ajax({
             url: currentUrl,
             method: 'POST',
@@ -284,7 +287,7 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                console.log('Respuesta actualizar periodo:', res);
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res && res.success) {
                     alert(res.message || 'Registro actualizado exitosamente');
                     $('#modalEditar').hide();
@@ -294,6 +297,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 alert('Error en la petición de actualización. Revise la consola para más detalles.');
                 console.error('AJAX update error:', status, error, xhr.responseText);
             }

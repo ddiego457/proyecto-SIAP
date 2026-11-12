@@ -6,16 +6,13 @@ trait SessionTrait {
     private $loginUrl = '?url=inicio';
     // Módulos permitidos por rol. '*' = todos los módulos.
     // ('perfil' = cambio de foto de perfil desde la sidebar, accesible a todos los roles)
-    // 'Superadmin': rol oculto en la UI (no aparece en el listado de roles ni en los
-    // selects de rol), se asigna directamente en la BD y accede a todo como Administrador.
     private $modulosPorRol = [
         'Administrador' => '*',
-        'Superadmin'    => '*',
-        'Coordinador'   => ['proveedor', 'productosServicios', 'periodo', 'reporte', 'perfil'],
+        'Coordinador'   => '*',
         'Usuario'       => ['requerimiento', 'reporte', 'perfil'],
     ];
-    // Roles con permisos de administración total (usado por esAdmin())
-    private $rolesAdmin = ['Administrador', 'Superadmin'];
+    // Roles con acceso a todos los módulos administrativos.
+    private $rolesAdmin = ['Administrador', 'Coordinador'];
     // Destino tras login / redirecciones, según rol
     private $homeUrlPorRol = [
         'Coordinador' => '?url=productosServicios&type=main',
@@ -60,6 +57,10 @@ trait SessionTrait {
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
         if (!$this->rolAccedeA($rol, $modulo)) {
+            if (!isset($this->modulosPorRol[$rol])) {
+                http_response_code(403);
+                exit('Acceso denegado.');
+            }
             header("Location: " . $this->homeForRole());
             exit();
         }
@@ -71,18 +72,30 @@ trait SessionTrait {
         return isset($this->homeUrlPorRol[$rol]) ? $this->homeUrlPorRol[$rol] : $this->homeUrl;
     }
 
-    // ¿El rol tiene permisos de administración? (Administrador o Superadmin)
+    // ¿El rol tiene permisos de administración?
     public function esAdmin(): bool {
         $this->startSession();
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
         return in_array($rol, $this->rolesAdmin, true);
     }
 
+    public function esSuperAdmin(): bool {
+        $this->startSession();
+        return isset($_SESSION['rol']) && $_SESSION['rol'] === 'Coordinador';
+    }
+
+    public function puedeGestionarRoles(): bool {
+        return $this->esSuperAdmin();
+    }
+
+    public function puedeGestionarPartidas(): bool {
+        return $this->esSuperAdmin();
+    }
+
     // ¿El rol tiene acceso al módulo? '*' = acceso total
     private function rolAccedeA($rol, $modulo): bool {
         if (!isset($this->modulosPorRol[$rol])) {
-            // Rol no reconocido: solo módulos públicos (comportamiento previo)
-            return in_array($modulo, ['reporte', 'requerimiento', 'perfil'], true);
+            return false;
         }
         $modulos = $this->modulosPorRol[$rol];
         return $modulos === '*' || in_array($modulo, $modulos, true);

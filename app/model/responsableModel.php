@@ -94,8 +94,7 @@ class responsableModel extends ConnectDB
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 
-    // Descripción del rol vigente de un responsable (para proteger cuentas
-    // Superadmin desde el controlador). null si el responsable no existe.
+    // Descripción del rol vigente de un responsable. null si no existe.
     public function getRolDeResponsable(int $idResponsable): ?string
     {
         return $this->executeGetRolDeResponsable($idResponsable);
@@ -453,24 +452,6 @@ class responsableModel extends ConnectDB
         } catch (\PDOException $e) {
             $this->conex->rollBack();
             return false;
-        }
-    }
-
-    // Obtener cargos (historial) de una dependencia
-    // (Método público delega a método privado con el SQL real)
-    public function getCargosByDependencia(int $idDep)
-    {
-        return $this->executeGetCargosByDependencia($idDep);
-    }
-
-    private function executeGetCargosByDependencia(int $idDep)
-    {
-        try {
-            $stmt = $this->conex->prepare("SELECT cr.id_cargo, cr.id_responsable, r.nom_rep, cr.fecha_inicio, cr.fecha_fin, cr.estado FROM cargo cr LEFT JOIN responsables r ON cr.id_responsable = r.id_responsable WHERE cr.id_dep = ? ORDER BY cr.fecha_inicio DESC");
-            $stmt->execute([$idDep]);
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\PDOException $e) {
-            return [];
         }
     }
 

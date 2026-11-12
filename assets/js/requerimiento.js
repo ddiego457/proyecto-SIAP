@@ -758,7 +758,7 @@ $(document).ready(function() {
                 },
                 error: function(e) {
                     alert("Ocurrió un error en la comunicación con el servidor.");
-                    console.log(e);
+                    console.error(e);
                 }
             });
         }
@@ -866,7 +866,7 @@ $(document).ready(function() {
                         }
                     } else {
                         // La modal permanece abierta para que el usuario corrija el error
-                        console.log("Error en el servidor: " + respuesta.message);
+                        console.error("Error en el servidor: " + respuesta.message);
                         alert(respuesta.message || 'No se pudo guardar la partida.');
                     }
                 },

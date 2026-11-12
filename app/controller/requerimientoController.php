@@ -157,7 +157,7 @@ if (isset($_GET['type'])) {
     }
 
     if (isset($_POST['eliminarRequerimiento'])) {
-        // Solo administradores (Administrador o Superadmin)
+        // Solo roles con permisos de administración.
         if (!$this->esAdmin()) {
             echo json_encode(['status' => 'error', 'message' => 'No tiene permisos para eliminar requerimientos.']);
             die();
@@ -214,4 +214,3 @@ else {
 }
 
 ?>
-

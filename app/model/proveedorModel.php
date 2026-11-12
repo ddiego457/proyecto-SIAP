@@ -32,7 +32,7 @@ class proveedorModel extends ConnectDB
 
     private function executeGetAll()
     {
-        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado, archivo_pdf, nombre_pdf FROM proveedores ORDER BY nom_prov ASC");
+        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado, archivo_pdf FROM proveedores ORDER BY nom_prov ASC");
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -490,18 +490,19 @@ class proveedorModel extends ConnectDB
         ];
     }
 
-    private function executeActualizarPdfProveedor(int $idProveedor, string $archivo, string $nombre): array
-    {
+private function executeActualizarPdfProveedor(
+    int $idProveedor,
+    string $archivo): array
+    {       
         try {
             // Obtener el PDF anterior para eliminarlo (evita archivos huérfanos)
             $anterior = $this->executeObtenerPdf($idProveedor);
 
             $stmt = $this->conex->prepare(
-                "UPDATE proveedores SET archivo_pdf = ?, nombre_pdf = ? WHERE id_proveedor = ?"
+                "UPDATE proveedores SET archivo_pdf = ? WHERE id_proveedor = ?"
             );
             $stmt->bindValue(1, $archivo);
-            $stmt->bindValue(2, $nombre);
-            $stmt->bindValue(3, $idProveedor, \PDO::PARAM_INT);
+            $stmt->bindValue(2, $idProveedor, \PDO::PARAM_INT);
 
             if (!$stmt->execute()) {
                 return ['success' => false];
@@ -526,25 +527,26 @@ class proveedorModel extends ConnectDB
     {
         try {
             $stmt = $this->conex->prepare(
-                "SELECT archivo_pdf, nombre_pdf FROM proveedores WHERE id_proveedor = ?"
+            "SELECT archivo_pdf FROM proveedores WHERE id_proveedor = ?"
             );
-            $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
-            $stmt->execute();
-            $fila = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            if (!$fila || empty($fila['archivo_pdf'])) {
-                return null;
-            }
+        $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
+        $stmt->execute();
 
-            return [
-                'archivo' => $fila['archivo_pdf'],
-                'nombre'  => $fila['nombre_pdf'] !== null && $fila['nombre_pdf'] !== ''
-                    ? $fila['nombre_pdf']
-                    : $fila['archivo_pdf']
-            ];
-        } catch (\PDOException $e) {
-            error_log('[proveedorModel::executeObtenerPdf] Error BD: ' . $e->getMessage());
+        $fila = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$fila || empty($fila['archivo_pdf'])) {
             return null;
+        }
+
+        return [
+            'archivo' => $fila['archivo_pdf'],
+            'nombre'  => $fila['archivo_pdf']   
+        ];
+
+    } catch (\PDOException $e) {
+        error_log('[proveedorModel::executeObtenerPdf] Error BD: ' . $e->getMessage());
+        return null;
         }
     }
 }
