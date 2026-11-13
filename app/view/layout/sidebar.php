@@ -1,9 +1,8 @@
 <?php
 // Detectar modulo activo desde la URL
 $urlActual = isset($_GET['url']) ? $_GET['url'] : '';
-// Administrador y Superadmin ven todos los módulos (ver SessionTrait::esAdmin)
+// Administrador y Coordinador ven todos los módulos (ver SessionTrait::esAdmin)
 $esAdmin = $this->esAdmin();
-$esCoordinador = isset($_SESSION['rol']) && $_SESSION['rol'] === 'Coordinador';
 
 if (!function_exists('sidebarLink')) {
     function sidebarLink($url, $icon, $label, $urlActual) {
@@ -35,12 +34,6 @@ if (!function_exists('sidebarLink')) {
             <?php sidebarLink('productosServicios', '&#128230;', 'Productos y Servicios',       $urlActual); ?>
             <?php sidebarLink('periodo',             '&#128197;', 'Periodo',                    $urlActual); ?>
             <?php sidebarLink('reporte',             '&#128202;', 'Informes',                   $urlActual); ?>
-        <?php elseif ($esCoordinador): ?>
-            <div class="sidebar-section-title">M&oacute;dulos</div>
-            <?php sidebarLink('proveedor',           '&#128230;', 'Proveedores',                $urlActual); ?>
-            <?php sidebarLink('productosServicios', '&#128230;', 'Productos y Servicios',       $urlActual); ?>
-            <?php sidebarLink('periodo',             '&#128197;', 'Periodo',                    $urlActual); ?>
-            <?php sidebarLink('reporte',             '&#128202;', 'Informes',                   $urlActual); ?>
         <?php else: ?>
             <div class="sidebar-section-title">Mi &Aacute;rea</div>
             <?php sidebarLink('requerimiento',       '&#128203;', 'Mi Requerimiento',           $urlActual); ?>
@@ -69,5 +62,4 @@ if (!function_exists('sidebarLink')) {
         </div>
     </div>
 </div>
-
 

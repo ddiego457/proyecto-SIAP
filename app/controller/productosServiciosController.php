@@ -21,6 +21,14 @@ if (!function_exists('sendJsonResponse')) {
     }
 }
 
+$accionesGestionPartidas = ['getAllPartidas', 'registerPartida', 'updatePartida', 'deletePartida', 'activatePartida'];
+foreach ($accionesGestionPartidas as $accionGestionPartidas) {
+    if (isset($_POST[$accionGestionPartidas]) && !$this->puedeGestionarPartidas()) {
+        http_response_code(403);
+        sendJsonResponse(['success' => false, 'message' => 'No tiene permisos para gestionar el catálogo de partidas presupuestarias.']);
+    }
+}
+
 if (isset($_GET['type'])) {
     // ─── Importación de productos desde Excel ─────────────────────────
     if ($_GET['type'] === 'import') {

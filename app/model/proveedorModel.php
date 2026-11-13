@@ -22,7 +22,7 @@ class proveedorModel extends ConnectDB
         parent::__construct();
         $this->conex = $this->getConnection();
         // Se resuelve desde app/model/ hacia la raíz del proyecto
-        $this->directorioDocumentos = dirname(__DIR__, 2) . '/assets/uploads/productos';
+        $this->directorioDocumentos = dirname(__DIR__, 2) . '/assets/uploads/pdf';
     }
 
     public function getAll()
@@ -32,7 +32,7 @@ class proveedorModel extends ConnectDB
 
     private function executeGetAll()
     {
-        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado, archivo_pdf, nombre_pdf FROM proveedores ORDER BY nom_prov ASC");
+        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado, archivo_pdf FROM proveedores ORDER BY nom_prov ASC");
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -90,6 +90,18 @@ class proveedorModel extends ConnectDB
         } catch (\PDOException $e) {
             return false;
         }
+    }
+
+    // ID generado en el último INSERT de esta conexión (permite asociar
+    // el PDF opcional al proveedor recién creado)
+    public function lastInsertId(): int
+    {
+        return $this->executeLastInsertId();
+    }
+
+    private function executeLastInsertId(): int
+    {
+        return (int)$this->conex->lastInsertId();
     }
 
     // Validación pública para evitar duplicados por nombre
@@ -432,11 +444,7 @@ class proveedorModel extends ConnectDB
         }
 
         // 4) Registrar en la BD (si falla, se elimina el archivo recién movido)
-        $guardado = $this->executeActualizarPdfProveedor(
-            $idProveedor,
-            $movido['archivo'],
-            $movido['nombre']
-        );
+        $guardado = $this->executeActualizarPdfProveedor($idProveedor, $movido['archivo']);
 
         if (!$guardado['success']) {
             @unlink($movido['ruta']);
@@ -490,18 +498,17 @@ class proveedorModel extends ConnectDB
         ];
     }
 
-    private function executeActualizarPdfProveedor(int $idProveedor, string $archivo, string $nombre): array
+    private function executeActualizarPdfProveedor(int $idProveedor, string $archivo): array
     {
         try {
             // Obtener el PDF anterior para eliminarlo (evita archivos huérfanos)
             $anterior = $this->executeObtenerPdf($idProveedor);
 
             $stmt = $this->conex->prepare(
-                "UPDATE proveedores SET archivo_pdf = ?, nombre_pdf = ? WHERE id_proveedor = ?"
+                "UPDATE proveedores SET archivo_pdf = ? WHERE id_proveedor = ?"
             );
             $stmt->bindValue(1, $archivo);
-            $stmt->bindValue(2, $nombre);
-            $stmt->bindValue(3, $idProveedor, \PDO::PARAM_INT);
+            $stmt->bindValue(2, $idProveedor, \PDO::PARAM_INT);
 
             if (!$stmt->execute()) {
                 return ['success' => false];
@@ -526,10 +533,11 @@ class proveedorModel extends ConnectDB
     {
         try {
             $stmt = $this->conex->prepare(
-                "SELECT archivo_pdf, nombre_pdf FROM proveedores WHERE id_proveedor = ?"
+                "SELECT archivo_pdf FROM proveedores WHERE id_proveedor = ?"
             );
             $stmt->bindValue(1, $idProveedor, \PDO::PARAM_INT);
             $stmt->execute();
+
             $fila = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$fila || empty($fila['archivo_pdf'])) {
@@ -538,9 +546,7 @@ class proveedorModel extends ConnectDB
 
             return [
                 'archivo' => $fila['archivo_pdf'],
-                'nombre'  => $fila['nombre_pdf'] !== null && $fila['nombre_pdf'] !== ''
-                    ? $fila['nombre_pdf']
-                    : $fila['archivo_pdf']
+                'nombre'  => $fila['archivo_pdf']
             ];
         } catch (\PDOException $e) {
             error_log('[proveedorModel::executeObtenerPdf] Error BD: ' . $e->getMessage());

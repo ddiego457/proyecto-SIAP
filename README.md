@@ -107,7 +107,7 @@ SIAP/
 
 ## 🔐 Módulos Funcionales
 
-1. **Gestión de Requerimientos** → Registro, envío, modificación e inhabilitación
+1. **Gestión de Requerimientos** → Registro definitivo, modificación e inhabilitación
 2. **Generación de Reportes** → Exportación a Excel y PDF
 3. **Gestión de Dependencias** → Crear, consultar, modificar e inhabilitar
 4. **Gestión de Ítems** → Catálogo de productos con precios y proveedores

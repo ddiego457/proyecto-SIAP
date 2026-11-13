@@ -57,10 +57,6 @@ include_once 'app/view/layout/head.php';
                     <label class="field-label">Tasa BCV (USD)</label>
                     <input type="number" name="tasa_bcv_usd" class="field-input"
                            step="0.01" min="0" placeholder="Ej. 36.52" required>
-                    <button type="button" id="btnTasaApiRegistro" class="btn btn-blue btn-sm btn-api-tasa"
-                            title="Cargar la tasa del día desde la API (dolarapi.com)">
-                        <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Usar tasa de la API
-                    </button>
                     <input type="hidden" name="estado" value="1">
                 </div>
                 <div class="field-group">
@@ -70,6 +66,10 @@ include_once 'app/view/layout/head.php';
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" id="btnTasaApiRegistro" class="btn btn-blue btn-sm btn-api-tasa"
+                        title="Obtener autom&aacute;ticamente la tasa del d&iacute;a desde la API (dolarapi.com)">
+                    <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Obtener valor autom&aacute;tico
+                </button>
                 <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>
                 <button type="submit" class="btn btn-success">&#10003; Registrar</button>
             </div>
@@ -91,10 +91,6 @@ include_once 'app/view/layout/head.php';
                     <label class="field-label">Tasa BCV (USD)</label>
                     <input type="number" id="edit_tasa_bcv_usd" name="tasa_bcv_usd"
                            class="field-input" step="0.01" min="0" required>
-                    <button type="button" id="btnTasaApiEdicion" class="btn btn-blue btn-sm btn-api-tasa"
-                            title="Cargar la tasa del día desde la API (dolarapi.com)">
-                        <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Usar tasa de la API
-                    </button>
                     <input type="hidden" id="edit_estado" name="estado" value="1">
                 </div>
                 <div class="field-group">
@@ -105,6 +101,10 @@ include_once 'app/view/layout/head.php';
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" id="btnTasaApiEdicion" class="btn btn-blue btn-sm btn-api-tasa"
+                        title="Obtener autom&aacute;ticamente la tasa del d&iacute;a desde la API (dolarapi.com)">
+                    <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Obtener valor autom&aacute;tico
+                </button>
                 <button type="button" id="btnCerrarModal2" class="btn btn-outline">Cancelar</button>
                 <button type="submit" class="btn btn-success">Guardar cambios</button>
             </div>

@@ -204,7 +204,7 @@ class requerimientoModel extends ConnectDB {
     }
 
     private function executeCambiarEstadoRequerimiento($idReq) {
-        $sql = "UPDATE requerimientos SET estado_envio = 1 WHERE id_req = :id";
+        $sql = "UPDATE requerimientos SET estado_registro = 1 WHERE id_req = :id";
         $stmt = $this->conex->prepare($sql);
         return $stmt->execute([
             ':id' => $idReq
@@ -213,7 +213,7 @@ class requerimientoModel extends ConnectDB {
 
     private function executeEliminarRequerimiento($idReq) {
         try {
-            $sql = "UPDATE requerimientos SET estado = 0, estado_envio = 0 WHERE id_req = :id AND estado = 1";
+            $sql = "UPDATE requerimientos SET estado = 0, estado_registro = 0 WHERE id_req = :id AND estado = 1";
             $stmt = $this->conex->prepare($sql);
             $stmt->execute([':id' => $idReq]);
             return $stmt->rowCount() > 0;
@@ -230,7 +230,7 @@ class requerimientoModel extends ConnectDB {
     //valid req se encarga especialmente de trabajar con las dependencias para el borrador
     private function validReq() {
         if ($this->esAdmin()) return true;
-        $checkReq = $this->conex->prepare("SELECT id_req FROM requerimientos WHERE id_dep = ? AND estado = 1 AND estado_envio = 0");
+        $checkReq = $this->conex->prepare("SELECT id_req FROM requerimientos WHERE id_dep = ? AND estado = 1 AND estado_registro = 0");
         $checkReq->execute([$this->idDepAct]);
         return $checkReq->fetch();
     }
@@ -247,13 +247,13 @@ class requerimientoModel extends ConnectDB {
             return "0";
         }
 
-        $estadoEnv = ($this->esAdmin()) ? 1 : 0;
+        $estadoReg = ($this->esAdmin()) ? 1 : 0;
 
         $stmtCheck = $this->conex->prepare("SELECT r.id_req 
             FROM requerimientos r
             JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
-            WHERE r.id_dep = ? AND r.estado = 1 AND r.estado_envio = ? AND af.activo = 1");
-        $stmtCheck->execute([(int)$idDepFiltrar,(int)$estadoEnv]);
+            WHERE r.id_dep = ? AND r.estado = 1 AND r.estado_registro = ? AND af.activo = 1");
+        $stmtCheck->execute([(int)$idDepFiltrar,(int)$estadoReg]);
         $reqExistente = $stmtCheck->fetch(\PDO::FETCH_ASSOC);
         
         return $reqExistente ? $reqExistente['id_req'] : 0;
@@ -261,11 +261,11 @@ class requerimientoModel extends ConnectDB {
 
     private function buildQueryFilters($id) {
         if ($this->esAdmin() && $id === 'todos') {
-            return " AND r.estado_envio = 1 AND r.estado = 1";
+            return " AND r.estado_registro = 1 AND r.estado = 1";
         } elseif ($this->esAdmin()) {
-            return " AND r.estado_envio = 1 AND r.estado = 1 AND d.id_dep = " . (int)$id;
+            return " AND r.estado_registro = 1 AND r.estado = 1 AND d.id_dep = " . (int)$id;
         } else {
-            return " AND d.id_dep = " . (int)$id . " AND r.estado_envio = 0 AND r.estado = 1";
+            return " AND d.id_dep = " . (int)$id . " AND r.estado_registro = 0 AND r.estado = 1";
         }
     }
 
@@ -330,7 +330,7 @@ class requerimientoModel extends ConnectDB {
         $id_tasa = $this->getActiveTasaId();
         $id_aniof = $this->getActiveAnioFiscalId();
 
-        $qReq = "INSERT INTO requerimientos (id_dep, id_tasa, id_aniof, estado_envio, fecha_env, estado) 
+        $qReq = "INSERT INTO requerimientos (id_dep, id_tasa, id_aniof, estado_registro, fecha_reg, estado) 
                 VALUES (:id_dep, :id_tasa, :id_aniof, 0, NOW(), 0)";
         $sReq = $this->conex->prepare($qReq);
         $sReq->execute([

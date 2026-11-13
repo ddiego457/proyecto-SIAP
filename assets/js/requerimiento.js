@@ -90,9 +90,9 @@ $(document).ready(function() {
                         if (!hayDependenciaElegida()) {
                             $('#btn-modificar-modal').hide().prop('disabled', true);
                         }
-                        // Lógica para Enviar Definitivo
+                        // Lógica para Registrar Definitivo
                         if (esAdmin) {
-                            $('#btn-cambiar-estado').hide(); // El admin NUNCA ve el botón de enviar
+                            $('#btn-cambiar-estado').hide(); // El admin NUNCA ve el botón de registrar
                         } else {
                             $('#btn-cambiar-estado').show(); // El usuario normal SÍ lo ve
                         }
@@ -444,7 +444,7 @@ $(document).ready(function() {
         // console.log(esAdmin);
         $('#btn-modificar').prop('disabled', true);
 
-        // Detectar cualquier cambio en los inputs para habilitar y mostrar el botón de envío
+        // Detectar cualquier cambio en los inputs para habilitar y mostrar el botón de Modificar
         $('#tablaMain').on('input', 'input[type="number"]', function() {
             $('#btn-modificar').prop('disabled', false).show();
         });
@@ -738,7 +738,7 @@ $(document).ready(function() {
             return;
         }
 
-        if(confirm("¿Estás seguro de enviar el requerimiento definitivamente?")) {
+        if(confirm("¿Estás seguro de registrar el requerimiento definitivamente?")) {
             $.ajax({
                 url: '?url=requerimiento&type=main',
                 type: 'POST',
@@ -758,7 +758,7 @@ $(document).ready(function() {
                 },
                 error: function(e) {
                     alert("Ocurrió un error en la comunicación con el servidor.");
-                    console.log(e);
+                    console.error(e);
                 }
             });
         }
@@ -866,7 +866,7 @@ $(document).ready(function() {
                         }
                     } else {
                         // La modal permanece abierta para que el usuario corrija el error
-                        console.log("Error en el servidor: " + respuesta.message);
+                        console.error("Error en el servidor: " + respuesta.message);
                         alert(respuesta.message || 'No se pudo guardar la partida.');
                     }
                 },

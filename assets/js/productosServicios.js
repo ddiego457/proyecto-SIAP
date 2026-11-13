@@ -156,8 +156,16 @@ $(document).ready(function() {
     $('#modalEditar').hide();
   });
 
+  $('#modalEditar').on('click', function(e) {
+    if (e.target === this) $(this).hide();
+  });
+
   $('#formEditar').on('submit', function(e) {
     e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    if ($btn.prop('disabled')) return;
+    const textoOriginal = $btn.text();
+    $btn.prop('disabled', true).text('Guardando…');
     const formData = new FormData(e.target);
     formData.append('updateItem', true);
 
@@ -169,6 +177,7 @@ $(document).ready(function() {
       processData: false,
       contentType: false,
       success: function(res) {
+        $btn.prop('disabled', false).text(textoOriginal);
         if (res && res.success) {
           alert(res.message || 'Registro actualizado exitosamente');
           $('#modalEditar').hide();
@@ -178,6 +187,7 @@ $(document).ready(function() {
         }
       },
       error: function(xhr, status, error) {
+        $btn.prop('disabled', false).text(textoOriginal);
         console.error('AJAX update error:', status, error, xhr.responseText);
         alert('Error en la petición de actualización. Revise la consola.');
       }

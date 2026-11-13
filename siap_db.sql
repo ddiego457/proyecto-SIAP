@@ -11,6 +11,13 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
+-- Base de datos: se crea si no existe y se selecciona
+CREATE DATABASE IF NOT EXISTS `siap_db` DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci;
+USE `siap_db`;
+
+-- Claves foraneas desactivadas para poder importar en cualquier orden
+SET FOREIGN_KEY_CHECKS = 0;
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -27,6 +34,7 @@ SET time_zone = "+00:00";
 -- Estructura de tabla para la tabla `anio_fiscal`
 --
 
+DROP TABLE IF EXISTS `anio_fiscal`;
 CREATE TABLE `anio_fiscal` (
   `id_aniof` int(11) NOT NULL,
   `anio` year(4) NOT NULL,
@@ -61,6 +69,7 @@ DELIMITER ;
 -- Estructura de tabla para la tabla `cargo`
 --
 
+DROP TABLE IF EXISTS `cargo`;
 CREATE TABLE `cargo` (
   `id_cargo` int(11) NOT NULL,
   `id_responsable` int(11) NOT NULL,
@@ -112,6 +121,7 @@ INSERT INTO `cargo` (`id_cargo`, `id_responsable`, `id_dep`, `fecha_inicio`, `fe
 -- Estructura de tabla para la tabla `dependencias`
 --
 
+DROP TABLE IF EXISTS `dependencias`;
 CREATE TABLE `dependencias` (
   `id_dep` int(11) NOT NULL,
   `nom_dep` varchar(80) NOT NULL,
@@ -156,6 +166,7 @@ INSERT INTO `dependencias` (`id_dep`, `nom_dep`, `estado`) VALUES
 -- Estructura de tabla para la tabla `detalle_req`
 --
 
+DROP TABLE IF EXISTS `detalle_req`;
 CREATE TABLE `detalle_req` (
   `id_prod` int(11) DEFAULT NULL,
   `id_req` int(11) NOT NULL,
@@ -394,6 +405,7 @@ INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
 -- Estructura de tabla para la tabla `partidas`
 --
 
+DROP TABLE IF EXISTS `partidas`;
 CREATE TABLE `partidas` (
   `id_partida` int(11) NOT NULL,
   `cod_partida` varchar(10) NOT NULL,
@@ -418,6 +430,7 @@ INSERT INTO `partidas` (`id_partida`, `cod_partida`, `descripcion`, `estado`) VA
 -- Estructura de tabla para la tabla `periodos_entrega`
 --
 
+DROP TABLE IF EXISTS `periodos_entrega`;
 CREATE TABLE `periodos_entrega` (
   `id_periodo` int(11) NOT NULL,
   `id_aniof` int(11) NOT NULL,
@@ -445,6 +458,7 @@ INSERT INTO `periodos_entrega` (`id_periodo`, `id_aniof`, `per_inicio`, `per_fin
 -- Estructura de tabla para la tabla `productos`
 --
 
+DROP TABLE IF EXISTS `productos`;
 CREATE TABLE `productos` (
   `id_prod` int(11) NOT NULL,
   `id_proveedor` int(11) NOT NULL,
@@ -2631,13 +2645,13 @@ INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `p
 -- Estructura de tabla para la tabla `proveedores`
 --
 
+DROP TABLE IF EXISTS `proveedores`;
 CREATE TABLE `proveedores` (
   `id_proveedor` int(11) NOT NULL,
   `nom_prov` varchar(100) NOT NULL,
   `descripcion` varchar(150) DEFAULT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1,
-  `archivo_pdf` varchar(255) DEFAULT NULL,
-  `nombre_pdf` varchar(150) DEFAULT NULL
+  `archivo_pdf` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
@@ -2663,13 +2677,14 @@ INSERT INTO `proveedores` (`id_proveedor`, `nom_prov`, `descripcion`, `estado`) 
 -- Estructura de tabla para la tabla `requerimientos`
 --
 
+DROP TABLE IF EXISTS `requerimientos`;
 CREATE TABLE `requerimientos` (
   `id_req` int(11) NOT NULL,
   `id_dep` int(11) NOT NULL,
   `id_tasa` int(11) NOT NULL,
   `id_aniof` int(11) NOT NULL,
-  `estado_envio` tinyint(1) NOT NULL DEFAULT 0,
-  `fecha_env` date NOT NULL,
+  `estado_registro` tinyint(1) NOT NULL DEFAULT 0,
+  `fecha_reg` date NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
@@ -2677,7 +2692,7 @@ CREATE TABLE `requerimientos` (
 -- Volcado de datos para la tabla `requerimientos`
 --
 
-INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado_envio`, `fecha_env`, `estado`) VALUES
+INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado_registro`, `fecha_reg`, `estado`) VALUES
 (1, 1, 1, 1, 1, '2024-01-10', 0),
 (2, 2, 2, 1, 1, '2024-02-15', 0),
 (3, 3, 3, 1, 0, '2024-03-20', 0),
@@ -2734,6 +2749,7 @@ INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado
 -- Estructura de tabla para la tabla `responsables`
 --
 
+DROP TABLE IF EXISTS `responsables`;
 CREATE TABLE `responsables` (
   `id_responsable` int(11) NOT NULL,
   `id_rol` int(11) NOT NULL,
@@ -2786,6 +2802,7 @@ INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_rep`, `email`, `pas
 -- Estructura de tabla para la tabla `roles`
 --
 
+DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
   `id_rol` int(11) NOT NULL,
   `descripcion` varchar(70) NOT NULL,
@@ -2799,8 +2816,7 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 (1, 'Administrador', 1),
 (2, 'Usuario', 1),
-(3, 'Coordinador', 1),
-(4, 'Superadmin', 1);
+(3, 'Coordinador', 1);
 
 -- --------------------------------------------------------
 
@@ -2808,6 +2824,7 @@ INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 -- Estructura de tabla para la tabla `tasa_bcv`
 --
 
+DROP TABLE IF EXISTS `tasa_bcv`;
 CREATE TABLE `tasa_bcv` (
   `id_tasa` int(11) NOT NULL,
   `fecha_reg` date NOT NULL,
@@ -2843,6 +2860,7 @@ INSERT INTO `tasa_bcv` (`id_tasa`, `fecha_reg`, `tasa_bcv_usd`, `estado`) VALUES
 -- Estructura de tabla para la tabla `telefonos`
 --
 
+DROP TABLE IF EXISTS `telefonos`;
 CREATE TABLE `telefonos` (
   `id_telf` int(11) NOT NULL,
   `id_proveedor` int(11) NOT NULL,
@@ -3089,6 +3107,7 @@ ALTER TABLE `responsables`
 --
 ALTER TABLE `telefonos`
   ADD CONSTRAINT `telefonos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
+SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

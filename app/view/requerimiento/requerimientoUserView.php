@@ -36,10 +36,10 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
     <div class="alert-banner alert-info alert-<?php echo $periodStatus; ?>" id="alertBanner">
         <div class="alert-banner-left">
             <?php if ($periodStatus === 'expired'): ?>
-                <div class="alert-banner-title">⚠️ <strong>Periodo de envío finalizado</strong></div>
-                <div class="alert-banner-sub">El tiempo límite para enviar requerimientos ha concluido</div>
+                <div class="alert-banner-title">⚠️ <strong>Periodo de registro finalizado</strong></div>
+                <div class="alert-banner-sub">El tiempo límite para registrar requerimientos ha concluido</div>
             <?php else: ?>
-                <div class="alert-banner-title">&#128197; Fecha límite de envío: <?php echo $timeLeft; ?></div>
+                <div class="alert-banner-title">&#128197; Fecha límite de registro: <?php echo $timeLeft; ?></div>
                 <div class="alert-banner-sub">Complete todas las partidas de su dependencia antes del cierre</div>
             <?php endif; ?>
         <div class="alert-banner-title"> Año activo: <strong> <?php  echo $anioFiscal  ?> </strong> </div>
@@ -67,7 +67,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                     Eliminar
                 </button>
                 <button type="button" id="btn-cambiar-estado" class="btn btn-primary btn-sm" style="display: none;">
-                    Enviar Definitivo
+                    Registrar Definitivo
                 </button>
                 <?php if($this->esAdmin()){?>
                 <button type="button" id="btn-vista-partidas" class="btn btn-blue btn-sm" style="display: none;">

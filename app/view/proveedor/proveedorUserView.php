@@ -45,6 +45,15 @@ include_once 'app/view/layout/head.php';
                     <label class="field-label">Descripción</label>
                     <textarea name="descripcion" class="field-input" rows="3" required></textarea>
                 </div>
+                <div class="field-group">
+                    <label class="field-label">Documento PDF (opcional)</label>
+                    <input type="file" name="archivoPdf" id="reg_archivoPdf" class="field-input"
+                           accept=".pdf,application/pdf">
+                    <div class="alert-banner-sub" style="margin-top:6px;">
+                        Formato .pdf, m&aacute;ximo 10 MB. Si lo deja vac&iacute;o, puede subirlo
+                        despu&eacute;s desde el bot&oacute;n de la tabla.
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModalRegistro2" class="btn btn-outline">Cancelar</button>

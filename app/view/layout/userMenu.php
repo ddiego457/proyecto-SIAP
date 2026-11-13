@@ -13,8 +13,7 @@ $rolMenu = isset($_SESSION['rol']) ? (string)$_SESSION['rol'] : 'usuario';
 $nombreMenu = isset($_SESSION['nombre']) ? trim((string)$_SESSION['nombre']) : '';
 $usuarioMenu = isset($_SESSION['usuario']) ? (string)$_SESSION['usuario'] : '';
 $rolDisplayMenu = ($rolMenu === 'admin' || $rolMenu === 'administrador' || $rolMenu === 'Administrador') ? 'Administrador'
-                : (($rolMenu === 'coordinador' || $rolMenu === 'Coordinador') ? 'Coordinador'
-                : (($rolMenu === 'superadmin' || $rolMenu === 'Superadmin') ? 'Superadmin' : 'Usuario'));
+                : (($rolMenu === 'coordinador' || $rolMenu === 'Coordinador') ? 'Coordinador' : 'Usuario');
 
 // Texto del perfil: "NombreResponsable — Dependencia" (si falta alguno, solo el otro)
 if ($nombreMenu !== '' && $usuarioMenu !== '') {

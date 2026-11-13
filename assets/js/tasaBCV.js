@@ -54,17 +54,21 @@ $(document).ready(function() {
         });
     }
 
+    // Extrae AAAA-MM-DD (con hora opcional) de la cadena sin usar new Date().
+    // Motivo: new Date('2026-11-15') se interpreta en UTC y getDate() devuelve
+    // el día en la hora local, por lo que en zonas UTC-x (Venezuela, UTC-4)
+    // la fecha se mostraba un día hacia atrás (el 15 aparecía como 14).
+    function partesFechaISO(value) {
+        const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value).trim());
+        return match ? { anio: match[1], mes: match[2], dia: match[3] } : null;
+    }
+
     function formatDateForDisplay(value) {
         if (!value) return '';
+        const iso = partesFechaISO(value);
+        if (iso) return `${iso.dia}/${iso.mes}/${iso.anio}`;
         const date = new Date(value);
-        if (Number.isNaN(date.getTime())) {
-            // Try manually parse YYYY-MM-DD HH:MM:SS
-            const parts = value.split(' ')[0].split('-');
-            if (parts.length === 3) {
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            return value;
-        }
+        if (Number.isNaN(date.getTime())) return value;
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
@@ -73,13 +77,12 @@ $(document).ready(function() {
 
     function formatDateForInput(value) {
         if (!value) return '';
+        // Misma regla: la fecha se toma de la cadena, sin conversión UTC.
+        const iso = partesFechaISO(value);
+        if (iso) return `${iso.anio}-${iso.mes}-${iso.dia}`;
         const date = new Date(value);
         if (!Number.isNaN(date.getTime())) {
             return date.toISOString().slice(0, 10);
-        }
-        const parts = value.split(' ')[0].split('-');
-        if (parts.length === 3) {
-            return `${parts[0]}-${parts[1]}-${parts[2]}`;
         }
         return value;
     }
@@ -273,7 +276,8 @@ $(document).ready(function() {
         const idTasa = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json',
             data: { id_tasa: idTasa, inactivateItem: true },
-            success: function(res) { if (res == true) { alert('Tasa inhabilitada'); } else { alert('Error'); } tabla.ajax.reload(); }
+            success: function(res) { if (res == true) { alert('Tasa inhabilitada'); } else { alert('Error'); } tabla.ajax.reload(); },
+            error: function() { alert('Error de conexión.'); }
         });
     });
 
@@ -283,7 +287,8 @@ $(document).ready(function() {
         const idTasa = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json',
             data: { id_tasa: idTasa, activateItem: true },
-            success: function(res) { if (res == true) { alert('Tasa activada'); } else { alert('Error'); } tabla.ajax.reload(); }
+            success: function(res) { if (res == true) { alert('Tasa activada'); } else { alert('Error'); } tabla.ajax.reload(); },
+            error: function() { alert('Error de conexión.'); }
         });
     });
 
@@ -314,9 +319,17 @@ $(document).ready(function() {
         $('#modalEditar').hide();
     });
 
+    $('#modalEditar').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
     // Guardar edición
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         // Forzar 2 decimales antes de enviar
         const input = $(this).find('input[name="tasa_bcv_usd"]');
         if (input && input.length) {
@@ -329,6 +342,7 @@ $(document).ready(function() {
             url: currentUrl, method: 'POST', data: formData,
             dataType: 'json', processData: false, contentType: false,
             success: function(res) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res === true || (res && res.success)) {
                     alert((res && res.message) || 'Registro actualizado exitosamente');
                     $('#modalEditar').hide();
@@ -341,6 +355,10 @@ $(document).ready(function() {
                         ValidacionesSIAP.marcarError($('#edit_fecha_reg'), mensaje);
                     }
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text(textoOriginal);
+                alert('Error de conexión.');
             }
         });
     });

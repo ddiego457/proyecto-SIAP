@@ -67,9 +67,36 @@
                         echo json_encode(['success' => false, 'message' => 'Ya existe un proveedor con ese nombre.']);
                         die();
                     }
+                    // PDF opcional adjunto al registro. Se valida ANTES de crear
+                    // el proveedor para no dejarlo a medias si el archivo falla.
+                    $archivoPdf = isset($_FILES['archivoPdf']) ? $_FILES['archivoPdf'] : [];
+                    $tienePdf = !empty($archivoPdf)
+                        && (int)($archivoPdf['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+                    if ($tienePdf) {
+                        $errorPdf = $object->validarArchivoPdf($archivoPdf);
+                        if ($errorPdf !== null) {
+                            header('Content-Type: application/json; charset=utf-8');
+                            echo json_encode(['success' => false, 'message' => $errorPdf]);
+                            die();
+                        }
+                    }
+
                     $result = $object->add($nombre, $_POST['descripcion']);
+
+                    // Mensaje según el resultado (y según el PDF, si se adjuntó)
+                    $mensaje = $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).';
+                    if ($result && $tienePdf) {
+                        $pdfResultado = $object->subirPdf($object->lastInsertId(), $archivoPdf);
+                        if (!empty($pdfResultado['success'])) {
+                            $mensaje = 'Proveedor y documento PDF registrados';
+                        } else {
+                            $mensaje = 'Proveedor registrado, pero el PDF no se pudo guardar: '
+                                . ($pdfResultado['message'] ?? 'error desconocido.');
+                        }
+                    }
+
                     header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Proveedor registrado' : 'Error al registrar (duplicado o error BD).']);
+                    echo json_encode(['success' => (bool)$result, 'message' => $mensaje]);
                     die();
                 }
             }

@@ -16,7 +16,9 @@ include_once 'app/view/layout/head.php';
             <div class="card-header-actions">
                 <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
                 <button type="button" id="btnImportarExcel" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar Excel</button>
-                <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
+                <?php if ($this->puedeGestionarPartidas()): ?>
+                    <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
+                <?php endif; ?>
             </div>
         </div>
         <div class="card-body">
@@ -172,6 +174,7 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
+<?php if ($this->puedeGestionarPartidas()): ?>
 <div id="modalPartidas" class="modal-backdrop" style="display:none; z-index:210;">
     <div class="modal-panel" style="max-width:760px;">
         <div class="modal-header">
@@ -268,6 +271,7 @@ include_once 'app/view/layout/head.php';
         </form>
     </div>
 </div>
+<?php endif; ?>
 
 <div id="modalImportar" class="modal-backdrop" style="display:none; z-index:240;">
     <div class="modal-panel">

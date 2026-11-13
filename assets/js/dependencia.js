@@ -125,6 +125,9 @@ $(document).ready(function() {
                     alert('Error al inhabilitar.');
                 }
                 tabla.ajax.reload();
+            },
+            error: function() {
+                alert('Error de conexión.');
             }
         });
     });
@@ -147,6 +150,9 @@ $(document).ready(function() {
                     alert('Error al activar.');
                 }
                 tabla.ajax.reload();
+            },
+            error: function() {
+                alert('Error de conexión.');
             }
         });
     });
@@ -156,9 +162,17 @@ $(document).ready(function() {
         $('#modalEditar').hide();
     });
 
+    $('#modalEditar').on('click', function(e) {
+        if (e.target === this) $(this).hide();
+    });
+
     // Guardar edición
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         formData.append('updateItem', true);
         $.ajax({
@@ -169,6 +183,7 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res && typeof res === 'object' && res.success) {
                     alert(res.message || 'Registro actualizado exitosamente');
                     $('#modalEditar').hide();
@@ -176,6 +191,10 @@ $(document).ready(function() {
                 } else {
                     alert(res.message || 'Error al actualizar.');
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text(textoOriginal);
+                alert('Error de conexión.');
             }
         });
     });

@@ -30,7 +30,9 @@ include_once 'app/view/layout/head.php';
             <span class="card-title">Responsables</span>
             <div class="card-header-actions">
                 <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
-                <button type="button" id="btnRoles" class="btn btn-outline btn-sm"><i class="fa-solid fa-users" aria-hidden="true"></i> Roles</button>
+                <?php if ($this->puedeGestionarRoles()): ?>
+                    <button type="button" id="btnRoles" class="btn btn-outline btn-sm"><i class="fa-solid fa-users" aria-hidden="true"></i> Roles</button>
+                <?php endif; ?>
             </div>
         </div>
         <div class="card-body">
@@ -154,6 +156,7 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
+<?php if ($this->puedeGestionarRoles()): ?>
 <!-- MODAL ROLES (listado) -->
 <div id="modalRoles" class="modal-backdrop" style="display:none; z-index:210;">
     <div class="modal-panel" style="max-width:720px;">
@@ -234,5 +237,6 @@ include_once 'app/view/layout/head.php';
         </form>
     </div>
 </div>
+<?php endif; ?>
 
 <?php include_once 'app/view/layout/foot.php'; ?>

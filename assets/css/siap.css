@@ -211,6 +211,14 @@ a { text-decoration: none; color: inherit; }
   -webkit-appearance: none;
 }
 .field-input::placeholder { color: var(--text-light); }
+/* Textarea (ej. descripción del proveedor): se mantiene con el ancho del
+   contenedor y solo redimensionable en vertical, para que no se estire
+   hacia la derecha y rompa la vista de registro ni la de edición. */
+textarea.field-input {
+  width: 100%;
+  max-width: 100%;
+  resize: vertical;
+}
 .field-input:focus, .field-select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(42,112,194,.12);
@@ -326,8 +334,9 @@ a { text-decoration: none; color: inherit; }
 .btn-full { width: 100%; justify-content: center; }
 .btn-sm { padding: 6px 12px; font-size: 12.5px; }
 .btn-lg { padding: 13px 28px; font-size: 15px; }
-/* Botón "Usar tasa de la API" bajo el campo de tasa en los modales */
-.btn-api-tasa { margin-top: 8px; }
+/* Botón "Obtener valor automático" (API dolarapi.com): vive en el footer
+   de los modales de tasa BCV, junto a Cancelar/Registrar */
+.btn-api-tasa { margin-top: 0; }
 
 /* Acciones de tabla: botón-icono cuadrado 36x36 */
 .siap-table .btn-sm {
@@ -1060,6 +1069,7 @@ table.siap-table {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 /* ─── TABS (categorias de partida) ──────────────────────────── */

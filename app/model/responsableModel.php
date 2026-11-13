@@ -72,7 +72,11 @@ class responsableModel extends ConnectDB
             "SELECT ro.id_rol,
                     ro.descripcion,
                     ro.estado,
-                    COUNT(CASE WHEN r.estado = 1 THEN 1 END) AS responsables
+                   COUNT(CASE WHEN r.estado = 1 THEN 1 END) AS responsables,
+                   CASE
+                       WHEN LOWER(TRIM(ro.descripcion)) IN ('administrador', 'coordinador') THEN 1
+                       ELSE 0
+                   END AS protegido
              FROM roles ro
              LEFT JOIN responsables r ON r.id_rol = ro.id_rol
              GROUP BY ro.id_rol, ro.descripcion, ro.estado
@@ -87,6 +91,17 @@ class responsableModel extends ConnectDB
         return $this->executeGetRolById($idRol);
     }
 
+    public function isProtectedRole(int $idRol): bool
+    {
+        $role = $this->executeGetRolById($idRol);
+        return $role !== null && $this->isProtectedRoleDescription((string)$role['descripcion']);
+    }
+
+    private function isProtectedRoleDescription(string $description): bool
+    {
+        return in_array(mb_strtolower(trim($description), 'UTF-8'), ['administrador', 'coordinador'], true);
+    }
+
     private function executeGetRolById(int $idRol)
     {
         $stmt = $this->conex->prepare("SELECT id_rol, descripcion, estado FROM roles WHERE id_rol = ? LIMIT 1");
@@ -94,8 +109,7 @@ class responsableModel extends ConnectDB
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 
-    // Descripción del rol vigente de un responsable (para proteger cuentas
-    // Superadmin desde el controlador). null si el responsable no existe.
+    // Descripción del rol vigente de un responsable. null si no existe.
     public function getRolDeResponsable(int $idResponsable): ?string
     {
         return $this->executeGetRolDeResponsable($idResponsable);
@@ -185,12 +199,21 @@ class responsableModel extends ConnectDB
     private function executeUpdateRol(int $idRol, string $descripcion): bool
     {
         try {
+            if ($this->isProtectedRole($idRol)) {
+                return false;
+            }
             if ($this->executeExistsRol($descripcion, $idRol)) {
                 return false;
             }
 
-            $stmt = $this->conex->prepare("UPDATE roles SET descripcion = ? WHERE id_rol = ?");
-            return $stmt->execute([trim($descripcion), $idRol]);
+            $stmt = $this->conex->prepare(
+                "UPDATE roles
+                 SET descripcion = ?
+                 WHERE id_rol = ?
+                   AND LOWER(TRIM(descripcion)) NOT IN ('administrador', 'coordinador')"
+            );
+            $stmt->execute([trim($descripcion), $idRol]);
+            return $stmt->rowCount() > 0;
         } catch (\PDOException $e) {
             return false;
         }
@@ -205,8 +228,14 @@ class responsableModel extends ConnectDB
     private function executeDeleteRol(int $idRol): bool
     {
         try {
-            $stmt = $this->conex->prepare("UPDATE roles SET estado = 0 WHERE id_rol = ?");
-            return $stmt->execute([$idRol]);
+            $stmt = $this->conex->prepare(
+                "UPDATE roles
+                 SET estado = 0
+                 WHERE id_rol = ?
+                   AND LOWER(TRIM(descripcion)) NOT IN ('administrador', 'coordinador')"
+            );
+            $stmt->execute([$idRol]);
+            return $stmt->rowCount() > 0;
         } catch (\PDOException $e) {
             return false;
         }
@@ -391,6 +420,11 @@ class responsableModel extends ConnectDB
     // Eliminar responsable: primero cierra su cargo activo (si existe), luego elimina el responsable
     public function delete(int $idResponsable)
     {
+        if ($idResponsable <= 0
+            || (isset($_SESSION['id_responsable']) && (int)$_SESSION['id_responsable'] === $idResponsable)
+        ) {
+            return false;
+        }
         return $this->executeDelete($idResponsable);
     }
 
@@ -453,24 +487,6 @@ class responsableModel extends ConnectDB
         } catch (\PDOException $e) {
             $this->conex->rollBack();
             return false;
-        }
-    }
-
-    // Obtener cargos (historial) de una dependencia
-    // (Método público delega a método privado con el SQL real)
-    public function getCargosByDependencia(int $idDep)
-    {
-        return $this->executeGetCargosByDependencia($idDep);
-    }
-
-    private function executeGetCargosByDependencia(int $idDep)
-    {
-        try {
-            $stmt = $this->conex->prepare("SELECT cr.id_cargo, cr.id_responsable, r.nom_rep, cr.fecha_inicio, cr.fecha_fin, cr.estado FROM cargo cr LEFT JOIN responsables r ON cr.id_responsable = r.id_responsable WHERE cr.id_dep = ? ORDER BY cr.fecha_inicio DESC");
-            $stmt->execute([$idDep]);
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\PDOException $e) {
-            return [];
         }
     }
 
