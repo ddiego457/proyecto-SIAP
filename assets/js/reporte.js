@@ -2,6 +2,8 @@
     'use strict';
 
     let exportInProgress = false;
+    let dependencySearchTimer = null;
+    let dependencySearchController = null;
 
     function showToast(message, type = 'error') {
         const existing = document.querySelector('.toast');
@@ -19,29 +21,86 @@
         }, 4000);
     }
 
-    async function loadDependencias() {
-        const select = document.getElementById('selDepIndividual');
-        if (!select) return;
-        const status = document.getElementById('selEstadoReq')?.value || 'enviado';
+    function getChoiceValue(containerId) {
+        return document.querySelector('#' + containerId + ' input[type="radio"]:checked')?.value || '';
+    }
+
+    function renderDependencySearchMessage(message) {
+        const results = document.getElementById('opcionesDepIndividual');
+        if (!results) return;
+        results.innerHTML = '';
+        results.hidden = true;
+        document.getElementById('selDepIndividual')?.setAttribute('aria-expanded', 'false');
+        const status = document.getElementById('estadoBusquedaDep');
+        if (status) status.textContent = message;
+    }
+
+    async function searchDependencias() {
+        const input = document.getElementById('selDepIndividual');
+        const idInput = document.getElementById('idDepIndividual');
+        const results = document.getElementById('opcionesDepIndividual');
+        if (!input || !idInput || !results) return;
+
+        const nombre = input.value.trim();
+        if (nombre.length < 2) {
+            renderDependencySearchMessage(nombre ? 'Escriba al menos 2 caracteres.' : '');
+            return;
+        }
+
+        const status = getChoiceValue('selEstadoReq') || 'enviado';
+        dependencySearchController?.abort();
+        dependencySearchController = new AbortController();
+        const controller = dependencySearchController;
+        const statusLabel = document.getElementById('estadoBusquedaDep');
+        if (statusLabel) statusLabel.textContent = 'Buscando dependencias...';
+        results.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
 
         try {
-            select.disabled = true;
-            const res = await fetch('?url=reporte&type=get_dependencias&estado_envio=' + encodeURIComponent(status));
+            const params = new URLSearchParams({
+                url: 'reporte',
+                type: 'get_dependencias',
+                estado_envio: status,
+                q: nombre,
+            });
+            const res = await fetch('?' + params.toString(), { signal: controller.signal });
             const data = await res.json();
             if (!data.success) throw new Error(data.message);
 
-            select.innerHTML = '<option value="">-- Seleccione dependencia --</option>';
+            if (input.value.trim() !== nombre) return;
+            results.innerHTML = '';
+            if (!data.data?.length) {
+                renderDependencySearchMessage('No se encontraron coincidencias.');
+                return;
+            }
             (data.data || []).forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.id_dep;
-                opt.textContent = d.nom_dep;
-                select.appendChild(opt);
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'dependency-search-option';
+                option.setAttribute('role', 'option');
+                option.textContent = d.nom_dep;
+                option.addEventListener('click', () => {
+                    input.value = d.nom_dep;
+                    idInput.value = d.id_dep;
+                    renderDependencySearchMessage('Dependencia seleccionada: ' + d.nom_dep);
+                });
+                results.appendChild(option);
             });
-            select.disabled = false;
+            results.hidden = false;
+            input.setAttribute('aria-expanded', 'true');
+            if (statusLabel) statusLabel.textContent = 'Seleccione una dependencia de la lista.';
         } catch (err) {
-            select.innerHTML = '<option value="">No se pudieron cargar dependencias</option>';
-            showToast('No se pudieron cargar las dependencias: ' + err.message);
+            if (err.name !== 'AbortError') {
+                renderDependencySearchMessage('No se pudieron buscar dependencias.');
+                showToast('No se pudieron buscar las dependencias: ' + err.message);
+            }
         }
+    }
+
+    function scheduleDependencySearch() {
+        clearTimeout(dependencySearchTimer);
+        dependencySearchController?.abort();
+        dependencySearchTimer = setTimeout(searchDependencias, 250);
     }
 
     async function loadPartidas() {
@@ -102,23 +161,23 @@
     async function exportReport(reportCode, format, button) {
         if (exportInProgress) return;
 
-        const select = document.getElementById('selDepIndividual');
-        const statusSelect = document.getElementById('selEstadoReq');
+        const selectedDependency = document.getElementById('idDepIndividual')?.value || '';
+        const selectedStatus = getChoiceValue('selEstadoReq');
         const allPartidasCheckbox = document.getElementById('chkTodasPartidasReport');
-        const filtroDependenciasSelect = document.getElementById('selFiltroDependencias');
-        const modoGlobalSelect = document.getElementById('selModoGlobal');
+        const selectedDependencyFilter = getChoiceValue('selFiltroDependencias');
+        const selectedGlobalMode = getChoiceValue('selModoGlobal');
 
         let idDep = 0;
         let estadoEnvio = '';
         let partidas = [];
         if (reportCode === 'req_individual') {
-            estadoEnvio = statusSelect ? statusSelect.value : '';
+            estadoEnvio = selectedStatus;
             if (!estadoEnvio) {
                 showToast('Seleccione el estado del requerimiento.');
                 return;
             }
-            idDep = select ? parseInt(select.value, 10) : 0;
-            if (select && !idDep) {
+            idDep = selectedDependency ? parseInt(selectedDependency, 10) : 0;
+            if (document.getElementById('selDepIndividual') && !idDep) {
                 showToast('Debe seleccionar una dependencia.');
                 return;
             }
@@ -131,16 +190,16 @@
                 showToast('Seleccione una o varias partidas, o todas.');
                 return;
             }
-        } else if (reportCode === 'dependencias_responsable' && !filtroDependenciasSelect?.value) {
+        } else if (reportCode === 'dependencias_responsable' && !selectedDependencyFilter) {
             showToast('Seleccione el tipo de dependencias.');
             return;
-        } else if (reportCode === 'req_global' && !modoGlobalSelect?.value) {
+        } else if (reportCode === 'req_global' && !selectedGlobalMode) {
             showToast('Seleccione el tipo de consolidado.');
             return;
         }
 
         const exportButtons = Array.from(document.querySelectorAll('[data-report-export]'));
-        const parameterControls = Array.from(document.querySelectorAll('.report-grid select, .report-grid input[type="checkbox"]'));
+        const parameterControls = Array.from(document.querySelectorAll('.report-grid select, .report-grid input[type="checkbox"], .report-grid input[type="radio"], .report-grid input[type="search"]'));
         const clickedButton = button instanceof HTMLButtonElement
             ? button
             : document.activeElement instanceof HTMLButtonElement
@@ -169,11 +228,11 @@
                     partidas.forEach(idPartida => formData.append('id_partidas[]', idPartida));
                 }
             }
-            if (filtroDependenciasSelect && reportCode === 'dependencias_responsable') {
-                formData.append('filtro_dependencias', filtroDependenciasSelect.value);
+            if (reportCode === 'dependencias_responsable') {
+                formData.append('filtro_dependencias', selectedDependencyFilter);
             }
-            if (modoGlobalSelect && reportCode === 'req_global') {
-                formData.append('modo_global', modoGlobalSelect.value);
+            if (reportCode === 'req_global') {
+                formData.append('modo_global', selectedGlobalMode);
             }
 
             const res = await fetch(url, {
@@ -215,8 +274,34 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         loadPartidas();
-        loadDependencias();
-        document.getElementById('selEstadoReq')?.addEventListener('change', loadDependencias);
+        const dependencyInput = document.getElementById('selDepIndividual');
+        dependencyInput?.addEventListener('input', () => {
+            document.getElementById('idDepIndividual').value = '';
+            scheduleDependencySearch();
+        });
+        dependencyInput?.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                renderDependencySearchMessage('');
+            }
+        });
+        document.querySelectorAll('.report-choice-list:not(#selDepIndividual) input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                radio.closest('.report-choice-list').querySelectorAll('.report-choice').forEach(choice => {
+                    choice.classList.toggle('is-selected', choice.querySelector('input').checked);
+                });
+                if (radio.closest('.report-choice-list').id === 'selEstadoReq') {
+                    document.getElementById('idDepIndividual').value = '';
+                    scheduleDependencySearch();
+                }
+            });
+        });
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.dependency-search')) {
+                const results = document.getElementById('opcionesDepIndividual');
+                if (results) results.hidden = true;
+                dependencyInput?.setAttribute('aria-expanded', 'false');
+            }
+        });
         document.getElementById('chkTodasPartidasReport')?.addEventListener('change', event => {
             const checkbox = event.currentTarget;
             const optionsContainer = document.getElementById('selPartidasReport');

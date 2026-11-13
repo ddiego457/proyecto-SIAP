@@ -102,13 +102,15 @@ class reporteModel extends ConnectDB
         }
     }
 
-    public function getDependenciasParaSelect(int $estadoEnvio = 1): array
+    public function buscarDependenciasParaReporte(int $estadoEnvio, string $nombre): array
     {
         try {
+            $nombre = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($nombre));
             $query = "
                 SELECT d.id_dep, d.nom_dep
                 FROM dependencias d
                 WHERE d.estado = 1
+                  AND d.nom_dep LIKE :nombre ESCAPE '!'
                 AND EXISTS (
                     SELECT 1 FROM requerimientos r
                     JOIN anio_fiscal af ON af.id_aniof = r.id_aniof AND af.activo = 1
@@ -118,12 +120,16 @@ class reporteModel extends ConnectDB
                       AND r.estado_envio = :estado_envio
                 )
                 ORDER BY d.nom_dep ASC
+                LIMIT 20
             ";
             $stmt = $this->conex->prepare($query);
-            $stmt->execute([':estado_envio' => $estadoEnvio]);
+            $stmt->execute([
+                ':nombre' => '%' . $nombre . '%',
+                ':estado_envio' => $estadoEnvio,
+            ]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            throw new \RuntimeException('Error cargando dependencias para select: ' . $e->getMessage());
+            throw new \RuntimeException('Error buscando dependencias para el reporte: ' . $e->getMessage());
         }
     }
 

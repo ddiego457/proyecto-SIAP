@@ -41,8 +41,14 @@ if ($type === 'get_dependencias') {
         echo json_encode(['success' => false, 'message' => $errorValidacion]);
         exit;
     }
+    $nombre = isset($_GET['q']) && is_scalar($_GET['q']) ? trim((string)$_GET['q']) : '';
+    if (mb_strlen($nombre, 'UTF-8') < 2 || mb_strlen($nombre, 'UTF-8') > 100) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Escriba entre 2 y 100 caracteres para buscar dependencias.']);
+        exit;
+    }
     try {
-        $deps = $model->getDependenciasParaSelect($estadoEnvioRaw === 'enviado' ? 1 : 0);
+        $deps = $model->buscarDependenciasParaReporte($estadoEnvioRaw === 'enviado' ? 1 : 0, $nombre);
         echo json_encode(['success' => true, 'data' => $deps]);
     } catch (\Throwable $e) {
         http_response_code(500);
