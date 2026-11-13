@@ -78,6 +78,9 @@ include_once 'app/view/layout/head.php';
                                         aria-controls="opcionesDepIndividual"
                                         aria-expanded="false">
                                     <input type="hidden" id="idDepIndividual">
+                                    <button type="button" id="alternarSugerenciasDep" class="dependency-search-toggle" aria-controls="opcionesDepIndividual" aria-expanded="false">
+                                        Mostrar sugerencias
+                                    </button>
                                     <div id="opcionesDepIndividual" class="dependency-search-results" role="listbox" aria-label="Coincidencias de dependencias" hidden></div>
                                     <small id="estadoBusquedaDep" class="partidas-selection-count" aria-live="polite"></small>
                                 </div>
@@ -311,6 +314,21 @@ include_once 'app/view/layout/head.php';
 }
 .dependency-search {
     position: relative;
+}
+.dependency-search-toggle {
+    margin-top: 6px;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: var(--blue);
+    font: inherit;
+    font-size: .84rem;
+    cursor: pointer;
+}
+.dependency-search-toggle:hover,
+.dependency-search-toggle:focus {
+    color: #102a43;
+    text-decoration: underline;
 }
 .dependency-search-results {
     position: absolute;

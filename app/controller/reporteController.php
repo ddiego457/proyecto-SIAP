@@ -42,9 +42,9 @@ if ($type === 'get_dependencias') {
         exit;
     }
     $nombre = isset($_GET['q']) && is_scalar($_GET['q']) ? trim((string)$_GET['q']) : '';
-    if (mb_strlen($nombre, 'UTF-8') < 2 || mb_strlen($nombre, 'UTF-8') > 100) {
+    if (($nombre !== '' && mb_strlen($nombre, 'UTF-8') < 2) || mb_strlen($nombre, 'UTF-8') > 100) {
         http_response_code(422);
-        echo json_encode(['success' => false, 'message' => 'Escriba entre 2 y 100 caracteres para buscar dependencias.']);
+        echo json_encode(['success' => false, 'message' => 'Escriba al menos 2 caracteres para buscar dependencias.']);
         exit;
     }
     try {

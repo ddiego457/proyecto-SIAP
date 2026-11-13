@@ -4,6 +4,20 @@
     let exportInProgress = false;
     let dependencySearchTimer = null;
     let dependencySearchController = null;
+    let dependencySuggestionsOpen = false;
+
+    function setDependencySuggestionsOpen(open) {
+        dependencySuggestionsOpen = open;
+        const input = document.getElementById('selDepIndividual');
+        const results = document.getElementById('opcionesDepIndividual');
+        const toggle = document.getElementById('alternarSugerenciasDep');
+        if (results) results.hidden = !open;
+        input?.setAttribute('aria-expanded', String(open));
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', String(open));
+            toggle.textContent = open ? 'Ocultar sugerencias' : 'Mostrar sugerencias';
+        }
+    }
 
     function showToast(message, type = 'error') {
         const existing = document.querySelector('.toast');
@@ -29,8 +43,7 @@
         const results = document.getElementById('opcionesDepIndividual');
         if (!results) return;
         results.innerHTML = '';
-        results.hidden = true;
-        document.getElementById('selDepIndividual')?.setAttribute('aria-expanded', 'false');
+        setDependencySuggestionsOpen(false);
         const status = document.getElementById('estadoBusquedaDep');
         if (status) status.textContent = message;
     }
@@ -42,8 +55,8 @@
         if (!input || !idInput || !results) return;
 
         const nombre = input.value.trim();
-        if (nombre.length < 2) {
-            renderDependencySearchMessage(nombre ? 'Escriba al menos 2 caracteres.' : '');
+        if (nombre.length === 1) {
+            renderDependencySearchMessage('Escriba al menos 2 caracteres.');
             return;
         }
 
@@ -53,8 +66,6 @@
         const controller = dependencySearchController;
         const statusLabel = document.getElementById('estadoBusquedaDep');
         if (statusLabel) statusLabel.textContent = 'Buscando dependencias...';
-        results.hidden = true;
-        input.setAttribute('aria-expanded', 'false');
 
         try {
             const params = new URLSearchParams({
@@ -70,7 +81,9 @@
             if (input.value.trim() !== nombre) return;
             results.innerHTML = '';
             if (!data.data?.length) {
-                renderDependencySearchMessage('No se encontraron coincidencias.');
+                renderDependencySearchMessage(nombre
+                    ? 'No se encontraron coincidencias.'
+                    : 'No hay dependencias con requerimientos para este estado.');
                 return;
             }
             (data.data || []).forEach(d => {
@@ -86,9 +99,12 @@
                 });
                 results.appendChild(option);
             });
-            results.hidden = false;
-            input.setAttribute('aria-expanded', 'true');
-            if (statusLabel) statusLabel.textContent = 'Seleccione una dependencia de la lista.';
+            setDependencySuggestionsOpen(dependencySuggestionsOpen);
+            if (statusLabel) {
+                statusLabel.textContent = nombre
+                    ? 'Seleccione una dependencia de la lista.'
+                    : 'Sugerencias para requerimientos ' + (status === 'enviado' ? 'enviados.' : 'sin enviar.');
+            }
         } catch (err) {
             if (err.name !== 'AbortError') {
                 renderDependencySearchMessage('No se pudieron buscar dependencias.');
@@ -275,15 +291,32 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadPartidas();
         const dependencyInput = document.getElementById('selDepIndividual');
+        const dependencyToggle = document.getElementById('alternarSugerenciasDep');
         dependencyInput?.addEventListener('input', () => {
             document.getElementById('idDepIndividual').value = '';
             scheduleDependencySearch();
         });
-        dependencyInput?.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                renderDependencySearchMessage('');
+        dependencyToggle?.addEventListener('click', () => {
+            const results = document.getElementById('opcionesDepIndividual');
+            if (dependencySuggestionsOpen) {
+                setDependencySuggestionsOpen(false);
+                return;
+            }
+            if (results?.children.length) {
+                setDependencySuggestionsOpen(true);
+            } else {
+                setDependencySuggestionsOpen(true);
+                searchDependencias();
             }
         });
+        dependencyInput?.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                setDependencySuggestionsOpen(false);
+            }
+        });
+        if (dependencyInput) {
+            searchDependencias();
+        }
         document.querySelectorAll('.report-choice-list:not(#selDepIndividual) input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', () => {
                 radio.closest('.report-choice-list').querySelectorAll('.report-choice').forEach(choice => {
@@ -298,8 +331,7 @@
         document.addEventListener('click', event => {
             if (!event.target.closest('.dependency-search')) {
                 const results = document.getElementById('opcionesDepIndividual');
-                if (results) results.hidden = true;
-                dependencyInput?.setAttribute('aria-expanded', 'false');
+                if (results && !results.hidden) setDependencySuggestionsOpen(false);
             }
         });
         document.getElementById('chkTodasPartidasReport')?.addEventListener('change', event => {
