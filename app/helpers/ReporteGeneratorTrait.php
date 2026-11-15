@@ -12,7 +12,8 @@ trait ReporteGeneratorTrait
     private function buildIndividualReportFilename(array $context): string
     {
         $parts = [$context['dependencia'], 'Requerimiento', $context['estado'], (string)$context['anio']];
-        $filename = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', implode('_', $parts));
+        $filename = implode('_', $parts);
+        $filename = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $filename) ?: $filename;
         $filename = preg_replace('/[^A-Za-z0-9_-]+/', '_', $filename);
         return trim((string)$filename, '_') . '_' . date('Ymd');
     }

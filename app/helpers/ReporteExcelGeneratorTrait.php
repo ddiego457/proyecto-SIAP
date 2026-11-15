@@ -42,7 +42,7 @@ trait ReporteExcelGeneratorTrait
     {
         $data = $this->executeGetReqReport($idDep, $incluirNoEnviados);
         $context = $this->getReqReportContext($idDep, $incluirNoEnviados);
-        $context['estado'] = $incluirNoEnviados ? 'Sin enviar' : 'Enviado';
+        $context['estado'] = $incluirNoEnviados ? 'No enviados' : 'Enviados';
         $this->executeGetXlxsReqReport(
             $data,
             'TOTAL_Dependencia.xlsx',

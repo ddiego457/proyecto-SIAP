@@ -2,6 +2,7 @@ $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
     const ROL_SUPERADMIN = 'Superadmin';
+    const esAdministrador = window.SIAP_ES_ADMINISTRADOR === true;
     // ID de la cuenta logueada (expuesto desde layout/head.php)
     const idResponsablePropio = Number(window.SIAP_ID_RESPONSABLE || 0);
 
@@ -216,7 +217,14 @@ $(document).ready(function() {
         $('#edit_nom_rep').val(data.nom_rep);
         $('#edit_email').val(data.email || '');
         $('#edit_id_rol').val(data.id_rol);
+        const esCoordinador = String(data.rol || '').trim().toLowerCase() === 'coordinador';
+        $('#edit_id_rol option[data-role="coordinador"]').prop('hidden', esAdministrador && !esCoordinador);
         $('#edit_contrasena').val('');
+        $('#edit_contrasena').prop('disabled', esAdministrador && esCoordinador);
+        $('#edit_contrasena').closest('.field-group').find('.field-label')
+            .text(esAdministrador && esCoordinador
+                ? 'Contrase?a (no modificable para Coordinadores)'
+                : 'Contrase?a (opcional)');
         $('#edit_id_dep').val('');
         $('#editDependenciaGroup').hide();
 

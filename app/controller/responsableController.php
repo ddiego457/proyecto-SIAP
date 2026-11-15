@@ -33,11 +33,19 @@
         } elseif ($_GET['type'] == 'main') {
 
             $roles = $object->getRoles();
+            $esAdministradorUsuarios = isset($_SESSION['rol']) && $_SESSION['rol'] === 'Administrador';
             $dependenciasDisponibles = $object->getAvailableDependencias();
 
             if (isset($_POST['registerResponsable'])) {
                 if (isset($_POST['nom_rep']) && isset($_POST['contrasena']) && isset($_POST['id_rol']) && isset($_POST['email'])) {
                     $nombre = trim($_POST['nom_rep']);
+                    $errorRestriccion = $object->validarRestriccionesAdministradorResponsable(
+                        (int)$_POST['id_rol'],
+                        (string)$_POST['contrasena']
+                    );
+                    if ($errorRestriccion !== null) {
+                        sendJson(['success' => false, 'message' => $errorRestriccion]);
+                    }
                     $errorValidacion = $object->validar('nombre_responsable', $nombre);
                     if ($errorValidacion !== null) {
                         sendJson(['success' => false, 'message' => $errorValidacion]);
@@ -101,6 +109,11 @@
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
+
+                $errorRestriccion = $object->validarRestriccionesAdministradorResponsable($idRol, $pass, $id);
+                if ($errorRestriccion !== null) {
+                    sendJson(['success' => false, 'message' => $errorRestriccion]);
+                }
 
                 $errorValidacion = $object->validar('nombre_responsable', $nom);
                 if ($errorValidacion !== null) {
@@ -184,6 +197,14 @@
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
                 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : null;
+                $errorRestriccion = $object->validarRestriccionesAdministradorResponsable(
+                    $idRol,
+                    $pass,
+                    $idResponsable
+                );
+                if ($errorRestriccion !== null) {
+                    sendJson(['success' => false, 'message' => $errorRestriccion]);
+                }
                 if ($nom !== '') {
                     $errorValidacion = $object->validar('nombre_responsable', $nom);
                     if ($errorValidacion !== null) {

@@ -3,6 +3,9 @@ $pageTitle = "Responsables";
 $jsFile    = "responsable.js";
 include_once 'app/view/layout/head.php';
 ?>
+<script>
+    window.SIAP_ES_ADMINISTRADOR = <?php echo !empty($esAdministradorUsuarios) ? 'true' : 'false'; ?>;
+</script>
 
 <!-- TOPBAR -->
 <div class="topbar">
@@ -80,7 +83,9 @@ include_once 'app/view/layout/head.php';
                         <select name="id_rol" class="field-input field-select" required>
                             <option value="">— Seleccione rol —</option>
                             <?php foreach ($roles as $rol): ?>
-                                <option value="<?php echo $rol['id_rol']; ?>"><?php echo htmlspecialchars($rol['descripcion']); ?></option>
+                                <?php if (empty($esAdministradorUsuarios) || mb_strtolower(trim((string)$rol['descripcion']), 'UTF-8') !== 'coordinador'): ?>
+                                    <option value="<?php echo $rol['id_rol']; ?>" data-role="<?php echo htmlspecialchars(mb_strtolower(trim((string)$rol['descripcion']), 'UTF-8'), ENT_QUOTES); ?>"><?php echo htmlspecialchars($rol['descripcion']); ?></option>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -133,7 +138,7 @@ include_once 'app/view/layout/head.php';
                         <select id="edit_id_rol" name="id_rol" class="field-input field-select" required>
                             <option value="">— Seleccione rol —</option>
                             <?php foreach ($roles as $rol): ?>
-                                <option value="<?php echo $rol['id_rol']; ?>"><?php echo htmlspecialchars($rol['descripcion']); ?></option>
+                                <option value="<?php echo $rol['id_rol']; ?>" data-role="<?php echo htmlspecialchars(mb_strtolower(trim((string)$rol['descripcion']), 'UTF-8'), ENT_QUOTES); ?>"><?php echo htmlspecialchars($rol['descripcion']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

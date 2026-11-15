@@ -64,7 +64,7 @@ trait ReportePdfGeneratorTrait
     {
         $data = $this->executeGetReqReport($idDep, $incluirNoEnviados);
         $context = $this->getReqReportContext($idDep, $incluirNoEnviados);
-        $context['estado'] = $incluirNoEnviados ? 'Sin enviar' : 'Enviado';
+        $context['estado'] = $incluirNoEnviados ? 'No enviados' : 'Enviados';
         $title = $this->buildIndividualReportTitle($context);
         $filename = $this->buildIndividualReportFilename($context) . '.pdf';
         $this->executeGetPdfReqReport($data, $title, $filename, (string)$context['anio']);

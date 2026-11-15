@@ -97,6 +97,37 @@ class responsableModel extends ConnectDB
         return $role !== null && $this->isProtectedRoleDescription((string)$role['descripcion']);
     }
 
+    public function validarRestriccionesAdministradorResponsable(
+        ?int $idRol,
+        ?string $password,
+        ?int $idResponsable = null
+    ): ?string {
+        if (($_SESSION['rol'] ?? '') !== 'Administrador') {
+            return null;
+        }
+
+        $rolActual = $idResponsable !== null ? $this->getRolDeResponsable($idResponsable) : null;
+        $esCoordinadorActual = $rolActual !== null
+            && mb_strtolower(trim($rolActual), 'UTF-8') === 'coordinador';
+
+        if ($esCoordinadorActual && $password !== null && trim($password) !== '') {
+            return 'No se puede modificar la contrase?a de un Coordinador.';
+        }
+
+        if ($idRol !== null && $this->esRolCoordinador($idRol) && !$esCoordinadorActual) {
+            return 'No se puede asignar el rol Coordinador.';
+        }
+
+        return null;
+    }
+
+    private function esRolCoordinador(int $idRol): bool
+    {
+        $role = $this->executeGetRolById($idRol);
+        return $role !== null
+            && mb_strtolower(trim((string)$role['descripcion']), 'UTF-8') === 'coordinador';
+    }
+
     private function isProtectedRoleDescription(string $description): bool
     {
         return in_array(mb_strtolower(trim($description), 'UTF-8'), ['administrador', 'coordinador'], true);
@@ -328,6 +359,10 @@ class responsableModel extends ConnectDB
 
     private function executeAdd(string $nomRep, string $password, int $idRol, int $idDep, string $email)
     {
+        if ($this->validarRestriccionesAdministradorResponsable($idRol, $password) !== null) {
+            return false;
+        }
+
         try {
             $this->conex->beginTransaction();
 
@@ -363,6 +398,10 @@ class responsableModel extends ConnectDB
 
     private function executeUpdate(int $id, ?string $nomRep, ?string $password, ?int $idRol, ?string $email = null)
     {
+        if ($this->validarRestriccionesAdministradorResponsable($idRol, $password, $id) !== null) {
+            return false;
+        }
+
         try {
             $query = "UPDATE responsables SET ";
             $params = [];

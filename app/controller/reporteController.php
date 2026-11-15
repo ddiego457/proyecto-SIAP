@@ -4,26 +4,16 @@ use EquipoSiap\Siap\model\reporteModel;
 $this->requireLogin();
 $this->requireModule('reporte');
 
-$model = new reporteModel();
-
 $type = isset($_GET['type']) && is_scalar($_GET['type']) ? trim((string)$_GET['type']) : 'main';
 
 if(isset($_GET['type'])){
 if ($type === 'main') {
-    $buttons = $model->getReportButtons();
     $esAdminReportes = $this->esAdmin();
-    if (!$esAdminReportes) {
-        $buttons = array_values(array_filter($buttons, function ($button) {
-            return $button['code'] === 'req_individual';
-        }));
-        if (!empty($buttons)) {
-            $buttons[0]['description'] = 'Requerimiento creado para su dependencia';
-            unset($buttons[0]['requiresDep']);
-        }
-    }
     include 'app/view/reporte/dashboard.php';
     return;
 }
+
+$model = new reporteModel();
 
 if ($type === 'get_dependencias') {
     header('Content-Type: application/json; charset=utf-8');

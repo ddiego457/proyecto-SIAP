@@ -2,15 +2,15 @@
 namespace EquipoSiap\Siap\model;
 
 use EquipoSiap\Siap\config\Connect\ConnectDB;
+use EquipoSiap\Siap\helpers\ValidationTrait;
+use EquipoSiap\Siap\helpers\ReporteGeneratorTrait;
 use EquipoSiap\Siap\helpers\ReporteExcelGeneratorTrait;
 use EquipoSiap\Siap\helpers\ReportePdfGeneratorTrait;
-use EquipoSiap\Siap\helpers\ValidationTrait;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-
 
 class reporteModel extends ConnectDB
 {
     use ValidationTrait;
+    use ReporteGeneratorTrait;
     use ReporteExcelGeneratorTrait;
     use ReportePdfGeneratorTrait;
 
@@ -20,33 +20,6 @@ class reporteModel extends ConnectDB
     {
         parent::__construct();
         $this->conex = $this->getConnection();
-    }
-
-    public function getReportButtons(): array
-    {
-        return [
-            [
-                'code' => 'productos_partida',
-                'title' => 'Productos por Partida',
-                'description' => 'Seleccione una o varias partidas presupuestarias, o todas.',
-            ],
-            [
-                'code' => 'dependencias_responsable',
-                'title' => 'Dependencias',
-                'description' => 'Activas con/sin responsable o inactivas.',
-            ],
-            [
-                'code' => 'req_individual',
-                'title' => 'Requerimientos Individuales por Dependencia',
-                'description' => 'Seleccione dependencia y estado de envío del requerimiento.',
-                'requiresDep' => true,
-            ],
-            [
-                'code' => 'req_global',
-                'title' => 'Requerimientos Global (Consolidado)',
-                'description' => 'Consolidado, cantidades por producto o totales por partida.',
-            ],
-        ];
     }
 
     public function getPartidasParaReporte(): array
@@ -64,7 +37,10 @@ class reporteModel extends ConnectDB
         }
     }
 
-    public function getDependenciasConResponsable(string $filtro = 'activas_con_responsable'): array
+    public function getDependenciasConResponsable(
+        string $filtro = 'activas_con_responsable',
+        bool $ocultarCoordinadores = false
+    ): array
     {
         try {
             $where = match ($filtro) {
@@ -73,12 +49,18 @@ class reporteModel extends ConnectDB
                 'inactivas' => 'd.estado = 0',
                 default => throw new \InvalidArgumentException('Filtro de dependencias no válido.'),
             };
+            $cargoSelect = $ocultarCoordinadores
+                ? "CASE
+                       WHEN LOWER(TRIM(ro.descripcion)) = 'coordinador' THEN 'SIN CARGO'
+                       ELSE COALESCE(ro.descripcion, 'SIN CARGO')
+                   END"
+                : "COALESCE(ro.descripcion, 'SIN CARGO')";
             $query = "
                 SELECT 
                     d.id_dep,
                     d.nom_dep AS dependencia,
                     COALESCE(r.nom_rep, 'SIN ASIGNAR') AS responsable,
-                    COALESCE(ro.descripcion, 'SIN CARGO') AS cargo,
+                    {$cargoSelect} AS cargo,
                     COALESCE(t.telefono, 'SIN TELÉFONO') AS telefono,
                     CASE WHEN d.estado = 1 THEN 'ACTIVA' ELSE 'INACTIVA' END AS estado_dependencia,
                     CASE
@@ -133,10 +115,10 @@ class reporteModel extends ConnectDB
         }
     }
 
-    public function hasReqReportData(int $idDep, bool $incluirNoRegistrados = false): bool
+    public function hasReqReportData(int $idDep, bool $incluirNoEnviados = false): bool
     {
         try {
-            $estadoRegistro = $incluirNoRegistrados ? 0 : 1;
+            $estadoRegistro = $incluirNoEnviados ? 0 : 1;
             $stmt = $this->conex->prepare(
                 "SELECT 1
                  FROM requerimientos r
@@ -156,84 +138,9 @@ class reporteModel extends ConnectDB
         }
     }
 
-    public function exportReqIndividualExcel(int $idDep, bool $incluirNoRegistrados = false): void
+    private function getReqReportContext(int $idDep, bool $incluirNoEnviados): array
     {
-        $data = $this->executeGetReqReport($idDep, $incluirNoRegistrados);
-        $context = $this->getReqReportContext($idDep, $incluirNoRegistrados);
-        $this->executeGetXlxsReqReport(
-            $data,
-            'TOTAL_Dependencia.xlsx',
-            '',
-            $context,
-            $this->buildIndividualReportFilename($context) . '.xlsx'
-        );
-    }
-
-    public function exportReqIndividualPDF(int $idDep, bool $incluirNoRegistrados = false): void
-    {
-        $data = $this->executeGetReqReport($idDep, $incluirNoRegistrados);
-        $context = $this->getReqReportContext($idDep, $incluirNoRegistrados);
-        $title = $this->buildIndividualReportTitle($context);
-        $filename = $this->buildIndividualReportFilename($context) . '.pdf';
-        $this->executeGetPdfReqReport($data, $title, $filename, (string)$context['anio']);
-    }
-
-    public function exportReqGlobalExcel(string $modo = 'consolidado'): void
-    {
-        $data = $this->executeGetReqReport();
-        if ($modo === 'consolidado') {
-            $year = $this->getActiveFiscalYear();
-            $this->executeGetXlxsReqReport(
-                $data,
-                'TOTAL_Todas_las_Dependencias.xlsx',
-                '',
-                null,
-                'POA_Global_' . $year . '.xlsx',
-                $year
-            );
-            return;
-        }
-        $this->executeGetXlsxGlobalResumen($data, $modo);
-    }
-
-    public function exportReqGlobalPDF(string $modo = 'consolidado'): void
-    {
-        $data = $this->executeGetReqReport();
-        if ($modo === 'consolidado') {
-            $year = $this->getActiveFiscalYear();
-            $this->executeGetPdfReqReport($data, 'Consolidado POA Global', 'POA_Global_' . $year . '.pdf', $year);
-            return;
-        }
-        $this->executeGetPdfGlobalResumen($data, $modo);
-    }
-
-    public function exportProductosExcel(array $idPartidas = []): void
-    {
-        $data = $this->executeGetProReport($idPartidas);
-        $this->executeGetXlsxProReport($data, $idPartidas);
-    }
-
-    public function exportDependenciasResponsableExcel(string $filtro = 'activas_con_responsable'): void
-    {
-        $data = $this->getDependenciasConResponsable($filtro);
-        $this->executeGetXlsxDependenciasResponsable($data, $filtro);
-    }
-
-    public function exportProductosPDF(array $idPartidas = []): void
-    {
-        $data = $this->executeGetProReport($idPartidas);
-        $this->executeGetPdfProReport($data, $idPartidas);
-    }
-
-    public function exportDependenciasResponsablePDF(string $filtro = 'activas_con_responsable'): void
-    {
-        $data = $this->getDependenciasConResponsable($filtro);
-        $this->executeGetPdfDependenciasResponsable($data, $filtro);
-    }
-
-    private function getReqReportContext(int $idDep, bool $incluirNoRegistrados): array
-    {
-        $estadoRegistro = $incluirNoRegistrados ? 0 : 1;
+        $estadoRegistro = $incluirNoEnviados ? 0 : 1;
         $stmt = $this->conex->prepare(
             "SELECT d.nom_dep AS dependencia, af.anio AS anio
              FROM dependencias d
@@ -251,31 +158,16 @@ class reporteModel extends ConnectDB
         if (!$context) {
             throw new \RuntimeException('No se encontró el año fiscal y requerimiento para generar el informe.');
         }
-
-        $context['estado'] = $incluirNoRegistrados ? 'No enviados' : 'Enviados';
         return $context;
-    }
-
-    private function buildIndividualReportTitle(array $context): string
-    {
-        return 'Requerimiento ' . $context['estado'] . ' - ' . $context['dependencia'];
-    }
-
-    private function buildIndividualReportFilename(array $context): string
-    {
-        $parts = [$context['dependencia'], 'Requerimiento', $context['estado'], (string)$context['anio']];
-        $filename = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', implode('_', $parts));
-        $filename = preg_replace('/[^A-Za-z0-9_-]+/', '_', $filename);
-        return trim((string)$filename, '_') . '_' . date('Ymd');
     }
 
     // ===================== CONSULTAS BASE =====================
 
-    private function executeGetReqReport($id = '', bool $incluirNoRegistrados = false)
+    private function executeGetReqReport($id = '', bool $incluirNoEnviados = false)
     {
         $params = [];
         if (!empty($id)) {
-            $estadoRegistro = $incluirNoRegistrados ? 0 : 1;
+            $estadoRegistro = $incluirNoEnviados ? 0 : 1;
             $query = "
                 SELECT 
                     p.cod_partida AS codigo,
@@ -416,137 +308,6 @@ class reporteModel extends ConnectDB
         }
     }
 
-    private function getGlobalReportRows(array $data, string $modo): array
-    {
-        if ($modo === 'cantidades') {
-            $rows = [];
-            foreach ($data as $row) {
-                if ((float)$row['cantidad_Total'] <= 0) {
-                    continue;
-                }
-                [$descripcion, $unidad] = $this->parseProductDescription((string)$row['Descripcion']);
-                $rows[] = [
-                    'codigo' => $row['codigo'],
-                    'partida' => $row['partida'],
-                    'producto' => $descripcion,
-                    'unidad' => $unidad,
-                    'cantidad' => (float)$row['cantidad_Total'],
-                ];
-            }
-            return $rows;
-        }
-
-        if ($modo === 'totales') {
-            $totales = [];
-            foreach ($data as $row) {
-                $codigo = (string)$row['codigo'];
-                if (!isset($totales[$codigo])) {
-                    $totales[$codigo] = [
-                        'codigo' => $codigo,
-                        'partida' => $row['partida'],
-                        'total_usd' => 0.0,
-                        'total_bs' => 0.0,
-                    ];
-                }
-                $totales[$codigo]['total_usd'] += (float)$row['Total_precio_dolares'];
-                $totales[$codigo]['total_bs'] += (float)$row['Total_precio'];
-            }
-            return array_values($totales);
-        }
-
-        throw new \InvalidArgumentException('Modo de consolidado no válido.');
-    }
-
-    private function executeGetXlsxGlobalResumen(array $data, string $modo): void
-    {
-        $rows = $this->getGlobalReportRows($data, $modo);
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $title = $modo === 'cantidades'
-            ? 'Cantidades anuales por producto y partida'
-            : 'Totales por partida en USD y Bs.';
-        $sheet->setTitle($modo === 'cantidades' ? 'Cantidades por producto' : 'Totales por partida');
-        $columnCount = $modo === 'cantidades' ? 5 : 4;
-        $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnCount);
-        $sheet->mergeCells('A1:' . $lastColumn . '1');
-        $sheet->setCellValue('A1', $title . ' - Año ' . $this->getActiveFiscalYear());
-        $sheet->getStyle('A1:' . $lastColumn . '1')->getFont()->setBold(true)->setSize(14);
-
-        $headers = $modo === 'cantidades'
-            ? ['Partida', 'Descripción de partida', 'Producto', 'U.M.', 'Cantidad anual']
-            : ['Partida', 'Descripción de partida', 'Total USD', 'Total Bs.'];
-        foreach ($headers as $index => $header) {
-            $coordinate = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1) . '3';
-            $sheet->setCellValue($coordinate, $header);
-        }
-        $sheet->getStyle('A3:' . $lastColumn . '3')->getFont()->setBold(true);
-
-        $rowNumber = 4;
-        foreach ($rows as $row) {
-            if ($modo === 'cantidades') {
-                $values = [$row['codigo'], $row['partida'], $row['producto'], $row['unidad'], $row['cantidad']];
-            } else {
-                $values = [$row['codigo'], $row['partida'], $row['total_usd'], $row['total_bs']];
-            }
-            foreach ($values as $index => $value) {
-                $coordinate = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1) . $rowNumber;
-                $sheet->setCellValue($coordinate, $value);
-            }
-            $rowNumber++;
-        }
-        foreach (range('A', $lastColumn) as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-        $sheet->freezePane('A4');
-
-        $this->downloadReportExcel(
-            $spreadsheet,
-            'POA_Global_' . $modo . '_' . $this->getActiveFiscalYear() . '.xlsx',
-            false
-        );
-    }
-
-    private function executeGetPdfGlobalResumen(array $data, string $modo): void
-    {
-        $rows = $this->getGlobalReportRows($data, $modo);
-        $year = $this->getActiveFiscalYear();
-        $title = $modo === 'cantidades'
-            ? 'Cantidades anuales por producto y partida'
-            : 'Totales por partida en USD y Bs.';
-        $tableClass = 'tabla-resumen';
-        $headers = $modo === 'cantidades'
-            ? ['Partida', 'Descripción de partida', 'Producto', 'U.M.', 'Cantidad anual']
-            : ['Partida', 'Descripción de partida', 'Total USD', 'Total Bs.'];
-
-        $html = '<table class="' . $tableClass . '"><thead><tr>';
-        foreach ($headers as $header) {
-            $html .= '<th>' . htmlspecialchars($header, ENT_QUOTES, 'UTF-8') . '</th>';
-        }
-        $html .= '</tr></thead><tbody>';
-        foreach ($rows as $row) {
-            $values = $modo === 'cantidades'
-                ? [$row['codigo'], $row['partida'], $row['producto'], $row['unidad'], $this->formatReportNumber($row['cantidad'])]
-                : [$row['codigo'], $row['partida'], $this->formatReportNumber($row['total_usd'], true), $this->formatReportNumber($row['total_bs'], true)];
-            $html .= '<tr>';
-            foreach ($values as $value) {
-                $html .= '<td>' . htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') . '</td>';
-            }
-            $html .= '</tr>';
-        }
-        if (!$rows) {
-            $html .= '<tr><td colspan="' . count($headers) . '">No se encontraron registros para mostrar.</td></tr>';
-        }
-        $html .= '</tbody></table>';
-
-        $mpdf = $this->createReportPdf($title, $year);
-        $this->outputReportPdf(
-            $mpdf,
-            $this->reportTableCss($tableClass),
-            $html,
-            'POA_Global_' . $modo . '_' . $year . '.pdf'
-        );
-    }
-
     private function getActiveFiscalYear(): string
     {
         $year = $this->conex->query('SELECT anio FROM anio_fiscal WHERE activo = 1 LIMIT 1')->fetchColumn();
@@ -554,451 +315,5 @@ class reporteModel extends ConnectDB
             throw new \RuntimeException('No hay un año fiscal activo para generar el reporte.');
         }
         return (string)$year;
-    }
-
-    private function parseProductDescription(string $value, string $defaultUnit = 'UND'): array
-    {
-        $separatorStart = strpos($value, '|');
-        if ($separatorStart === false) {
-            return [$value, $defaultUnit];
-        }
-
-        $separatorEnd = strpos($value, '|', $separatorStart + 1);
-        if ($separatorEnd === false) {
-            return [trim(substr($value, 0, $separatorStart)), trim(substr($value, $separatorStart + 1)) ?: $defaultUnit];
-        }
-
-        $unit = substr($value, $separatorStart + 1, $separatorEnd - $separatorStart - 1);
-        $description = trim(substr($value, 0, $separatorStart) . substr($value, $separatorEnd + 1));
-        return [$description, $unit !== '' ? $unit : $defaultUnit];
-    }
-
-    private function formatReportNumber($value, bool $isAmount = false): string
-    {
-        if (!is_numeric($value) || (float)$value == 0.0) {
-            return '';
-        }
-
-        return number_format((float)$value, $isAmount ? 2 : 0, ',', '.');
-    }
-
-    private function safeReportFilenamePart(string $value): string
-    {
-        $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-        $part = preg_replace('/[^A-Za-z0-9_-]+/', '_', $ascii === false ? $value : $ascii);
-        return trim((string)$part, '_') ?: 'reporte';
-    }
-
-    private function getPartidaReportLabel(array $idPartidas): string
-    {
-        if (!$idPartidas) {
-            return 'Todas las partidas';
-        }
-        $labels = [];
-        foreach ($this->getPartidasParaReporte() as $partida) {
-            if (in_array((int)$partida['id_partida'], $idPartidas, true)) {
-                $labels[] = (string)$partida['cod_partida'];
-            }
-        }
-        return implode(', ', $labels);
-    }
-
-    private function formatPartidaSheetName(string $codigo): string
-    {
-        $formatted = str_replace('.', ',', $codigo);
-        if (strlen($formatted) === 3 && ctype_digit($formatted)) {
-            $formatted = substr($formatted, 0, 1) . ',' . substr($formatted, 1);
-        }
-        return $formatted;
-    }
-
-    private function getDependencyFilterLabel(string $filtro): string
-    {
-        return match ($filtro) {
-            'activas_con_responsable' => 'Dependencias activas con responsable',
-            'activas_sin_responsable' => 'Dependencias activas sin responsable',
-            'inactivas' => 'Dependencias inactivas (con o sin responsable)',
-            default => throw new \InvalidArgumentException('Filtro de dependencias no válido.'),
-        };
-    }
-
-    // ===================== GENERADORES EXCEL (con try-catch) =====================
-
-    private function executeGetXlxsReqReport(
-        array $datos,
-        string $plantilla,
-        string $prefijo,
-        ?array $metadata = null,
-        ?string $downloadFilename = null,
-        ?string $reportYear = null
-    ): void
-    {
-        try {
-            $documento = $this->loadReportTemplate($plantilla);
-
-            $filasHojas = [
-                '4,01' => 21, '4,02' => 21, '4,03' => 21,
-                '4,04' => 21, '4,07' => 21
-            ];
-
-            if (!empty($datos)) {
-                foreach ($datos as $fila) {
-                    $partidaFormateada = str_replace('.', ',', (string)$fila['codigo']);
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion'], 'UNIDAD');
-
-                    if (strlen($partidaFormateada) === 3 && is_numeric($partidaFormateada)) {
-                        $partidaFormateada = substr($partidaFormateada, 0, 1) . ',' . substr($partidaFormateada, 1);
-                    }
-
-                    if (isset($filasHojas[$partidaFormateada]) && $documento->sheetNameExists($partidaFormateada)) {
-                        $hoja = $documento->getSheetByName($partidaFormateada);
-                        $numFila = $filasHojas[$partidaFormateada];
-
-                        $hoja->setCellValue('A' . $numFila, $fila['codigo']);
-                        $hoja->setCellValue('B' . $numFila, $descripcion);
-                        $hoja->setCellValue('C' . $numFila, $uMedida);
-                        $hoja->setCellValue('D' . $numFila, $fila['precio'] ?? 0);
-
-                        $val = fn($v) => (!empty($v) && $v > 0) ? $v : '';
-
-                        $hoja->setCellValue('E' . $numFila, $val($fila['Ene']));
-                        $hoja->setCellValue('F' . $numFila, $val($fila['Feb']));
-                        $hoja->setCellValue('G' . $numFila, $val($fila['Mar']));
-                        $hoja->setCellValue('H' . $numFila, $val($fila['Abr']));
-                        $hoja->setCellValue('I' . $numFila, $val($fila['May']));
-                        $hoja->setCellValue('J' . $numFila, $val($fila['Jun']));
-                        $hoja->setCellValue('K' . $numFila, $val($fila['Jul']));
-                        $hoja->setCellValue('L' . $numFila, $val($fila['Ago']));
-                        $hoja->setCellValue('M' . $numFila, $val($fila['Sep']));
-                        $hoja->setCellValue('N' . $numFila, $val($fila['Oct']));
-                        $hoja->setCellValue('O' . $numFila, $val($fila['Nov']));
-                        $hoja->setCellValue('P' . $numFila, $val($fila['Dic']));
-
-                        $hoja->setCellValue('Q' . $numFila, $fila['cantidad_Total']);
-                        $hoja->setCellValue('R' . $numFila, $fila['Total_precio']);
-                        $hoja->setCellValue('S' . $numFila, $fila['precio_dolares'] ?? $fila['precio']);
-                        $hoja->setCellValue('T' . $numFila, $fila['Total_precio_dolares']);
-
-                        $filasHojas[$partidaFormateada]++;
-                    }
-                }
-            }
-
-            if ($metadata !== null) {
-                $summarySheet = $documento->getSheetByName('TOTAL POA');
-                if ($summarySheet !== null) {
-                    $summarySheet->setCellValue(
-                        'B14',
-                        'Requerimiento ' . $metadata['estado'] . ' - Año ' . $metadata['anio']
-                    );
-                    $summarySheet->setCellValue(
-                        'B15',
-                        'DEPENDENCIA: ' . $metadata['dependencia'] . ' | ESTADO: ' . $metadata['estado']
-                    );
-                }
-                $reportYear = (string)$metadata['anio'];
-            }
-            if ($reportYear !== null) {
-                $titleSheet = $documento->getSheetByName('TITULO');
-                if ($titleSheet !== null) {
-                    $titleSheet->setCellValue('B15', 'ANTEPROYECTO POA ' . $reportYear);
-                }
-                if ($metadata === null) {
-                    $summarySheet = $documento->getSheetByName('TOTAL POA');
-                    if ($summarySheet !== null) {
-                        $summarySheet->setCellValue(
-                            'B14',
-                            'Recursos a presupuestar por las dependencias. Año ' . $reportYear
-                        );
-                    }
-                }
-            }
-
-            $filename = $downloadFilename ?? ($prefijo . date('Y') . '.xlsx');
-            $this->downloadReportExcel($documento, $filename);
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Error generando Excel: ' . $e->getMessage());
-        }
-    }
-
-    private function executeGetXlsxProReport(array $datos, array $idPartidas): void
-    {
-        try {
-            $documento = $this->loadReportTemplate('TOTAL_Productos.xlsx');
-            $selectedCodes = [];
-            foreach ($this->getPartidasParaReporte() as $partida) {
-                if (in_array((int)$partida['id_partida'], $idPartidas, true)) {
-                    $selectedCodes[] = $this->formatPartidaSheetName((string)$partida['cod_partida']);
-                }
-            }
-            if ($idPartidas) {
-                $documento->setActiveSheetIndex(0);
-                for ($index = $documento->getSheetCount() - 1; $index > 0; $index--) {
-                    $sheetName = $documento->getSheet($index)->getTitle();
-                    if (!in_array($sheetName, $selectedCodes, true)) {
-                        $documento->removeSheetByIndex($index);
-                    }
-                }
-            }
-            $documento->getProperties()->setTitle('Productos por partida: ' . $this->getPartidaReportLabel($idPartidas));
-            $documento->getSheetByName('TITULO')->setCellValue(
-                'B16',
-                'PARTIDAS: ' . $this->getPartidaReportLabel($idPartidas)
-            );
-
-            $filasHojas = [
-                '4,01' => 21, '4,02' => 21, '4,03' => 21,
-                '4,04' => 21, '4,07' => 21
-            ];
-
-            if (!empty($datos)) {
-                foreach ($datos as $fila) {
-                    $partidaFormateada = $this->formatPartidaSheetName((string)$fila['codigo']);
-
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion'], 'UNIDAD');
-
-                    if (isset($filasHojas[$partidaFormateada]) && $documento->sheetNameExists($partidaFormateada)) {
-                        $hoja = $documento->getSheetByName($partidaFormateada);
-                        $numFila = $filasHojas[$partidaFormateada];
-
-                        $hoja->setCellValue('A' . $numFila, $fila['codigo']);
-                        $hoja->setCellValue('B' . $numFila, $descripcion);
-                        $hoja->setCellValue('C' . $numFila, $uMedida);
-                        $hoja->setCellValue('D' . $numFila, $fila['precio_bolivares']);
-                        $hoja->setCellValue('E' . $numFila, $fila['precio_dolares']);
-
-                        $filasHojas[$partidaFormateada]++;
-                    }
-                }
-            }
-
-            $codes = $idPartidas
-                ? implode('_', array_map(fn($code) => $this->safeReportFilenamePart($code), array_filter(explode(', ', $this->getPartidaReportLabel($idPartidas)))))
-                : 'todas';
-            $this->downloadReportExcel($documento, 'Productos_partidas_' . $codes . '_' . date('Y') . '.xlsx', false);
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Error generando Excel productos: ' . $e->getMessage());
-        }
-    }
-
-    private function executeGetXlsxDependenciasResponsable(array $datos, string $filtro): void
-    {
-        try {
-            $documento = $this->loadReportTemplate('Dependencias_Responsable.xlsx');
-            $hoja = $documento->getActiveSheet();
-
-            // Headers en fila 1 (asumiendo que la plantilla tiene headers)
-            // Datos desde fila 2
-            $fila = 2;
-            foreach ($datos as $row) {
-                $hoja->setCellValue('A' . $fila, $row['id_dep']);
-                $hoja->setCellValue('B' . $fila, $row['dependencia']);
-                $hoja->setCellValue('C' . $fila, $row['responsable']);
-                $hoja->setCellValue('D' . $fila, $row['cargo']);
-                $hoja->setCellValue('E' . $fila, $row['telefono']);
-                $hoja->setCellValue('F' . $fila, $row['estado_dependencia']);
-                $hoja->setCellValue('G' . $fila, $row['estado_responsable']);
-                $fila++;
-            }
-
-            $documento->getProperties()->setTitle($this->getDependencyFilterLabel($filtro));
-            $this->downloadReportExcel(
-                $documento,
-                $this->safeReportFilenamePart($filtro) . '_Dependencias_' . date('Y') . '.xlsx'
-            );
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Error generando Excel dependencias: ' . $e->getMessage());
-        }
-    }
-
-    // ===================== GENERADOR PDF (con try-catch) =====================
-
-    private function executeGetPdfProReport(array $datos, array $idPartidas): void
-    {
-        try {
-            $partidaLabel = $this->getPartidaReportLabel($idPartidas);
-            $mpdf = $this->createReportPdf('Productos por partidas: ' . $partidaLabel);
-
-            $css = $this->reportTableCss('tabla-pro');
-
-            $html = '
-            <table class="tabla-pro">
-                <thead>
-                    <tr>
-                        <th width="6%">Partida</th>
-                        <th width="40%">Descripci&oacute;n</th>
-                        <th width="10%">U.M.</th>
-                        <th width="12%">P. U. (Bs.)</th>
-                        <th width="12%">P. U. ($)</th>
-                        <th width="10%">Partida C&oacute;digo</th>
-                    </tr>
-                </thead>
-                <tbody>';
-
-            if (!empty($datos)) {
-                foreach ($datos as $fila) {
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion']);
-
-                    $partidaCode = $fila['codigo'];
-                    if (strlen($partidaCode) === 3 && is_numeric($partidaCode)) {
-                        $partidaCode = substr($partidaCode, 0, 1) . ',' . substr($partidaCode, 1);
-                    }
-
-                    $html .= '<tr>
-                        <td class="font-bold">' . htmlspecialchars($partidaCode) . '</td>
-                        <td class="text-left">' . htmlspecialchars($descripcion) . '</td>
-                        <td>' . htmlspecialchars($uMedida) . '</td>
-                        <td class="text-right">' . $this->formatReportNumber($fila['precio_bolivares'], true) . '</td>
-                        <td class="text-right">' . $this->formatReportNumber($fila['precio_dolares'], true) . '</td>
-                        <td class="font-bold">' . htmlspecialchars($fila['codigo']) . '</td>
-                    </tr>';
-                }
-            } else {
-                $html .= '<tr><td colspan="6">No se encontraron productos para mostrar.</td></tr>';
-            }
-
-            $html .= '</tbody></table>';
-
-            $codes = $idPartidas
-                ? implode('_', array_map(fn($code) => $this->safeReportFilenamePart($code), array_filter(explode(', ', $partidaLabel))))
-                : 'todas';
-            $this->outputReportPdf($mpdf, $css, $html, 'Productos_partidas_' . $codes . '_' . date('Y_m_d') . '.pdf');
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Error generando PDF productos: ' . $e->getMessage());
-        }
-    }
-
-    private function executeGetPdfDependenciasResponsable(array $datos, string $filtro): void
-    {
-        try {
-            $label = $this->getDependencyFilterLabel($filtro);
-            $mpdf = $this->createReportPdf($label);
-
-            $css = $this->reportTableCss('tabla-dep');
-
-            $html = '
-            <table class="tabla-dep">
-                <thead>
-                    <tr>
-                        <th width="5%">ID</th>
-                        <th width="25%">Dependencia</th>
-                        <th width="20%">Responsable</th>
-                        <th width="18%">Cargo</th>
-                        <th width="14%">Tel&eacute;fono</th>
-                        <th width="9%">Est. Dep.</th>
-                        <th width="9%">Est. Resp.</th>
-                    </tr>
-                </thead>
-                <tbody>';
-
-            if (!empty($datos)) {
-                foreach ($datos as $fila) {
-                    $html .= '<tr>
-                        <td class="font-bold">' . htmlspecialchars($fila['id_dep']) . '</td>
-                        <td class="text-left">' . htmlspecialchars($fila['dependencia']) . '</td>
-                        <td class="text-left">' . htmlspecialchars($fila['responsable']) . '</td>
-                        <td class="text-left">' . htmlspecialchars($fila['cargo']) . '</td>
-                        <td class="text-left">' . htmlspecialchars($fila['telefono']) . '</td>
-                        <td>' . htmlspecialchars($fila['estado_dependencia']) . '</td>
-                        <td>' . htmlspecialchars($fila['estado_responsable']) . '</td>
-                    </tr>';
-                }
-            } else {
-                $html .= '<tr><td colspan="7">No se encontraron dependencias para mostrar.</td></tr>';
-            }
-
-            $html .= '</tbody></table>';
-
-            $this->outputReportPdf(
-                $mpdf,
-                $css,
-                $html,
-                $this->safeReportFilenamePart($filtro) . '_Dependencias_' . date('Y_m_d') . '.pdf'
-            );
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Error generando PDF dependencias: ' . $e->getMessage());
-        }
-    }
-
-    private function executeGetPdfReqReport(
-        array $datos,
-        string $tituloReporte = 'Consolidado POA',
-        string $filename = '',
-        ?string $year = null
-    ): void
-    {
-        try {
-            $mpdf = $this->createReportPdf($tituloReporte, $year);
-
-            $css = $this->reportTableCss('tabla-poa');
-
-            $html = '
-            <table class="tabla-poa">
-                <thead>
-                    <tr>
-                        <th width="4%">Part.</th>
-                        <th width="18%">Descripci&oacute;n</th>
-                        <th width="4%">U.M.</th>
-                        <th width="5%">P. U. ($)</th>
-                        <th width="3%">Ene</th>
-                        <th width="3%">Feb</th>
-                        <th width="3%">Mar</th>
-                        <th width="3%">Abr</th>
-                        <th width="3%">May</th>
-                        <th width="3%">Jun</th>
-                        <th width="3%">Jul</th>
-                        <th width="3%">Ago</th>
-                        <th width="3%">Sep</th>
-                        <th width="3%">Oct</th>
-                        <th width="3%">Nov</th>
-                        <th width="3%">Dic</th>
-                        <th width="4%">Total Cant.</th>
-                        <th width="7%">Total (Bs.)</th>
-                        <th width="7%">Total ($)</th>
-                    </tr>
-                </thead>
-                <tbody>';
-
-            if (!empty($datos)) {
-                foreach ($datos as $fila) {
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion']);
-
-                    $html .= '<tr>
-                        <td class="font-bold">' . htmlspecialchars($fila['codigo']) . '</td>
-                        <td class="text-left">' . htmlspecialchars($descripcion) . '</td>
-                        <td>' . htmlspecialchars($uMedida) . '</td>
-                        <td class="text-right">' . $this->formatReportNumber($fila['precio'] ?? ($fila['precio_dolares'] ?? 0), true) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Ene']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Feb']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Mar']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Abr']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['May']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Jun']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Jul']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Ago']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Sep']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Oct']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Nov']) . '</td>
-                        <td>' . $this->formatReportNumber($fila['Dic']) . '</td>
-                        <td class="font-bold">' . $this->formatReportNumber($fila['cantidad_Total']) . '</td>
-                        <td class="text-right font-bold">' . $this->formatReportNumber($fila['Total_precio'], true) . '</td>
-                        <td class="text-right font-bold">' . $this->formatReportNumber($fila['Total_precio_dolares'], true) . '</td>
-                    </tr>';
-                }
-            } else {
-                $html .= '<tr><td colspan="19">No se encontraron registros para mostrar.</td></tr>';
-            }
-
-            $html .= '</tbody></table>';
-
-            $this->outputReportPdf(
-                $mpdf,
-                $css,
-                $html,
-                $filename !== '' ? $filename : 'Reporte_POA_' . date('Y_m_d') . '.pdf'
-            );
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Error generando PDF: ' . $e->getMessage());
-        }
     }
 }
