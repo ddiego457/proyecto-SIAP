@@ -66,13 +66,11 @@ trait SessionTrait {
         }
     }
 
-    // Home según rol: coordinadores arrancan en Productos y Servicios
     private function homeForRole(): string {
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
         return isset($this->homeUrlPorRol[$rol]) ? $this->homeUrlPorRol[$rol] : $this->homeUrl;
     }
 
-    // ¿El rol tiene permisos de administración?
     public function esAdmin(): bool {
         $this->startSession();
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
@@ -92,7 +90,6 @@ trait SessionTrait {
         return $this->esSuperAdmin();
     }
 
-    // ¿El rol tiene acceso al módulo? '*' = acceso total
     private function rolAccedeA($rol, $modulo): bool {
         if (!isset($this->modulosPorRol[$rol])) {
             return false;

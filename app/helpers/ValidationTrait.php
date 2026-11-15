@@ -313,7 +313,7 @@ trait ValidationTrait
     private function valEstadoRegistroReporte($estado): ?string
     {
         if (!in_array($estado, ['registrado', 'sin_registrar'], true)) {
-            return 'Seleccione si el requerimiento fue registrado o no registrado.';
+            return 'Seleccione Enviados o No enviados.';
         }
         return null;
     }

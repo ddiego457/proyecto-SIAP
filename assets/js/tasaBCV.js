@@ -87,12 +87,28 @@ $(document).ready(function() {
         return value;
     }
 
+    // Filas cargadas en la tabla (se actualiza en cada recarga del ajax).
+    // Se usa para saber cuántas tasas están activas: el sistema siempre
+    // necesita una tasa activa para realizar los cálculos, por lo que la
+    // única tasa activa no se puede inhabilitar.
+    let datosTasas = [];
+
+    // true si el id corresponde a la única tasa activa del listado.
+    function esUnicaTasaActiva(id) {
+        const activas = datosTasas.filter((t) => (t.estado | 0) === 1);
+        if (activas.length !== 1) return false;
+        return String(activas[0].id_tasa) === String(id);
+    }
+
     const tabla = $('#tablaMain').DataTable({
         ajax: {
             url: currentUrl,
             method: 'POST',
             data: { getAll: true },
-            dataSrc: ''
+            dataSrc: function(json) {
+                datosTasas = Array.isArray(json) ? json : [];
+                return datosTasas;
+            }
         },
         columns: [
             { data: 'id_tasa' },
@@ -114,7 +130,13 @@ $(document).ready(function() {
             { data: null, render: (d) => {
                 let actions = `<button value="${d.id_tasa}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if ((d.estado|0) === 1) {
-                    actions += ` <button value="${d.id_tasa}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    if (esUnicaTasaActiva(d.id_tasa)) {
+                        // Única tasa activa: botón deshabilitado porque el
+                        // sistema la necesita para realizar los cálculos.
+                        actions += ` <button value="${d.id_tasa}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="No se puede inhabilitar: es la única tasa activa" disabled><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    } else {
+                        actions += ` <button value="${d.id_tasa}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    }
                 } else {
                     actions += ` <button value="${d.id_tasa}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
@@ -284,11 +306,24 @@ $(document).ready(function() {
 
     // Inactivar
     $(document).on('click', '.btn-inactivar', function() {
+        // Respaldo del botón deshabilitado: la única tasa activa no se
+        // puede inhabilitar (el sistema la necesita para los cálculos).
+        if (esUnicaTasaActiva(this.value)) {
+            alert('No se puede inhabilitar la única tasa activa: el sistema siempre necesita una tasa activa para realizar los cálculos.');
+            return;
+        }
         if (!confirm('¿Inhabilitar esta tasa?')) return;
         const idTasa = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json',
             data: { id_tasa: idTasa, inactivateItem: true },
-            success: function(res) { if (res == true) { alert('Tasa inhabilitada'); } else { alert('Error'); } tabla.ajax.reload(); },
+            success: function(res) {
+                if (res === true || (res && res.success)) {
+                    alert((res && res.message) || 'Tasa inhabilitada');
+                } else {
+                    alert((res && res.message) || 'Error');
+                }
+                tabla.ajax.reload();
+            },
             error: function() { alert('Error de conexión.'); }
         });
     });

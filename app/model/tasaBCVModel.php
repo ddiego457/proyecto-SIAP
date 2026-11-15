@@ -88,10 +88,25 @@ class tasaBCVModel extends ConnectDB
         return $this->executeGetAnioFiscalActivo();
     }
 
-    // Inhabilitar una tasa por id (marcar estado = 0)
-    public function inactivate(int $id): bool
+    // Inhabilitar una tasa por id (marcar estado = 0).
+    // Devuelve {success, message} (mismo formato que add/update) para que
+    // el controlador lo reenvíe tal cual al JS: el sistema siempre necesita
+    // una tasa activa para realizar los cálculos, por lo que no se permite
+    // inhabilitar la única tasa activa.
+    public function inactivate(int $id): array
     {
-        return $this->executeInactivate($id);
+        if ($this->executeIsOnlyActive($id)) {
+            return [
+                'success' => false,
+                'message' => 'No se puede inhabilitar la única tasa activa: el sistema siempre necesita una tasa activa para realizar los cálculos.'
+            ];
+        }
+
+        $ok = $this->executeInactivate($id);
+        return [
+            'success' => $ok,
+            'message' => $ok ? 'Tasa inhabilitada' : 'Error al inhabilitar la tasa.'
+        ];
     }
 
     // Reactivar una tasa por id (marcar estado = 1) -> inhabilita otras activas
@@ -187,6 +202,13 @@ class tasaBCVModel extends ConnectDB
                 return ['success' => false, 'message' => 'No se puede modificar una tasa inhabilitada. Solo se permite modificar la tasa activa.'];
             }
 
+            // 1c) Respaldo del botón de inhabilitar: aunque el formulario
+            // envíe estado = 0, no se puede dejar al sistema sin tasa activa
+            // (se necesita para realizar los cálculos).
+            if ($estado === 0 && $this->executeIsOnlyActive($id)) {
+                return ['success' => false, 'message' => 'No se puede inhabilitar la única tasa activa: el sistema siempre necesita una tasa activa para realizar los cálculos.'];
+            }
+
             // 2) La nueva fecha también debe permanecer en el año fiscal activo
             $anioFecha = (int)substr($fechaRegistro, 0, 4);
             if ($anioFecha !== $anioActivo) {
@@ -258,6 +280,26 @@ class tasaBCVModel extends ConnectDB
             $stmt = $this->conex->prepare("UPDATE tasa_bcv SET estado = 0 WHERE id_tasa = ?");
             $stmt->bindValue(1, $id, \PDO::PARAM_INT);
             return $stmt->execute();
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    // ¿Es esta tasa la única con estado = 1? El sistema siempre necesita
+    // una tasa activa para realizar los cálculos, por lo que la única
+    // activa no se debe inhabilitar.
+    private function executeIsOnlyActive(int $id): bool
+    {
+        try {
+            $stmt = $this->conex->prepare("SELECT COUNT(*) FROM tasa_bcv WHERE estado = 1");
+            $stmt->execute();
+            if ((int)$stmt->fetchColumn() !== 1) {
+                return false;
+            }
+            // Solo hay una tasa activa: ¿es la indicada?
+            $stmt = $this->conex->prepare("SELECT 1 FROM tasa_bcv WHERE id_tasa = ? AND estado = 1");
+            $stmt->execute([$id]);
+            return (bool)$stmt->fetchColumn();
         } catch (\PDOException $e) {
             return false;
         }
