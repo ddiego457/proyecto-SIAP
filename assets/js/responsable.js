@@ -1,6 +1,10 @@
 $(document).ready(function() {
     const currentUrl = window.location.pathname + window.location.search;
 
+    const ROL_SUPERADMIN = 'Superadmin';
+    // ID de la cuenta logueada (expuesto desde layout/head.php)
+    const idResponsablePropio = Number(window.SIAP_ID_RESPONSABLE || 0);
+
     const dependenciaOptions = {};
     const dependenciaKeysLower = {};
     $('#dependenciasList option').each(function() {
@@ -33,9 +37,18 @@ $(document).ready(function() {
             { data: 'dependencia_actual' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
+                // Rol Superadmin: cuenta protegida, no se edita ni se elimina desde el sistema
+                if (d.rol === ROL_SUPERADMIN) {
+                    return '<span class="badge badge-gray">protegido</span>';
+                }
                 let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_responsable}" class="btn btn-danger btn-sm btn-eliminar" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                    if (Number(d.id_responsable) === idResponsablePropio) {
+                        // Un usuario no puede inhabilitarse a sí mismo
+                        actions += ` <button class="btn btn-warning btn-sm btn-inactivar" disabled aria-label="Inhabilitar" title="No puede inhabilitar su propia cuenta"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    } else {
+                        actions += ` <button value="${d.id_responsable}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    }
                 } else {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
@@ -44,6 +57,22 @@ $(document).ready(function() {
         ],
         autoWidth: false,
         language: { url: "assets/js/DataTables/spanish.json" }
+    });
+
+    // ─── Modal de registro ─────────────────────────────────────────
+    $('#btnNuevoRegistro').on('click', function() {
+        $('#formRegistro')[0].reset();
+        $('#register_id_dep').val('');
+        $('#modalRegistro').show();
+        $('#formRegistro').find('input[name="nom_rep"]').focus();
+    });
+
+    $('#btnCerrarModalRegistro, #btnCerrarModalRegistro2').on('click', function() {
+        $('#modalRegistro').hide();
+    });
+
+    $('#modalRegistro').on('click', function(e) {
+        if (e.target === this) $(this).hide();
     });
 
     $('#formRegistro').on('submit', function(e) {
@@ -67,22 +96,21 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
-                if (res && typeof res === 'object') {
-                    if (res.success) {
-                        alert(res.message || 'Responsable registrado exitosamente');
-                        if (res.redirect) window.location.href = res.redirect; else window.location.href = '?url=responsable&type=main';
-                    } else {
-                        alert(res.message || 'Error al registrar. Verifique los datos.');
-                        $btn.prop('disabled', false).text('✓ Registrar');
-                    }
+                $btn.prop('disabled', false).text('✓ Registrar');
+                if (res && typeof res === 'object' && res.success) {
+                    // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
+                    alert(res.message || 'Responsable registrado exitosamente');
+                    $('#modalRegistro').hide();
+                    $('#formRegistro')[0].reset();
+                    $('#register_id_dep').val('');
+                    tabla.ajax.reload();
                 } else {
-                    alert('Error al registrar. Verifique los datos.');
-                    $btn.prop('disabled', false).text('✓ Registrar');
+                    alert((res && res.message) || 'Error al registrar. Verifique los datos.');
                 }
             },
             error: function() {
-                alert('Error de conexión.');
                 $btn.prop('disabled', false).text('✓ Registrar');
+                alert('Error de conexión.');
             }
         });
     });
@@ -105,13 +133,22 @@ $(document).ready(function() {
                     alert('Error al cambiar estado.');
                 }
                 tabla.ajax.reload();
+            },
+            error: function() {
+                alert('Error de conexión.');
             }
         });
     });
 
-    $(document).on('click', '.btn-eliminar', function() {
+    $(document).on('click', '.btn-inactivar', function() {
+        if (this.disabled) return;
         const id = this.value;
-        if (confirm('¿Está seguro de eliminar este responsable? Esto cambiará el estado de su cargo a 0 y lo dará como disponible para reasignación.')) {
+        // Un usuario no puede inhabilitarse a sí mismo (también validado en el servidor)
+        if (Number(id) === idResponsablePropio) {
+            alert('No puede inhabilitar su propia cuenta.');
+            return;
+        }
+        if (confirm('¿Está seguro de inhabilitar este responsable? Esto cambiará el estado de su cargo a 0 y lo dará como disponible para reasignación.')) {
             $.ajax({
                 url: currentUrl,
                 method: 'POST',
@@ -120,16 +157,17 @@ $(document).ready(function() {
                 success: function(res) {
                     if (res && typeof res === 'object') {
                         if (res.success) {
-                            alert(res.message || 'Responsable eliminado');
+                            alert(res.message || 'Responsable inhabilitado');
                         } else {
-                            alert(res.message || 'Error al eliminar. ' + res);
-                            console.log(res);
+                            alert(res.message || 'Error al inhabilitar. ' + res);
                         }
                     } else {
-                        alert('Error al eliminar. ' + res);
-                        console.log(res);
+                        alert('Error al inhabilitar. ' + res);
                     }
                     tabla.ajax.reload();
+                },
+                error: function() {
+                    alert('Error de conexión.');
                 }
             });
         }
@@ -181,6 +219,10 @@ $(document).ready(function() {
 
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        if ($btn.prop('disabled')) return;
+        const textoOriginal = $btn.text();
+        $btn.prop('disabled', true).text('Guardando…');
         const formData = new FormData(e.target);
         const idDepSeleccionada = $('#edit_id_dep').val();
 
@@ -204,6 +246,7 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(res) {
+                $btn.prop('disabled', false).text(textoOriginal);
                 if (res && typeof res === 'object' && res.success) {
                     alert(res.message || 'Actualizado');
                     $('#modalEditar').hide();
@@ -211,13 +254,15 @@ $(document).ready(function() {
                 } else {
                     alert(res.message || 'Error al actualizar.');
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text(textoOriginal);
+                alert('Error de conexión.');
             }
         });
     });
 
     // ─── Roles: alta, edición y eliminación lógica ───────────────────
-    const ROL_PROTEGIDO = 'Administrador';
-
     const tablaRoles = $('#tablaRoles').length ? $('#tablaRoles').DataTable({
         ajax: { url: currentUrl, method: 'POST', data: { getAllRoles: true }, dataSrc: function(json) {
             return (json && Array.isArray(json)) ? json : [];
@@ -228,13 +273,19 @@ $(document).ready(function() {
             { data: 'responsables' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_rol}" class="btn btn-sm btn-edit btn-editar-rol" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
-                if (d.descripcion === ROL_PROTEGIDO) {
-                    actions += ` <span class="badge badge-gray">protegido</span>`;
-                } else if (Number(d.estado) === 1) {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-danger btn-sm btn-inactivar-rol" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>`;
+                let actions = '';
+                if (Number(d.protegido) === 1) {
+                    actions = '<span class="badge badge-gray">protegido</span>';
+                    if (Number(d.estado) !== 1) {
+                        actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    }
                 } else {
-                    actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    actions = `<button value="${d.id_rol}" class="btn btn-sm btn-edit btn-editar-rol" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                    if (Number(d.estado) === 1) {
+                        actions += ` <button value="${d.id_rol}" class="btn btn-warning btn-sm btn-inactivar-rol" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+                    } else {
+                        actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+                    }
                 }
                 return actions;
             }}

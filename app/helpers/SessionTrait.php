@@ -4,10 +4,20 @@ namespace EquipoSiap\Siap\helpers;
 trait SessionTrait {
 
     private $loginUrl = '?url=inicio';
+    // Módulos permitidos por rol. '*' = todos los módulos.
+    // ('perfil' = cambio de foto de perfil desde la sidebar, accesible a todos los roles)
+    private $modulosPorRol = [
+        'Administrador' => '*',
+        'Coordinador'   => '*',
+        'Usuario'       => ['requerimiento', 'reporte', 'perfil'],
+    ];
+    // Roles con acceso a todos los módulos administrativos.
+    private $rolesAdmin = ['Administrador', 'Coordinador'];
+    // Destino tras login / redirecciones, según rol
+    private $homeUrlPorRol = [
+        'Coordinador' => '?url=productosServicios&type=main',
+    ];
     private $homeUrl = '?url=requerimiento&type=main';
-    // Módulos accesibles para usuarios no administradores
-    // ('perfil' = cambio de foto de perfil desde la sidebar)
-    private $publicModules = ['reporte', 'requerimiento', 'perfil'];
 
     public function startSession(): void {
         if (session_status() === PHP_SESSION_NONE) {
@@ -37,7 +47,7 @@ trait SessionTrait {
 
     public function redirectIfLoggedIn(): void {
         if ($this->isLoggedIn()) {
-            header("Location: " . $this->homeUrl);
+            header("Location: " . $this->homeForRole());
             exit();
         }
     }
@@ -46,10 +56,46 @@ trait SessionTrait {
         $this->startSession();
         $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
-        if ($rol !== 'Administrador' && !in_array($modulo, $this->publicModules, true)) {
-            header("Location: " . $this->homeUrl);
+        if (!$this->rolAccedeA($rol, $modulo)) {
+            if (!isset($this->modulosPorRol[$rol])) {
+                http_response_code(403);
+                exit('Acceso denegado.');
+            }
+            header("Location: " . $this->homeForRole());
             exit();
         }
+    }
+
+    private function homeForRole(): string {
+        $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
+        return isset($this->homeUrlPorRol[$rol]) ? $this->homeUrlPorRol[$rol] : $this->homeUrl;
+    }
+
+    public function esAdmin(): bool {
+        $this->startSession();
+        $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
+        return in_array($rol, $this->rolesAdmin, true);
+    }
+
+    public function esSuperAdmin(): bool {
+        $this->startSession();
+        return isset($_SESSION['rol']) && $_SESSION['rol'] === 'Coordinador';
+    }
+
+    public function puedeGestionarRoles(): bool {
+        return $this->esSuperAdmin();
+    }
+
+    public function puedeGestionarPartidas(): bool {
+        return $this->esSuperAdmin();
+    }
+
+    private function rolAccedeA($rol, $modulo): bool {
+        if (!isset($this->modulosPorRol[$rol])) {
+            return false;
+        }
+        $modulos = $this->modulosPorRol[$rol];
+        return $modulos === '*' || in_array($modulo, $modulos, true);
     }
 
     public function logout(): void {

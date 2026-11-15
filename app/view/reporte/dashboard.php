@@ -1,12 +1,12 @@
 <?php
 $pageTitle = 'Dashboard de Informes';
 $jsFile = 'reporte.js';
-$buttons = isset($buttons) ? $buttons : [];
 include_once 'app/view/layout/head.php';
 ?>
 
 <div class="topbar">
     <div class="topbar-title">Dashboard de Informes</div>
+    <?php include_once 'app/view/layout/userMenu.php'; ?>
 </div>
 
 <div class="page-body">
@@ -15,40 +15,9 @@ include_once 'app/view/layout/head.php';
             <span class="card-title">Exportar Informes</span>
         </div>
         <div class="card-body">
-            <p style="margin-bottom:18px; color: var(--text-muted);">
-                Selecciona un reporte y formato. Los archivos se generan y descargan directamente.
-            </p>
-            <div class="report-grid">
-                <?php foreach ($buttons as $button): ?>
-                    <div class="report-card">
-                        <div class="report-card-title"><?php echo htmlspecialchars((string)$button['title']); ?></div>
-                        <div class="report-card-text"><?php echo htmlspecialchars((string)$button['description']); ?></div>
-
-                        <?php if (!empty($button['requiresDep'])): ?>
-                            <div class="field-group" style="margin-bottom:12px;">
-                                <label class="field-label" style="font-size:.85rem;">Dependencia</label>
-                                <select id="selDepIndividual" class="field-input field-select" disabled>
-                                    <option value="">Cargando...</option>
-                                </select>
-                            </div>
-                            <button type="button" class="btn btn-success btn-full" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'excel')" id="btnExpIndExcel">
-                                <span>&#128190;</span> Exportar Excel
-                            </button>
-                            <button type="button" class="btn btn-primary btn-full" style="margin-top:8px;" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'pdf')" id="btnExpIndPdf">
-                                <span>&#128221;</span> Exportar PDF
-                            </button>
-                        <?php else: ?>
-                            <div class="flex gap-10">
-                                <button type="button" class="btn btn-success" style="flex:1;" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'excel')">
-                                    <span>&#128190;</span> Excel
-                                </button>
-                                <button type="button" class="btn btn-primary" style="flex:1;" onclick="exportReport('<?php echo htmlspecialchars((string)$button['code'], ENT_QUOTES); ?>', 'pdf')">
-                                    <span>&#128221;</span> PDF
-                                </button>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
+            <p id="reportIntro" style="margin-bottom:18px; color: var(--text-muted);"></p>
+            <div id="reportGrid" class="report-grid" data-is-admin="<?php echo !empty($esAdminReportes) ? 'true' : 'false'; ?>" aria-live="polite">
+                <p>Cargando informes...</p>
             </div>
         </div>
     </div>
@@ -57,13 +26,17 @@ include_once 'app/view/layout/head.php';
 <style>
 .report-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    gap: 28px;
+}
+.report-grid-single {
+    grid-template-columns: minmax(0, min(100%, 760px));
+    justify-content: start;
 }
 .report-card {
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px;
+    padding: 22px;
     background: var(--white);
     box-shadow: var(--shadow-sm);
     min-height: 190px;
@@ -96,6 +69,183 @@ include_once 'app/view/layout/head.php';
     vertical-align: middle;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+.partidas-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.partidas-filter .field-label {
+    margin-bottom: 0;
+}
+.report-choice-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.report-choice-group .field-label {
+    margin-bottom: 0;
+}
+.report-choice-list {
+    display: grid;
+    gap: 6px;
+}
+.report-choice-scroll {
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 2px;
+}
+.report-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--text-dark);
+    cursor: pointer;
+    font-size: .84rem;
+    line-height: 1.4;
+    transition: border-color .2s, background-color .2s, color .2s;
+}
+.report-choice:hover {
+    border-color: var(--blue);
+    background: #f7faff;
+}
+.report-choice input {
+    flex: 0 0 auto;
+    margin: 3px 0 0;
+    accent-color: var(--blue);
+}
+.report-choice.is-selected {
+    border-color: var(--blue);
+    background: #f0f6ff;
+    color: #102a43;
+    font-weight: 600;
+}
+.report-choice.is-selected span {
+    color: #102a43;
+}
+.partidas-all-option,
+.partida-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    cursor: pointer;
+    transition: border-color .2s, background-color .2s;
+}
+.partidas-all-option:hover,
+.partida-option:hover {
+    border-color: var(--blue);
+    background: #f7faff;
+}
+.partidas-all-option input,
+.partida-option input {
+    flex: 0 0 auto;
+    margin: 3px 0 0;
+    accent-color: var(--blue);
+}
+.partidas-all-option span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.partidas-all-option strong {
+    color: var(--text-dark);
+    font-size: .9rem;
+}
+.partidas-all-option small,
+.partidas-selection-count {
+    color: var(--text-muted);
+    font-size: .78rem;
+}
+.partidas-options {
+    display: grid;
+    gap: 6px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 2px;
+}
+.partida-option {
+    align-items: center;
+    padding: 8px 10px;
+    font-size: .84rem;
+    color: var(--text-dark);
+}
+.partida-option.is-selected {
+    border-color: var(--blue);
+    background: #f0f6ff;
+    color: #102a43;
+    font-weight: 600;
+}
+.partida-option.is-selected span {
+    color: #102a43;
+}
+.partidas-loading {
+    padding: 10px;
+    color: var(--text-muted);
+    font-size: .84rem;
+}
+.partidas-selection-count {
+    min-height: 1em;
+}
+.dependency-search {
+    position: relative;
+}
+.dependency-search-toggle {
+    margin-top: 6px;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: var(--blue);
+    font: inherit;
+    font-size: .84rem;
+    cursor: pointer;
+}
+.dependency-search-toggle:hover,
+.dependency-search-toggle:focus {
+    color: #102a43;
+    text-decoration: underline;
+}
+.dependency-search-results {
+    position: absolute;
+    top: calc(100% - 8px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: var(--shadow-sm);
+}
+.dependency-search-results[hidden] {
+    display: none;
+}
+.dependency-search-option {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-dark);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.dependency-search-option:hover,
+.dependency-search-option:focus {
+    outline: none;
+    background: #f0f6ff;
+    color: #102a43;
+}
 .toast {
     position: fixed;
     bottom: 24px;
@@ -111,8 +261,12 @@ include_once 'app/view/layout/head.php';
 .toast-success { background: #28a745; }
 .toast-error { background: #dc3545; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 760px) {
+    .report-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+}
 </style>
 
 <?php include_once 'app/view/layout/foot.php'; ?>
-
-<script src="assets/js/reporte.js"></script>

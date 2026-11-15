@@ -10,7 +10,7 @@ trait ValidationTrait
     public $expFechaPeriodo = '/^\d{4}-\d{2}-\d{2}$/';
     public $expAnioFiscal = '/^\d{4}$/';
     // Productos/Partidas
-    public $expNomItem = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\.\,\-\(\)\/\"\%]{2,150}$/';
+    public $expNomItem = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\.\,\-\(\)\/\"\%\|]{2,150}$/';
     public $expPrecio = '/^\d{1,9}(\.\d{1,2})?$/';
     public $expCodPartida = '/^[0-9]+(\.[0-9]+)?$/';
     public $expDescripcionPartida = '/^[^<>\x00-\x1F\x7F]{1,150}$/';
@@ -64,6 +64,10 @@ trait ValidationTrait
             'formato_reporte'        => $this->valFormatoReporte($valor),
             'nombre_reporte'         => $this->valNombreReporte($valor),
             'id_dep_reporte'         => $this->valIdDep($valor),
+            'partidas_reporte'       => $this->valPartidasReporte($valor),
+            'estado_envio_reporte'   => $this->valEstadoEnvioReporte($valor),
+            'filtro_dependencias'    => $this->valFiltroDependenciasReporte($valor),
+            'modo_requerimiento_global' => $this->valModoReqGlobal($valor),
             'nombre_responsable'     => $this->valNombreResponsable($valor),
             'email'                  => $this->valEmail($valor),
             'password'               => $this->valPassword($valor),
@@ -131,7 +135,7 @@ trait ValidationTrait
             return 'El nombre del producto no puede estar vacío.';
         }
         if (!preg_match($this->expNomItem, $nombre)) {
-            return 'El nombre del producto solo puede contener letras, números, espacios y los caracteres . , - ( ) / %, entre 2 y 150 caracteres.';
+            return 'El nombre del producto solo puede contener letras, números, espacios y los caracteres . , - ( ) / % " |, entre 2 y 150 caracteres.';
         }
         return null;
     }
@@ -286,6 +290,46 @@ trait ValidationTrait
     {
         if (!preg_match($this->expIdDepReporte, (string)$idDep)) {
             return 'Dependencia inválida.';
+        }
+        return null;
+    }
+
+    private function valPartidasReporte($ids): ?string
+    {
+        if ($ids === 'todas') {
+            return null;
+        }
+        if (!is_array($ids) || $ids === []) {
+            return 'Seleccione una o varias partidas, o todas.';
+        }
+        foreach ($ids as $id) {
+            if (!is_scalar($id) || !preg_match('/^\d{1,10}$/', (string)$id) || (int)$id <= 0) {
+                return 'La selección de partidas no es válida.';
+            }
+        }
+        return null;
+    }
+
+    private function valEstadoEnvioReporte($estado): ?string
+    {
+        if (!in_array($estado, ['enviado', 'sin_enviar'], true)) {
+            return 'Seleccione si el requerimiento fue enviado o no enviado.';
+        }
+        return null;
+    }
+
+    private function valFiltroDependenciasReporte($filtro): ?string
+    {
+        if (!in_array($filtro, ['activas_con_responsable', 'activas_sin_responsable', 'inactivas'], true)) {
+            return 'Seleccione un filtro de dependencias válido.';
+        }
+        return null;
+    }
+
+    private function valModoReqGlobal($modo): ?string
+    {
+        if (!in_array($modo, ['consolidado', 'cantidades', 'totales'], true)) {
+            return 'Seleccione un modo de consolidado válido.';
         }
         return null;
     }
