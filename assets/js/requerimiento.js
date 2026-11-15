@@ -291,10 +291,10 @@ $(document).ready(function() {
             var monthKeys = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                              'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-            // Valores originales por id_prod, usados para serializar al guardar
+            // Valores originales por id_pres, usados para serializar al guardar
             var cantidadesOriginales = {};
             rowsData.forEach(function(row) {
-                var idProd = row.id_prod;
+                var idProd = row.id_pres;
                 cantidadesOriginales[idProd] = {};
                 for (var m = 1; m <= 12; m++) {
                     cantidadesOriginales[idProd][m] = Number(row[monthKeys[m - 1]]) || 0;
@@ -316,7 +316,7 @@ $(document).ready(function() {
                 return {
                     data: monthKeys[mes - 1],
                     render: function(data, type, row) {
-                        return createInput(row.id_prod, mes, data);
+                        return createInput(row.id_pres, mes, data);
                     }
                 };
             }
@@ -437,7 +437,7 @@ $(document).ready(function() {
             // El estilo lo aporta el CSS común (siap.css) para #tablaMain,
             // #tablaModalCantidades y #tabla-registro.
             return `<input type="number" 
-                           name="cantidades[${row.id_prod}][${mes}]"
+                           name="cantidades[${row.id_pres}][${mes}]"
                            min="0" 
                            value="${data}">`;
         }
@@ -784,19 +784,19 @@ $(document).ready(function() {
                 }
             },
             columns: [
-                { data: 'nom_prod' },
-                { data: "ene", render: function(data, type, row) { return crearInput(row.id_prod, 1, data); }},
-                { data: "feb", render: function(data, type, row) { return crearInput(row.id_prod, 2, data); }},
-                { data: "mar", render: function(data, type, row) { return crearInput(row.id_prod, 3, data); }},
-                { data: "abr", render: function(data, type, row) { return crearInput(row.id_prod, 4, data); }},
-                { data: "may", render: function(data, type, row) { return crearInput(row.id_prod, 5, data); }},
-                { data: "jun", render: function(data, type, row) { return crearInput(row.id_prod, 6, data); }},
-                { data: "jul", render: function(data, type, row) { return crearInput(row.id_prod, 7, data); }},
-                { data: "ago", render: function(data, type, row) { return crearInput(row.id_prod, 8, data); }},
-                { data: "sep", render: function(data, type, row) { return crearInput(row.id_prod, 9, data); }},
-                { data: "oct", render: function(data, type, row) { return crearInput(row.id_prod, 10, data); }},
-                { data: "nov", render: function(data, type, row) { return crearInput(row.id_prod, 11, data); }},
-                { data: "dic", render: function(data, type, row) { return crearInput(row.id_prod, 12, data); }}
+                { data: 'nom_pres' },
+                { data: "ene", render: function(data, type, row) { return crearInput(row.id_pres, 1, data); }},
+                { data: "feb", render: function(data, type, row) { return crearInput(row.id_pres, 2, data); }},
+                { data: "mar", render: function(data, type, row) { return crearInput(row.id_pres, 3, data); }},
+                { data: "abr", render: function(data, type, row) { return crearInput(row.id_pres, 4, data); }},
+                { data: "may", render: function(data, type, row) { return crearInput(row.id_pres, 5, data); }},
+                { data: "jun", render: function(data, type, row) { return crearInput(row.id_pres, 6, data); }},
+                { data: "jul", render: function(data, type, row) { return crearInput(row.id_pres, 7, data); }},
+                { data: "ago", render: function(data, type, row) { return crearInput(row.id_pres, 8, data); }},
+                { data: "sep", render: function(data, type, row) { return crearInput(row.id_pres, 9, data); }},
+                { data: "oct", render: function(data, type, row) { return crearInput(row.id_pres, 10, data); }},
+                { data: "nov", render: function(data, type, row) { return crearInput(row.id_pres, 11, data); }},
+                { data: "dic", render: function(data, type, row) { return crearInput(row.id_pres, 12, data); }}
             ],
             ordering: false,
             responsive: true,
@@ -806,10 +806,10 @@ $(document).ready(function() {
             }
         });
 
-        function crearInput(id_prod, mes, valor_actual) {
+        function crearInput(id_pres, mes, valor_actual) {
             // Sin clases ni estilos inline: el mismo estilo que la tabla
             // principal y el modal de edición lo aporta siap.css (#tabla-registro).
-            return '<input type="number" name="cantidades['+id_prod+']['+mes+']" value="'+valor_actual+'" min="0">';
+            return '<input type="number" name="cantidades['+id_pres+']['+mes+']" value="'+valor_actual+'" min="0">';
         }
 
         // ─── Modal de registro (asistente de partidas) ───────────────

@@ -77,7 +77,7 @@ class reporteModel extends ConnectDB
                 SELECT 
                     d.id_dep,
                     d.nom_dep AS dependencia,
-                    COALESCE(r.nom_rep, 'SIN ASIGNAR') AS responsable,
+                    COALESCE(r.nom_resp, 'SIN ASIGNAR') AS responsable,
                     COALESCE(ro.descripcion, 'SIN CARGO') AS cargo,
                     COALESCE(t.telefono, 'SIN TELÉFONO') AS telefono,
                     CASE WHEN d.estado = 1 THEN 'ACTIVA' ELSE 'INACTIVA' END AS estado_dependencia,
@@ -112,7 +112,7 @@ class reporteModel extends ConnectDB
                 WHERE d.estado = 1
                   AND d.nom_dep LIKE :nombre ESCAPE '!'
                 AND EXISTS (
-                    SELECT 1 FROM requerimientos r
+                    SELECT 1 FROM requerimiento r
                     JOIN anio_fiscal af ON af.id_aniof = r.id_aniof AND af.activo = 1
                     JOIN detalle_req dr ON dr.id_req = r.id_req AND dr.cant_mes > 0
                     WHERE r.id_dep = d.id_dep
@@ -139,7 +139,7 @@ class reporteModel extends ConnectDB
             $estadoRegistro = $incluirNoRegistrados ? 0 : 1;
             $stmt = $this->conex->prepare(
                 "SELECT 1
-                 FROM requerimientos r
+                 FROM requerimiento r
                  JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
                  JOIN detalle_req dr ON dr.id_req = r.id_req
                  WHERE r.id_dep = ?
@@ -237,7 +237,7 @@ class reporteModel extends ConnectDB
         $stmt = $this->conex->prepare(
             "SELECT d.nom_dep AS dependencia, af.anio AS anio
              FROM dependencias d
-             JOIN requerimientos r ON r.id_dep = d.id_dep
+             JOIN requerimiento r ON r.id_dep = d.id_dep
              JOIN anio_fiscal af ON af.id_aniof = r.id_aniof
              JOIN detalle_req dr ON dr.id_req = r.id_req AND dr.cant_mes > 0
              WHERE d.id_dep = ?
@@ -280,7 +280,7 @@ class reporteModel extends ConnectDB
                 SELECT 
                     p.cod_partida AS codigo,
                     p.descripcion AS partida,
-                    prod.nom_prod AS Descripcion,
+                    prod.nom_pres AS Descripcion,
                     prod.precio AS precio,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), 0) AS Ene,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), 0) AS Feb,
@@ -298,37 +298,37 @@ class reporteModel extends ConnectDB
                     (prod.precio * req_valido.tasa_bcv_usd) as precio,
                     COALESCE(SUM(req_valido.cant_mes * prod.precio), 0) AS Total_precio_dolares,
                     COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
-                FROM productos prod
+                FROM presupuesto prod
                 JOIN partidas p ON prod.id_partida = p.id_partida
                 LEFT JOIN (
                     SELECT 
-                        dr.id_prod, 
+                        dr.id_pres, 
                         dr.mes, 
                         dr.cant_mes, 
                         tb.tasa_bcv_usd
                     FROM detalle_req dr
-                    JOIN requerimientos r ON dr.id_req = r.id_req
+                    JOIN requerimiento r ON dr.id_req = r.id_req
                     JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
                     JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
                     WHERE r.estado = 1 AND af.activo = 1 AND r.estado_registro = {$estadoRegistro} AND r.id_dep = ?
-                ) AS req_valido ON prod.id_prod = req_valido.id_prod
+                ) AS req_valido ON prod.id_pres = req_valido.id_pres
                 GROUP BY 
                     p.cod_partida, 
                     p.descripcion,
-                    prod.id_prod, 
-                    prod.nom_prod, 
+                    prod.id_pres, 
+                    prod.nom_pres, 
                     prod.precio
                 HAVING COALESCE(SUM(req_valido.cant_mes), 0) > 0
                 ORDER BY 
                     p.cod_partida ASC, 
-                    prod.nom_prod ASC";
+                    prod.nom_pres ASC";
             $params = [$id];
         } else {
             $query = "
                 SELECT 
                     p.cod_partida AS codigo,
                     p.descripcion AS partida,
-                    prod.nom_prod AS Descripcion,
+                    prod.nom_pres AS Descripcion,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), 0) AS Ene,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), 0) AS Feb,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE 0 END), 0) AS Mar,
@@ -346,29 +346,29 @@ class reporteModel extends ConnectDB
                     COALESCE((SUM(req_valido.cant_mes) * prod.precio), 0) as Total_precio_dolares,
                     COALESCE(SUM(req_valido.cant_mes), 0) AS cantidad_Total,
                     COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
-                FROM productos prod
+                FROM presupuesto prod
                 JOIN partidas p ON prod.id_partida = p.id_partida
                 LEFT JOIN (
                     SELECT 
-                        dr.id_prod, 
+                        dr.id_pres, 
                         dr.mes, 
                         dr.cant_mes, 
                         tb.tasa_bcv_usd
                     FROM detalle_req dr
-                    JOIN requerimientos r ON dr.id_req = r.id_req
+                    JOIN requerimiento r ON dr.id_req = r.id_req
                     JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
                     JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
                     WHERE r.estado = 1 AND r.estado_registro = 1 AND af.activo = 1
-                ) AS req_valido ON prod.id_prod = req_valido.id_prod
+                ) AS req_valido ON prod.id_pres = req_valido.id_pres
                 GROUP BY 
                     p.cod_partida, 
                     p.descripcion,
-                    prod.id_prod, 
-                    prod.nom_prod, 
+                    prod.id_pres, 
+                    prod.nom_pres, 
                     prod.precio
                 ORDER BY 
                     p.cod_partida ASC, 
-                    prod.nom_prod ASC";
+                    prod.nom_pres ASC";
         }
 
         try {
@@ -398,16 +398,16 @@ class reporteModel extends ConnectDB
                 SELECT 
                     p.descripcion AS partida,
                     p.cod_partida AS codigo,
-                    prod.nom_prod AS Descripcion,
+                    prod.nom_pres AS Descripcion,
                     prod.precio AS precio_dolares,
                     COALESCE(prod.precio * tb.tasa_bcv_usd, prod.precio) AS precio_bolivares
-                FROM productos prod
+                FROM presupuesto prod
                 JOIN partidas p ON prod.id_partida = p.id_partida
                 LEFT JOIN tasa_bcv tb ON tb.estado = 1
                 {$filtroPartidas}
                 ORDER BY 
                     p.cod_partida ASC, 
-                    prod.nom_prod ASC";
+                    prod.nom_pres ASC";
             $stmt = $this->conex->prepare($query);
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);

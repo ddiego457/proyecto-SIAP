@@ -42,19 +42,19 @@ class productosServiciosModel extends ConnectDB
     
     private function executeGetAll(?int $partidaId = null): array
     {
-        $sql = "SELECT pro.id_prod, pro.id_partida, pro.id_proveedor, p.cod_partida, p.descripcion AS partida_descripcion,
-                       pr.nom_prov AS proveedor, pro.nom_prod, pro.precio, pro.estado
-                FROM productos pro
+        $sql = "SELECT pro.id_pres, pro.id_partida, pro.id_proveedor, p.cod_partida, p.descripcion AS partida_descripcion,
+                       pr.razon_social AS proveedor, pro.nom_pres, pro.precio, pro.estado
+                FROM presupuesto pro
                 JOIN partidas p ON pro.id_partida = p.id_partida
                 JOIN proveedores pr ON pro.id_proveedor = pr.id_proveedor
                 ";
 
         if ($partidaId !== null) {
             $sql .= " AND pro.id_partida = ?";
-            $stmt = $this->conex->prepare($sql . " ORDER BY p.cod_partida, pro.nom_prod");
+            $stmt = $this->conex->prepare($sql . " ORDER BY p.cod_partida, pro.nom_pres");
             $stmt->execute([$partidaId]);
         } else {
-            $stmt = $this->conex->prepare($sql . " ORDER BY p.cod_partida, pro.nom_prod");
+            $stmt = $this->conex->prepare($sql . " ORDER BY p.cod_partida, pro.nom_pres");
             $stmt->execute();
         }
 
@@ -69,11 +69,11 @@ class productosServiciosModel extends ConnectDB
 
     private function executeExistsByKey(int $idPartida, int $idProveedor, string $nomItem, ?int $excludeId = null): bool
     {
-        $query = "SELECT 1 FROM productos
-                  WHERE id_partida = ? AND id_proveedor = ? AND LOWER(TRIM(nom_prod)) = LOWER(TRIM(?))";
+        $query = "SELECT 1 FROM presupuesto
+                  WHERE id_partida = ? AND id_proveedor = ? AND LOWER(TRIM(nom_pres)) = LOWER(TRIM(?))";
         $params = [$idPartida, $idProveedor, $nomItem];
         if ($excludeId !== null) {
-            $query .= " AND id_prod <> ?";
+            $query .= " AND id_pres <> ?";
             $params[] = $excludeId;
         }
         $stmt = $this->conex->prepare($query);
@@ -95,7 +95,7 @@ class productosServiciosModel extends ConnectDB
             }
 
             $stmt = $this->conex->prepare(
-                "INSERT INTO productos (id_partida, id_proveedor, nom_prod, precio, estado)
+                "INSERT INTO presupuesto (id_partida, id_proveedor, nom_pres, precio, estado)
                  VALUES (?, ?, ?, ?, 1)"
             );
             return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio]);
@@ -116,9 +116,9 @@ class productosServiciosModel extends ConnectDB
     {
         try {
             $stmt = $this->conex->prepare(
-                "UPDATE productos
-                 SET id_partida = ?, id_proveedor = ?, nom_prod = ?, precio = ?
-                 WHERE id_prod = ?"
+                "UPDATE presupuesto
+                 SET id_partida = ?, id_proveedor = ?, nom_pres = ?, precio = ?
+                 WHERE id_pres = ?"
             );
             return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio, $idItem]);
         } catch (\PDOException $e) {
@@ -135,9 +135,9 @@ class productosServiciosModel extends ConnectDB
     {
         try {
             $stmt = $this->conex->prepare(
-                "UPDATE productos
+                "UPDATE presupuesto
                  SET estado = 0
-                 WHERE id_prod = ?"
+                 WHERE id_pres = ?"
             );
             return $stmt->execute([$idItem]);
         } catch (\PDOException $e) {
@@ -154,9 +154,9 @@ class productosServiciosModel extends ConnectDB
     {
         try {
             $stmt = $this->conex->prepare(
-                "UPDATE productos
+                "UPDATE presupuesto
                  SET estado = 1
-                 WHERE id_prod = ?"
+                 WHERE id_pres = ?"
             );
             return $stmt->execute([$idItem]);
         } catch (\PDOException $e) {
@@ -451,8 +451,8 @@ class productosServiciosModel extends ConnectDB
     private function executeObtenerClavesExistentes(int $idProveedor): array
     {
         $stmt = $this->conex->prepare(
-            "SELECT id_partida, LOWER(TRIM(nom_prod)) AS nombre
-             FROM productos
+            "SELECT id_partida, LOWER(TRIM(nom_pres)) AS nombre
+             FROM presupuesto
              WHERE id_proveedor = ?"
         );
         $stmt->execute([$idProveedor]);
@@ -467,7 +467,7 @@ class productosServiciosModel extends ConnectDB
     private function executeInsertarProducto(int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
     {
         $stmt = $this->conex->prepare(
-            "INSERT INTO productos (id_partida, id_proveedor, nom_prod, precio, estado)
+            "INSERT INTO presupuesto (id_partida, id_proveedor, nom_pres, precio, estado)
              VALUES (?, ?, ?, ?, 1)"
         );
         return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio]);

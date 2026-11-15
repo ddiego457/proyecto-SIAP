@@ -32,7 +32,7 @@ class proveedorModel extends ConnectDB
 
     private function executeGetAll()
     {
-        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado, archivo_pdf FROM proveedores ORDER BY nom_prov ASC");
+        $stmt = $this->conex->prepare("SELECT id_proveedor, razon_social AS nombre, descripcion, estado, archivo_pdf FROM proveedores ORDER BY razon_social ASC");
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -44,7 +44,7 @@ class proveedorModel extends ConnectDB
 
     private function executeGetActive()
     {
-        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado FROM proveedores WHERE estado = 1 ORDER BY nom_prov ASC");
+        $stmt = $this->conex->prepare("SELECT id_proveedor, razon_social AS nombre, descripcion, estado FROM proveedores WHERE estado = 1 ORDER BY razon_social ASC");
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -56,7 +56,7 @@ class proveedorModel extends ConnectDB
 
     private function executeGetById(int $id)
     {
-        $stmt = $this->conex->prepare("SELECT id_proveedor, nom_prov AS nombre, descripcion, estado FROM proveedores WHERE id_proveedor = ?");
+        $stmt = $this->conex->prepare("SELECT id_proveedor, razon_social AS nombre, descripcion, estado FROM proveedores WHERE id_proveedor = ?");
         $stmt->bindValue(1, $id, \PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -83,7 +83,7 @@ class proveedorModel extends ConnectDB
                 return false;
             }
 
-            $stmt = $this->conex->prepare("INSERT INTO proveedores (nom_prov, descripcion, estado) VALUES (?, ?, 1)");
+            $stmt = $this->conex->prepare("INSERT INTO proveedores (razon_social, descripcion, estado) VALUES (?, ?, 1)");
             $stmt->bindValue(1, $this->nombre);
             $stmt->bindValue(2, $this->descripcion);
             return $stmt->execute();
@@ -112,7 +112,7 @@ class proveedorModel extends ConnectDB
 
     private function executeExistsByNombre(string $nombre): bool
     {
-        $stmt = $this->conex->prepare("SELECT 1 FROM proveedores WHERE LOWER(TRIM(nom_prov)) = LOWER(TRIM(?))");
+        $stmt = $this->conex->prepare("SELECT 1 FROM proveedores WHERE LOWER(TRIM(razon_social)) = LOWER(TRIM(?))");
         $stmt->execute([$nombre]);
         return (bool)$stmt->fetchColumn();
     }
@@ -134,7 +134,7 @@ class proveedorModel extends ConnectDB
     private function executeUpdate()
     {
         try {
-            $query = "UPDATE proveedores SET nom_prov = ?, descripcion = ?";
+            $query = "UPDATE proveedores SET razon_social = ?, descripcion = ?";
             $params = [$this->nombre, $this->descripcion];
 
             if ($this->estado !== null) {

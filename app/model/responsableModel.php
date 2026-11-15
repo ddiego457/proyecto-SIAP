@@ -12,7 +12,7 @@ class responsableModel extends ConnectDB
     private $conex;
     private $id;
     private $id_rol;
-    private $nom_rep;
+    private $nom_resp;
     private $password;
     private $estado;
 
@@ -36,12 +36,12 @@ class responsableModel extends ConnectDB
 
     private function executeGetAll()
     {
-        $query = "SELECT r.id_responsable, r.nom_rep, r.email, r.id_rol, ro.descripcion AS rol, r.estado, COALESCE(d.nom_dep, 'Sin asignar') AS dependencia_actual
+        $query = "SELECT r.id_responsable, r.nom_resp, r.email, r.id_rol, ro.descripcion AS rol, r.estado, COALESCE(d.nom_dep, 'Sin asignar') AS dependencia_actual
                 FROM responsables r
                 LEFT JOIN roles ro ON r.id_rol = ro.id_rol
                 LEFT JOIN cargo cr ON r.id_responsable = cr.id_responsable AND cr.estado = 1
                 LEFT JOIN dependencias d ON cr.id_dep = d.id_dep
-                ORDER BY r.nom_rep ASC";
+                ORDER BY r.nom_resp ASC";
         $stmt = $this->conex->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -297,7 +297,7 @@ class responsableModel extends ConnectDB
 
     private function executeExistsByName(string $nomRep): bool
     {
-        $stmt = $this->conex->prepare("SELECT 1 FROM responsables WHERE LOWER(TRIM(nom_rep)) = LOWER(TRIM(?))");
+        $stmt = $this->conex->prepare("SELECT 1 FROM responsables WHERE LOWER(TRIM(nom_resp)) = LOWER(TRIM(?))");
         $stmt->execute([$nomRep]);
         return (bool)$stmt->fetchColumn();
     }
@@ -332,7 +332,7 @@ class responsableModel extends ConnectDB
             $this->conex->beginTransaction();
 
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $this->conex->prepare("INSERT INTO responsables (id_rol, nom_rep, email, password, estado) VALUES (?, ?, ?, ?, 1)");
+            $stmt = $this->conex->prepare("INSERT INTO responsables (id_rol, nom_resp, email, password, estado) VALUES (?, ?, ?, ?, 1)");
             $stmt->bindValue(1, $idRol, \PDO::PARAM_INT);
             $stmt->bindValue(2, $nomRep);
             $stmt->bindValue(3, $email);
@@ -369,7 +369,7 @@ class responsableModel extends ConnectDB
             $parts = [];
 
             if ($nomRep !== null && trim($nomRep) !== '') {
-                $parts[] = "nom_rep = ?";
+                $parts[] = "nom_resp = ?";
                 $params[] = $nomRep;
             }
             if ($password !== null && trim($password) !== '') {
