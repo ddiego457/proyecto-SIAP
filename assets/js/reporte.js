@@ -6,6 +6,175 @@
     let dependencySearchController = null;
     let dependencySuggestionsOpen = false;
 
+    const reportDefinitions = [
+        {
+            code: 'productos_partida',
+            title: 'Productos por Partida',
+            description: 'Seleccione una o varias partidas presupuestarias, o todas.',
+            adminOnly: true
+        },
+        {
+            code: 'dependencias_responsable',
+            title: 'Dependencias',
+            description: 'Activas con/sin responsable o inactivas.',
+            adminOnly: true
+        },
+        {
+            code: 'req_individual',
+            title: 'Requerimientos Individuales por Dependencia',
+            description: 'Seleccione dependencia y estado de envío del requerimiento.',
+            adminOnly: false
+        },
+        {
+            code: 'req_global',
+            title: 'Requerimientos Global (Consolidado)',
+            description: 'Consolidado, cantidades por producto o totales por partida.',
+            adminOnly: true
+        }
+    ];
+
+    function renderReportOptions(code, isAdmin) {
+        if (code === 'productos_partida') {
+            return `
+                <div class="field-group partidas-filter" style="margin-bottom:12px;">
+                    <span class="field-label" style="font-size:.85rem;">Partidas presupuestarias</span>
+                    <label class="partidas-all-option">
+                        <input type="checkbox" id="chkTodasPartidasReport" checked>
+                        <span><strong>Todas las partidas</strong><small>Incluye el catálogo completo</small></span>
+                    </label>
+                    <div id="selPartidasReport" class="partidas-options" aria-label="Partidas presupuestarias">
+                        <div class="partidas-loading">Cargando partidas...</div>
+                    </div>
+                    <small id="lblPartidasSeleccionadas" class="partidas-selection-count" aria-live="polite">
+                        Todas las partidas seleccionadas
+                    </small>
+                </div>`;
+        }
+
+        if (code === 'dependencias_responsable') {
+            return `
+                <div class="field-group report-choice-group" style="margin-bottom:12px;">
+                    <span class="field-label">Tipo de dependencias</span>
+                    <div id="selFiltroDependencias" class="report-choice-list" role="radiogroup" aria-label="Tipo de dependencias">
+                        <label class="report-choice is-selected">
+                            <input type="radio" name="filtro_dependencias" value="activas_con_responsable" checked>
+                            <span>Activas con responsable</span>
+                        </label>
+                        <label class="report-choice">
+                            <input type="radio" name="filtro_dependencias" value="activas_sin_responsable">
+                            <span>Activas sin responsable</span>
+                        </label>
+                        <label class="report-choice">
+                            <input type="radio" name="filtro_dependencias" value="inactivas">
+                            <span>Inactivas (con o sin responsables)</span>
+                        </label>
+                    </div>
+                </div>`;
+        }
+
+        if (code === 'req_individual') {
+            return `
+                ${isAdmin ? `
+                    <div class="field-group dependency-search" style="margin-bottom:12px;">
+                        <label class="field-label" for="selDepIndividual" style="font-size:.85rem;">Dependencia</label>
+                        <input
+                            type="search"
+                            id="selDepIndividual"
+                            class="field-input"
+                            placeholder="Escriba al menos 2 caracteres"
+                            autocomplete="off"
+                            aria-autocomplete="list"
+                            aria-controls="opcionesDepIndividual"
+                            aria-expanded="false">
+                        <input type="hidden" id="idDepIndividual">
+                        <button type="button" id="alternarSugerenciasDep" class="dependency-search-toggle" aria-controls="opcionesDepIndividual" aria-expanded="false">
+                            Mostrar sugerencias
+                        </button>
+                        <div id="opcionesDepIndividual" class="dependency-search-results" role="listbox" aria-label="Coincidencias de dependencias" hidden></div>
+                        <small id="estadoBusquedaDep" class="partidas-selection-count" aria-live="polite"></small>
+                    </div>` : ''}
+                <div class="field-group report-choice-group" style="margin-bottom:12px;">
+                    <span class="field-label">Estado del requerimiento</span>
+                    <div id="selEstadoReq" class="report-choice-list" role="radiogroup" aria-label="Estado de envío del requerimiento">
+                        <label class="report-choice is-selected">
+                            <input type="radio" name="estado_registro" value="registrado" checked>
+                            <span>Enviados</span>
+                        </label>
+                        <label class="report-choice">
+                            <input type="radio" name="estado_registro" value="sin_registrar">
+                            <span>No enviados</span>
+                        </label>
+                    </div>
+                </div>`;
+        }
+
+        if (code === 'req_global') {
+            return `
+                <div class="field-group report-choice-group" style="margin-bottom:12px;">
+                    <span class="field-label">Tipo de consolidado</span>
+                    <div id="selModoGlobal" class="report-choice-list" role="radiogroup" aria-label="Tipo de consolidado">
+                        <label class="report-choice is-selected">
+                            <input type="radio" name="modo_global" value="consolidado" checked>
+                            <span>Consolidado detallado</span>
+                        </label>
+                        <label class="report-choice">
+                            <input type="radio" name="modo_global" value="cantidades">
+                            <span>Cantidades anuales por producto y partida</span>
+                        </label>
+                        <label class="report-choice">
+                            <input type="radio" name="modo_global" value="totales">
+                            <span>Totales por partida (USD y Bs.)</span>
+                        </label>
+                    </div>
+                </div>`;
+        }
+
+        return '';
+    }
+
+    function renderReportCards() {
+        const grid = document.getElementById('reportGrid');
+        const intro = document.getElementById('reportIntro');
+        if (!grid || !intro) return;
+
+        const isAdmin = grid.dataset.isAdmin === 'true';
+        const reports = reportDefinitions.filter(report => isAdmin || !report.adminOnly);
+        intro.textContent = isAdmin
+            ? 'Selecciona cualquiera de los cuatro informes y el formato. Los archivos se generan y descargan directamente.'
+            : 'Solo puedes generar un informe de tu propio requerimiento. Si está vacío, el sistema te indicará qué debes completar.';
+        grid.classList.toggle('report-grid-single', reports.length === 1);
+        grid.innerHTML = reports.map(report => {
+            const description = !isAdmin && report.code === 'req_individual'
+                ? 'Requerimiento creado para su dependencia'
+                : report.description;
+            const exportButtons = report.code === 'req_individual'
+                ? `
+                    <button type="button" class="btn btn-success btn-full" data-report-export data-report-code="${report.code}" data-report-format="excel" id="btnExpIndExcel">
+                        <span>&#128190;</span> Exportar Excel
+                    </button>
+                    <button type="button" class="btn btn-primary btn-full" data-report-export data-report-code="${report.code}" data-report-format="pdf" style="margin-top:8px;" id="btnExpIndPdf">
+                        <span>&#128221;</span> Exportar PDF
+                    </button>`
+                : `
+                    <div class="flex gap-10">
+                        <button type="button" class="btn btn-success" data-report-export data-report-code="${report.code}" data-report-format="excel" style="flex:1;">
+                            <span>&#128190;</span> Excel
+                        </button>
+                        <button type="button" class="btn btn-primary" data-report-export data-report-code="${report.code}" data-report-format="pdf" style="flex:1;">
+                            <span>&#128221;</span> PDF
+                        </button>
+                    </div>`;
+
+            return `
+                <div class="report-card">
+                    <div class="report-card-title">${report.title}</div>
+                    <div class="report-card-text">${description}</div>
+                    ${renderReportOptions(report.code, isAdmin)}
+                    ${exportButtons}
+                </div>`;
+        }).join('');
+    }
+
     function setDependencySuggestionsOpen(open) {
         dependencySuggestionsOpen = open;
         const input = document.getElementById('selDepIndividual');
@@ -99,11 +268,11 @@
                 });
                 results.appendChild(option);
             });
-            setDependencySuggestionsOpen(dependencySuggestionsOpen);
+            setDependencySuggestionsOpen(dependencySuggestionsOpen || nombre.length > 0);
             if (statusLabel) {
                 statusLabel.textContent = nombre
                     ? 'Seleccione una dependencia de la lista.'
-                    : 'Sugerencias para requerimientos ' + (status === 'registrado' ? 'registrados.' : 'sin registrar.');
+                    : 'Sugerencias para requerimientos ' + (status === 'registrado' ? 'enviados.' : 'no enviados.');
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
@@ -289,7 +458,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        renderReportCards();
         loadPartidas();
+        document.getElementById('reportGrid')?.addEventListener('click', event => {
+            const button = event.target.closest('[data-report-export]');
+            if (button) {
+                exportReport(button.dataset.reportCode, button.dataset.reportFormat, button);
+            }
+        });
         const dependencyInput = document.getElementById('selDepIndividual');
         const dependencyToggle = document.getElementById('alternarSugerenciasDep');
         dependencyInput?.addEventListener('input', () => {
@@ -323,7 +499,8 @@
                     choice.classList.toggle('is-selected', choice.querySelector('input').checked);
                 });
                 if (radio.closest('.report-choice-list').id === 'selEstadoReq') {
-                    document.getElementById('idDepIndividual').value = '';
+                    const selectedDependency = document.getElementById('idDepIndividual');
+                    if (selectedDependency) selectedDependency.value = '';
                     scheduleDependencySearch();
                 }
             });

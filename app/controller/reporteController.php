@@ -175,7 +175,7 @@ if ($type === 'export') {
                         'success' => false,
                         'message' => $incluirNoRegistrados
                             ? ($this->esAdmin()
-                                ? 'No hay requerimientos sin registrar con datos para la dependencia seleccionada.'
+                                ? 'No hay requerimientos no enviados con datos para la dependencia seleccionada.'
                                 : 'Su requerimiento está vacío; agregue productos y cantidades antes de generar el informe.')
                             : 'No hay requerimientos con datos para la dependencia seleccionada.'
                     ]);

@@ -86,15 +86,15 @@ include_once 'app/view/layout/head.php';
                                 </div>
                             <?php endif; ?>
                             <div class="field-group report-choice-group" style="margin-bottom:12px;">
-                                <span class="field-label">Estado del requerimiento</span>
-                                <div id="selEstadoReq" class="report-choice-list" role="radiogroup" aria-label="Estado del requerimiento">
+                                <span class="field-label">Estado de envío del requerimiento</span>
+                                <div id="selEstadoReq" class="report-choice-list" role="radiogroup" aria-label="Estado de envío del requerimiento">
                                     <label class="report-choice is-selected">
                                         <input type="radio" name="estado_registro" value="registrado" checked>
-                                        <span>Registrado</span>
+                                        <span>Enviados</span>
                                     </label>
                                     <label class="report-choice">
                                         <input type="radio" name="estado_registro" value="sin_registrar">
-                                        <span>Sin registrar</span>
+                                        <span>No enviados</span>
                                     </label>
                                 </div>
                             </div>

@@ -38,7 +38,7 @@ class reporteModel extends ConnectDB
             [
                 'code' => 'req_individual',
                 'title' => 'Requerimientos Individuales por Dependencia',
-                'description' => 'Seleccione dependencia y estado del requerimiento.',
+                'description' => 'Seleccione dependencia y estado de envío del requerimiento.',
                 'requiresDep' => true,
             ],
             [
@@ -252,7 +252,7 @@ class reporteModel extends ConnectDB
             throw new \RuntimeException('No se encontró el año fiscal y requerimiento para generar el informe.');
         }
 
-        $context['estado'] = $incluirNoRegistrados ? 'Sin registrar' : 'Registrado';
+        $context['estado'] = $incluirNoRegistrados ? 'No enviados' : 'Enviados';
         return $context;
     }
 
