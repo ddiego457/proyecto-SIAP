@@ -285,6 +285,18 @@ body {
         0 0 0 4px rgba(10, 37, 64, 0.08);
 }
 
+.field input.is-invalid {
+    border-color: #d9534f;
+}
+
+.field-error {
+    display: block;
+    margin-top: 5px;
+    color: #b42318;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
 
 /* =========================================================
     ICONOS

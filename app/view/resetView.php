@@ -36,7 +36,7 @@ $token = isset($token) ? $token : '';
             </div>
         <?php endif; ?>
 
-        <form method="post" autocomplete="off">
+        <form id="formRestablecerPassword" method="post" autocomplete="off">
             <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
             <div class="field">
             <span class="icon-left" aria-hidden="true">
@@ -45,7 +45,7 @@ $token = isset($token) ? $token : '';
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
             </span>
-            <input type="password" name="nueva_password" placeholder="Nueva contraseña" autocomplete="new-password" required />
+            <input type="password" id="nueva_password" name="nueva_password" placeholder="Nueva contraseña" autocomplete="new-password" required />
             </div>
 
             <div class="field">
@@ -71,5 +71,9 @@ $token = isset($token) ? $token : '';
         <div style="margin-top:4px;">Dirección de Planificación Presupuestaria — UPTAEB</div>
         </section>
     </main>
+    <script src="assets/js/DataTables/jquery.js"></script>
+    <script src="assets/js/constantes.js?v=<?php echo file_exists('assets/js/constantes.js') ? filemtime('assets/js/constantes.js') : time(); ?>"></script>
+    <script src="assets/js/validaciones.js?v=<?php echo file_exists('assets/js/validaciones.js') ? filemtime('assets/js/validaciones.js') : time(); ?>"></script>
+    <script src="assets/js/resetPassword.js?v=<?php echo file_exists('assets/js/resetPassword.js') ? filemtime('assets/js/resetPassword.js') : time(); ?>"></script>
 </body>
 </html>
