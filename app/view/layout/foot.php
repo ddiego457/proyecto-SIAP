@@ -11,12 +11,12 @@
 <?php endif; ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var toggleBtn = document.getElementById('sidebarToggleBtn');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
         if (!toggleBtn) return;
-        var appLayout = document.querySelector('.app-layout');
+        const appLayout = document.querySelector('.app-layout');
         if (!appLayout) return;
-        var sidebar = document.querySelector('.sidebar');
-        var isCollapsed = appLayout.classList.contains('sidebar-collapsed');
+        const sidebar = document.querySelector('.sidebar');
+        const isCollapsed = appLayout.classList.contains('sidebar-collapsed');
 
         toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
         if (sidebar) {
@@ -25,7 +25,7 @@
 
         toggleBtn.addEventListener('click', function(e) {
             if (e && e.target && e.target.closest('.sidebar-link[data-nav="1"]')) return;
-            var hidden = appLayout.classList.toggle('sidebar-collapsed');
+            const hidden = appLayout.classList.toggle('sidebar-collapsed');
 
             if (sidebar) {
                 sidebar.style.pointerEvents = hidden ? 'none' : '';

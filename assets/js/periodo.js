@@ -7,12 +7,12 @@ $(document).ready(function() {
     // el input que lo provoca:
     //   - fecha_inicio: formato, orden (inicio <= fin) y año fiscal.
     //   - fecha_fin:    formato y año fiscal.
-    var selAnioReg = $('#formRegistro select[name="anio_fiscal_id"]');
-    var selAnioEdit = $('#edit_anio_fiscal_id');
+    const selAnioReg = $('#formRegistro select[name="anio_fiscal_id"]');
+    const selAnioEdit = $('#edit_anio_fiscal_id');
 
     // Año fiscal seleccionado (número) o null si no hay uno reconocible
     function anioFiscalDe($select) {
-        var texto = $select.find('option:selected').text().trim();
+        const texto = $select.find('option:selected').text().trim();
         return /^\d{4}$/.test(texto) ? parseInt(texto, 10) : null;
     }
 
@@ -23,9 +23,9 @@ $(document).ready(function() {
         if (ValidacionesSIAP.validarFechaISO(valorFin) && valor > valorFin) {
             return 'La fecha de inicio no puede ser superior a la fecha fin.';
         }
-        var anio = anioFiscalDe($selAnio);
+        const anio = anioFiscalDe($selAnio);
         if (anio !== null) {
-            var anioFecha = parseInt(valor.substring(0, 4), 10);
+            const anioFecha = parseInt(valor.substring(0, 4), 10);
             if (anioFecha > anio) return 'La fecha de inicio no puede ser posterior al año fiscal seleccionado (' + anio + ').';
             if (anioFecha < anio) return 'La fecha de inicio debe corresponder al año fiscal seleccionado (' + anio + ').';
         }
@@ -36,9 +36,9 @@ $(document).ready(function() {
     // (el servidor exige que ambas fechas pertenezcan al año fiscal activo).
     function motivoFechaFin(valor, $selAnio) {
         if (!ValidacionesSIAP.validarFechaISO(valor)) return 'Seleccione la fecha fin.';
-        var anio = anioFiscalDe($selAnio);
+        const anio = anioFiscalDe($selAnio);
         if (anio !== null) {
-            var anioFecha = parseInt(valor.substring(0, 4), 10);
+            const anioFecha = parseInt(valor.substring(0, 4), 10);
             if (anioFecha > anio) return 'La fecha fin no puede ser posterior al año fiscal seleccionado (' + anio + ').';
             if (anioFecha < anio) return 'La fecha fin debe corresponder al año fiscal seleccionado (' + anio + ').';
         }
@@ -138,9 +138,9 @@ $(document).ready(function() {
     // Auto-seleccionar el año fiscal a partir de la fecha ingresada (registro):
     // el <option> muestra el año (p. ej. "2026") y su value es el id.
     function anioFiscalIdParaFecha(fecha) {
-        var anio = String(fecha || '').substring(0, 4);
+        const anio = String(fecha || '').substring(0, 4);
         if (!/^\d{4}$/.test(anio)) return null;
-        var id = null;
+        let id = null;
         selAnioReg.find('option').each(function() {
             if ($(this).text().trim() === anio) { id = $(this).val(); return false; }
         });
@@ -148,7 +148,7 @@ $(document).ready(function() {
     }
 
     function seleccionarAnioFiscalPorFecha(fecha) {
-        var id = anioFiscalIdParaFecha(fecha);
+        const id = anioFiscalIdParaFecha(fecha);
         // Si el año de la fecha no está registrado, no se toca el select:
         // el error queda sobre el campo de fecha (año no corresponde).
         if (id !== null && selAnioReg.val() !== id) {

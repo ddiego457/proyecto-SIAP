@@ -118,7 +118,7 @@
     }
 
     function validarCantidadMes(valor) {
-        var rec = recortar(valor);
+        const rec = recortar(valor);
         // Campo opcional: vacío siempre es válido.
         if (rec === '') return true;
         return regexCantidadMes.test(rec);
@@ -129,7 +129,7 @@
     }
 
     // ─── Mensajes por regla ────────────────────────────────────
-    var mensajes = {
+    const mensajes = {
         email: 'Ingrese un correo electrónico válido (ej. usuario@dominio.com).',
         nombre: 'El nombre solo puede contener letras, espacios, puntos, guiones y apóstrofes, entre 3 y 100 caracteres.',
         contrasenia: 'La contraseña debe tener al menos 4 caracteres y solo puede contener letras, números y los caracteres _ . -',
@@ -153,7 +153,7 @@
         fecha: 'Use el formato AAAA-MM-DD.'
     };
 
-    var reglas = {
+    const reglas = {
         email: { validar: validarEmail, mensaje: mensajes.email },
         nombre: { validar: validarNombre, mensaje: mensajes.nombre },
         contrasenia: { validar: validarContrasenia, mensaje: mensajes.contrasenia },
@@ -179,15 +179,15 @@
 
     // ─── Plugin jQuery ─────────────────────────────────────────
     function generarIdError($campo) {
-        var $form = $campo.closest('form');
-        var idForm = ($form.attr('id') || 'siap-form').replace(/[^A-Za-z0-9_-]/g, '');
-        var idCampo = ($campo.attr('id') || $campo.attr('name') || 'campo').replace(/[^A-Za-z0-9_-]/g, '');
+        const $form = $campo.closest('form');
+        const idForm = ($form.attr('id') || 'siap-form').replace(/[^A-Za-z0-9_-]/g, '');
+        const idCampo = ($campo.attr('id') || $campo.attr('name') || 'campo').replace(/[^A-Za-z0-9_-]/g, '');
         return 'siap-error-' + idForm + '-' + idCampo;
     }
 
     function mostrarError($campo, mensaje) {
-        var $grupo = $campo.closest('.field-group');
-        var id = $campo.data('siap-error-id');
+        const $grupo = $campo.closest('.field-group');
+        let id = $campo.data('siap-error-id');
 
         if (!id) {
             id = generarIdError($campo);
@@ -196,7 +196,7 @@
 
         $campo.addClass('is-invalid').attr('aria-invalid', 'true').attr('aria-describedby', id);
 
-        var $error = $grupo.find('small.field-error[data-siap-error-id="' + id + '"]');
+        let $error = $grupo.find('small.field-error[data-siap-error-id="' + id + '"]');
         if (!$error.length) {
             $error = $('<small>', {
                 class: 'field-error',
@@ -214,11 +214,11 @@
     }
 
     function limpiarError($campo) {
-        var id = $campo.data('siap-error-id');
+        const id = $campo.data('siap-error-id');
         $campo.removeClass('is-invalid').removeAttr('aria-invalid').removeAttr('aria-describedby');
 
         if (id) {
-            var $grupo = $campo.closest('.field-group');
+            const $grupo = $campo.closest('.field-group');
             $grupo.find('small.field-error[data-siap-error-id="' + id + '"]').remove();
             $campo.removeData('siap-error-id');
         }
@@ -230,24 +230,24 @@
         // (formato, orden, año fiscal, etc.) y cada uno tiene su mensaje.
         if (opciones && typeof opciones.mensaje === 'function') return opciones.mensaje();
         if (opciones && opciones.mensaje) return opciones.mensaje;
-        var nombreRegla = (opciones && opciones.regla) || 'requerido';
-        var regla = reglas[nombreRegla];
+        const nombreRegla = (opciones && opciones.regla) || 'requerido';
+        const regla = reglas[nombreRegla];
         return (regla && regla.mensaje) || 'El valor ingresado no es válido.';
     }
 
     function validarCampo($campo, opciones, mostrar) {
-        var valor = $campo.val();
+        const valor = $campo.val();
 
         if (opciones.omitirVacio && recortar(valor) === '') {
             limpiarError($campo);
             return true;
         }
 
-        var valido;
+        let valido;
         if (typeof opciones.test === 'function') {
             valido = !!opciones.test(valor, $campo);
         } else {
-            var regla = reglas[opciones.regla || 'requerido'];
+            const regla = reglas[opciones.regla || 'requerido'];
             valido = !!(regla && regla.validar(valor));
         }
 
@@ -261,7 +261,7 @@
     }
 
     function instanciar($form, configuracion) {
-        var config = {};
+        let config = {};
 
         function actualizar(nueva) {
             config = $.extend(true, {}, nueva || {});
@@ -269,7 +269,7 @@
 
         function limpiarTodo() {
             $form.find(':input').each(function () {
-                var $campo = $(this);
+                const $campo = $(this);
                 $campo.removeClass('is-invalid').removeAttr('aria-invalid').removeAttr('aria-describedby');
                 $campo.removeData('siap-error-id');
                 $campo.removeData('siap-tocado');
@@ -278,11 +278,11 @@
         }
 
         function validarTodo() {
-            var $invalido = null;
+            let $invalido = null;
             $.each(config, function (nombre, opciones) {
-                var $campo = $form.find('[name="' + nombre + '"]').first();
+                const $campo = $form.find('[name="' + nombre + '"]').first();
                 if (!$campo.length) return;
-                var valido = validarCampo($campo, opciones, true);
+                const valido = validarCampo($campo, opciones, true);
                 if (!valido && !$invalido) {
                     $invalido = $campo;
                 }
@@ -297,8 +297,8 @@
 
         // Validación al salir del campo.
         $form.on('focusout.siapValidar', ':input[name]', function () {
-            var $campo = $(this);
-            var opciones = config[$campo.attr('name')];
+            const $campo = $(this);
+            const opciones = config[$campo.attr('name')];
             if (!opciones) return;
             $campo.data('siap-tocado', true);
             validarCampo($campo, opciones, true);
@@ -306,8 +306,8 @@
 
         // Después del primer blur, limpia el error en cuanto el valor cambia.
         $form.on('input.siapValidar change.siapValidar', ':input[name]', function () {
-            var $campo = $(this);
-            var opciones = config[$campo.attr('name')];
+            const $campo = $(this);
+            const opciones = config[$campo.attr('name')];
             if (!opciones || !$campo.data('siap-tocado')) return;
             validarCampo($campo, opciones, true);
         });
@@ -317,11 +317,11 @@
         });
 
         $form.on('submit.siapValidar', function (e) {
-            var $invalido = null;
+            let $invalido = null;
             $.each(config, function (nombre, opciones) {
-                var $campo = $form.find('[name="' + nombre + '"]').first();
+                const $campo = $form.find('[name="' + nombre + '"]').first();
                 if (!$campo.length) return;
-                var valido = validarCampo($campo, opciones, true);
+                const valido = validarCampo($campo, opciones, true);
                 if (!valido && !$invalido) {
                     $invalido = $campo;
                 }
@@ -334,7 +334,7 @@
             }
         });
 
-        var api = {
+        const api = {
             configurar: actualizar,
             limpiar: limpiarTodo,
             validarTodo: validarTodo
@@ -347,15 +347,15 @@
     $.fn.siapValidar = function (opcion) {
         if (typeof opcion === 'string') {
             return this.each(function () {
-                var api = $(this).data('siapValidacion');
+                const api = $(this).data('siapValidacion');
                 if (!api) return;
                 if (opcion === 'limpiar') api.limpiar();
             });
         }
 
         return this.each(function () {
-            var $form = $(this);
-            var api = $form.data('siapValidacion');
+            const $form = $(this);
+            const api = $form.data('siapValidacion');
             if (api) {
                 api.configurar(opcion);
             } else {
@@ -390,7 +390,7 @@
         validarTasa: validarTasa,
         validarCantidadMes: validarCantidadMes,
         validarCampo: function (campo, valor) {
-            var regla = reglas[campo];
+            const regla = reglas[campo];
             return !!(regla && regla.validar(valor));
         },
         // Utilidades para campos dinámicos (ej. inputs generados por DataTables).

@@ -57,7 +57,7 @@ const regexCantidadMes = /^\d{1,9}$/;
  *  - selectorFoco: (opcional) campo donde dejar el foco tras limpiar.
  */
 function siapResetFormulario(selectorForm, selectorFoco) {
-    var form = document.querySelector(selectorForm);
+    const form = document.querySelector(selectorForm);
     if (!form) return;
 
     form.reset();
@@ -72,7 +72,7 @@ function siapResetFormulario(selectorForm, selectorFoco) {
         msg.remove();
     });
 
-    var foco = selectorFoco ? form.querySelector(selectorFoco) : null;
+    let foco = selectorFoco ? form.querySelector(selectorFoco) : null;
     if (!foco) foco = form.querySelector('input:not([type="hidden"]), select, textarea');
     if (foco) foco.focus();
 }

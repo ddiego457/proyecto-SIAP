@@ -8,8 +8,8 @@ $(document).ready(function() {
     // Se valida al salir del campo (focusout) con el mismo criterio del servidor.
     if (window.ValidacionesSIAP) {
         $(document).on('focusout', 'input[name^="cantidades["]', function () {
-            var $campo = $(this);
-            var valor = String($campo.val() || '').trim();
+            const $campo = $(this);
+            const valor = String($campo.val() || '').trim();
             if (valor === '' || ValidacionesSIAP.validarCantidadMes(valor)) {
                 ValidacionesSIAP.limpiarError($campo);
             } else {
@@ -31,7 +31,7 @@ $(document).ready(function() {
             // El usuario normal no tiene selector de dependencia: siempre ve
             // datos de su propia dependencia, así que puede modificar en la modal.
             if (!esAdmin) return true;
-            var seleccion = $('#select-dependencia').val();
+            const seleccion = $('#select-dependencia').val();
             return seleccion !== '' && seleccion !== undefined && seleccion !== 'todos';
         }
 
@@ -40,11 +40,11 @@ $(document).ready(function() {
         let tabla;
 
         // Estructura original de la tabla, para restaurarla al salir del modo partida
-        var theadMainHTML = $('#tablaMain thead').html();
-        var tfootMainHTML = $('#tablaMain tfoot').html();
+        const theadMainHTML = $('#tablaMain thead').html();
+        const tfootMainHTML = $('#tablaMain tfoot').html();
 
         // Bandera de modo: false = detalle, true = agregado por partida
-        var modoPartidas = false;
+        let modoPartidas = false;
 
         function initTablaMain() {
         if ($.fn.DataTable.isDataTable('#tablaMain')) {
@@ -67,11 +67,11 @@ $(document).ready(function() {
                 // Extraemos el id_req de forma dinámica cuando llegan los datos del servidor
                 dataSrc: function(json) {
                     idReq = 0;
-                    var hayDatos = (json.data && json.data.length > 0);
+                    const hayDatos = (json.data && json.data.length > 0);
                 
                     if (hayDatos) {
                         // Lógica de ID (la que ya tenías)
-                        for (var i = 0; i < json.data.length; i++) {
+                        for (let i = 0; i < json.data.length; i++) {
                             if (json.data[i].id_req && json.data[i].id_req > 0) {
                                 idReq = json.data[i].id_req;
                                 break; 
@@ -146,10 +146,10 @@ $(document).ready(function() {
                 url: "assets/js/DataTables/spanish.json"
             },
             footerCallback: function (row, data, start, end, display) {
-                var api = this.api();
+                const api = this.api();
         
                 // Función auxiliar para convertir a número limpio
-                var intVal = function (i) {
+                const intVal = function (i) {
                     return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
                 };
         
@@ -158,29 +158,29 @@ $(document).ready(function() {
                 // 16 = Total_Cantidad (siempre visible)
                 // 17 = total_usd (visible: esAdmin)
                 // 18 = total_bs (visible: esAdmin)
-                var colCant = 16;
-                var colUsd = 17; 
-                var colBs = 18;
+                const colCant = 16;
+                const colUsd = 17; 
+                const colBs = 18;
         
                 // Sumamos el Total de Cantidad (siempre visible)
-                var totalCant = api.column(colCant).data().reduce(function (a, b) {
+                const totalCant = api.column(colCant).data().reduce(function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0);
         
                 // Opciones para asegurar que siempre haya 2 decimales
-                var formatoMoneda = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+                const formatoMoneda = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
         
                 // Aplicamos el formato con comas a los resultados
                 $(api.column(colCant).footer()).html(totalCant.toLocaleString( 'es-CO'));
         
                 if (esAdmin) {
                     // Sumamos el Total de USD
-                    var totalUsd = api.column(colUsd).data().reduce(function (a, b) {
+                    const totalUsd = api.column(colUsd).data().reduce(function (a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
         
                     // Sumamos el Total de Bs
-                    var totalBs = api.column(colBs).data().reduce(function (a, b) {
+                    const totalBs = api.column(colBs).data().reduce(function (a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
         
@@ -196,8 +196,8 @@ $(document).ready(function() {
         initTablaMain();
 
         $('#select-dependencia').on('input change', function() {
-            var selectedName = $(this).val();
-            var selectedId = 0;
+            const selectedName = $(this).val();
+            let selectedId = 0;
             $('#select-dep-list option').each(function() {
                 if ($(this).val() === selectedName) {
                     selectedId = $(this).data('id_dep');
@@ -237,11 +237,11 @@ $(document).ready(function() {
         // =========================================================================
 
         $('#modalViewToggle').on('change', function() {
-            var isChecked = $(this).prop('checked');
+            const isChecked = $(this).prop('checked');
             
             if (isChecked) {
                 // Ocultar columnas de meses (índices 3-14) en la tabla principal
-                for (var i = 3; i <= 14; i++) {
+                for (let i = 3; i <= 14; i++) {
                     tabla.column(i).visible(false);
                 }
                 // Ocultar botón modificar de la vista principal
@@ -255,7 +255,7 @@ $(document).ready(function() {
                 $('#btn-modificar-modal').hide().prop('disabled', true);
             } else {
                 // Mostrar columnas de meses
-                for (var i = 3; i <= 14; i++) {
+                for (let i = 3; i <= 14; i++) {
                     tabla.column(i).visible(true);
                 }
                 // Mostrar botón modificar de la vista principal
@@ -287,26 +287,26 @@ $(document).ready(function() {
             }
             $('#tablaModalCantidades tbody').empty();
 
-            var rowsData = tabla.rows().data().toArray();
-            var monthKeys = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+            const rowsData = tabla.rows().data().toArray();
+            const monthKeys = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                              'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
             // Valores originales por id_pres, usados para serializar al guardar
-            var cantidadesOriginales = {};
+            const cantidadesOriginales = {};
             rowsData.forEach(function(row) {
-                var idProd = row.id_pres;
+                const idProd = row.id_pres;
                 cantidadesOriginales[idProd] = {};
-                for (var m = 1; m <= 12; m++) {
+                for (let m = 1; m <= 12; m++) {
                     cantidadesOriginales[idProd][m] = Number(row[monthKeys[m - 1]]) || 0;
                 }
             });
 
             // Cambios hechos por el usuario, sobreviven al cambio de página
-            var cantidadesModificadas = {};
+            let cantidadesModificadas = {};
 
             function createInput(idProd, mes, valorOriginal) {
-                var name = 'cantidades[' + idProd + '][' + mes + ']';
-                var value = cantidadesModificadas.hasOwnProperty(name)
+                const name = 'cantidades[' + idProd + '][' + mes + ']';
+                const value = cantidadesModificadas.hasOwnProperty(name)
                     ? cantidadesModificadas[name]
                     : valorOriginal;
                 return '<input type="number" name="' + name + '" min="0" value="' + value + '">';
@@ -363,16 +363,16 @@ $(document).ready(function() {
 
             $('#btn-modificar-modal').off('click').on('click', function(e) {
                 e.preventDefault();
-                var btn = $(this);
-                var textoOriginal = btn.text();
+                const btn = $(this);
+                const textoOriginal = btn.text();
                 btn.prop('disabled', true).text('Guardando...');
 
                 // Serializar desde los datos originales + las modificaciones del usuario
-                var partes = [];
+                const partes = [];
                 Object.keys(cantidadesOriginales).forEach(function(idProd) {
-                    for (var mes = 1; mes <= 12; mes++) {
-                        var name = 'cantidades[' + idProd + '][' + mes + ']';
-                        var valor = cantidadesModificadas.hasOwnProperty(name)
+                    for (let mes = 1; mes <= 12; mes++) {
+                        const name = 'cantidades[' + idProd + '][' + mes + ']';
+                        const valor = cantidadesModificadas.hasOwnProperty(name)
                             ? cantidadesModificadas[name]
                             : cantidadesOriginales[idProd][mes];
                         if (Number(valor) > 0) {
@@ -380,7 +380,7 @@ $(document).ready(function() {
                         }
                     }
                 });
-                var dataEnviar = partes.join('&') + '&actualizarMatriz=true&id_req=' + idReq;
+                const dataEnviar = partes.join('&') + '&actualizarMatriz=true&id_req=' + idReq;
 
                 $.ajax({
                     url: '?url=requerimiento&type=main',
@@ -460,13 +460,13 @@ $(document).ready(function() {
         $('#btn-modificar').on('click', function(e) {
             e.preventDefault(); 
 
-            var btn = $(this);
-            var textoOriginal = btn.text();
+            const btn = $(this);
+            const textoOriginal = btn.text();
             
             btn.prop('disabled', true).text('Guardando...');
 
-            var datosInputs = tabla.$('input').serialize(); 
-            var dataEnviar = datosInputs + '&actualizarMatriz=true&id_req=' + idReq;
+            const datosInputs = tabla.$('input').serialize(); 
+            const dataEnviar = datosInputs + '&actualizarMatriz=true&id_req=' + idReq;
 
             $.ajax({
                 url: '?url=requerimiento&type=main',
@@ -508,8 +508,8 @@ $(document).ready(function() {
                 return;
             }
 
-            var btn = $(this);
-            var textoOriginal = btn.text();
+            const btn = $(this);
+            const textoOriginal = btn.text();
             btn.prop('disabled', true).text('Eliminando...');
 
             $.ajax({
@@ -543,7 +543,7 @@ $(document).ready(function() {
         // VISTA POR PARTIDA (Admin) - agregado por partida presupuestaria
         // =========================================================================
 
-        var MESES_PARTIDA = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        const MESES_PARTIDA = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                              'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
         // Convierte un valor (posiblemente formateado como moneda) a número
@@ -555,9 +555,9 @@ $(document).ready(function() {
 
         // Agrupa las filas del detalle por código de partida, sumando meses y totales
         function agregarPorPartida(rows) {
-            var mapa = {};
+            const mapa = {};
             rows.forEach(function(row) {
-                var key = row.partida;
+                const key = row.partida;
                 if (!mapa.hasOwnProperty(key)) {
                     mapa[key] = {
                         partida: row.partida,
@@ -570,7 +570,7 @@ $(document).ready(function() {
                     };
                     MESES_PARTIDA.forEach(function(m) { mapa[key][m] = 0; });
                 }
-                var agg = mapa[key];
+                const agg = mapa[key];
                 MESES_PARTIDA.forEach(function(m) {
                     agg[m] += numeroPartida(row[m]);
                 });
@@ -579,13 +579,13 @@ $(document).ready(function() {
                 agg.total_bs += numeroPartida(row.total_bs);
                 // Precio unitario: suma de los precios unitarios de los productos
                 // realmente pedidos (Total_Cantidad > 0), no la cantidad.
-                var cantFila = numeroPartida(row.Total_Cantidad);
+                const cantFila = numeroPartida(row.Total_Cantidad);
                 if (cantFila > 0) {
-                    var pUnitUsd = numeroPartida(row.precio_unit_usd);
+                    const pUnitUsd = numeroPartida(row.precio_unit_usd);
                     agg.precio_unit_usd += pUnitUsd;
                     // Tasa derivada de la propia fila: total_bs / total_usd
-                    var totalUsdFila = numeroPartida(row.total_usd);
-                    var tasaFila = totalUsdFila > 0 ? numeroPartida(row.total_bs) / totalUsdFila : 0;
+                    const totalUsdFila = numeroPartida(row.total_usd);
+                    const tasaFila = totalUsdFila > 0 ? numeroPartida(row.total_bs) / totalUsdFila : 0;
                     agg.precio_unit_bs += pUnitUsd * tasaFila;
                 }
             });
@@ -596,7 +596,7 @@ $(document).ready(function() {
         }
 
         function cabeceraPartidasHTML() {
-            var ths = MESES_PARTIDA.map(function(m) {
+            const ths = MESES_PARTIDA.map(function(m) {
                 return '<th>' + m + '</th>';
             }).join('');
             return '<tr><th>Partida</th>' + ths +
@@ -616,7 +616,7 @@ $(document).ready(function() {
         }
 
         function initTablaPartidas() {
-            var datos = agregarPorPartida(tabla.rows().data().toArray());
+            const datos = agregarPorPartida(tabla.rows().data().toArray());
 
             if ($.fn.DataTable.isDataTable('#tablaMain')) {
                 $('#tablaMain').DataTable().destroy();
@@ -653,12 +653,12 @@ $(document).ready(function() {
                     url: "assets/js/DataTables/spanish.json"
                 },
                 footerCallback: function (row, data, start, end, display) {
-                    var api = this.api();
-                    var formatoMoneda = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+                    const api = this.api();
+                    const formatoMoneda = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
                     // Subtotal por cada mes (columnas 1 a 12)
-                    for (var i = 0; i < 12; i++) {
-                        var totalMes = api.column(i + 1).data().reduce(function (a, b) {
+                    for (let i = 0; i < 12; i++) {
+                        const totalMes = api.column(i + 1).data().reduce(function (a, b) {
                             return numeroPartida(a) + numeroPartida(b);
                         }, 0);
                         $(api.column(i + 1).footer()).html(totalMes.toLocaleString('es-CO'));
@@ -672,11 +672,11 @@ $(document).ready(function() {
                         }, 0);
                     }
 
-                    var totalCant = sumarColumna(13);
-                    var totalPUUsd = sumarColumna(14);
-                    var totalUsd   = sumarColumna(15);
-                    var totalPUBs  = sumarColumna(16);
-                    var totalBs    = sumarColumna(17);
+                    const totalCant = sumarColumna(13);
+                    const totalPUUsd = sumarColumna(14);
+                    const totalUsd   = sumarColumna(15);
+                    const totalPUBs  = sumarColumna(16);
+                    const totalBs    = sumarColumna(17);
 
                     $(api.column(13).footer()).html(totalCant.toLocaleString('es-CO'));
                     $(api.column(14).footer()).html('$' + totalPUUsd.toLocaleString('en-US', formatoMoneda));
@@ -689,7 +689,7 @@ $(document).ready(function() {
 
         function mostrarPartidas() {
             if (modoPartidas) return;
-            var rows = tabla.rows().data().toArray();
+            const rows = tabla.rows().data().toArray();
             if (!rows.length) return;
 
             // Desactivamos edición y el toggle de modal mientras se ve el agregado
@@ -829,7 +829,7 @@ $(document).ready(function() {
 
         // Guardar la partida y avanzar
         $('#btn-guardar').click(function() {
-            var btn = $(this);
+            const btn = $(this);
             btn.prop('disabled', true).text('Guardando partida...');
 
             let datosInputs = tablaRegistro.$('input').serialize(); 

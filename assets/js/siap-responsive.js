@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var MONTH_NAMES = [
+  const MONTH_NAMES = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
@@ -21,14 +21,14 @@
    *   actions: [{ label, class, dataAttr?, url? }]
    */
   window.siapGenerateCards = function (tableId, columns) {
-    var table = document.getElementById(tableId);
-    var container = document.getElementById(tableId + '-cards');
+    const table = document.getElementById(tableId);
+    const container = document.getElementById(tableId + '-cards');
     if (!table || !container) return;
 
     // Use DataTables API if available
-    var dtData = null;
+    let dtData = null;
     if (typeof $ !== 'undefined' && $.fn.DataTable) {
-      var dt = $('#' + tableId).DataTable();
+      const dt = $('#' + tableId).DataTable();
       if (dt) dtData = dt.rows().data().toArray();
     }
 
@@ -37,15 +37,15 @@
       return;
     }
 
-    var html = '';
+    let html = '';
     dtData.forEach(function (row, idx) {
       html += '<div class="mobile-card" data-row-index="' + idx + '">';
       html += '<div class="mobile-card-header">';
 
       // First column as title
-      var titleCol = columns[0];
-      var titleVal = row[titleCol.key] !== undefined ? row[titleCol.key] : '';
-      var idVal = row['id'] || row['ID'] || row['idItem'] || idx;
+      const titleCol = columns[0];
+      const titleVal = row[titleCol.key] !== undefined ? row[titleCol.key] : '';
+      const idVal = row['id'] || row['ID'] || row['idItem'] || idx;
       html += '<span class="mobile-card-id">#' + escapeHtml(String(idVal)) + '</span>';
       html += '</div>';
 
@@ -53,7 +53,7 @@
       columns.forEach(function (col, ci) {
         if (ci === 0) return; // skip first (used as title)
         if (col.isActions) return;
-        var val = row[col.key] !== undefined ? row[col.key] : '';
+        let val = row[col.key] !== undefined ? row[col.key] : '';
         if (val === null || val === undefined) val = '';
         html += '<div class="mobile-card-field">';
         html += '<span class="mobile-card-label">' + escapeHtml(col.label) + '</span>';
@@ -63,12 +63,12 @@
       html += '</div>';
 
       // Action buttons
-      var actionCol = columns.find(function (c) { return c.isActions; });
+      const actionCol = columns.find(function (c) { return c.isActions; });
       if (actionCol && actionCol.actions) {
         html += '<div class="mobile-card-actions">';
         actionCol.actions.forEach(function (act) {
-          var cls = act.class || 'btn btn-outline';
-          var attrs = '';
+          const cls = act.class || 'btn btn-outline';
+          let attrs = '';
           if (act.dataAttr) {
             Object.keys(act.dataAttr).forEach(function (k) {
               attrs += ' data-' + k + '="' + escapeHtml(String(row[act.dataAttr[k]] || '')) + '"';
@@ -93,13 +93,13 @@
    * Month detail modal for requerimientos
    */
   window.siapShowMonthDetail = function (rowData) {
-    var existing = document.getElementById('monthDetailModal');
+    const existing = document.getElementById('monthDetailModal');
     if (existing) existing.remove();
 
-    var months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    var total = 0;
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    let total = 0;
 
-    var html = '<div id="monthDetailModal" class="modal-backdrop" style="display:flex;">';
+    let html = '<div id="monthDetailModal" class="modal-backdrop" style="display:flex;">';
     html += '<div class="modal-panel" style="max-width:420px;">';
     html += '<div class="modal-header">';
     html += '<h3>Distribuci\u00f3n Mensual</h3>';
@@ -114,7 +114,7 @@
 
     html += '<div class="month-detail-grid">';
     months.forEach(function (m, i) {
-      var val = parseFloat(rowData[m]) || 0;
+      const val = parseFloat(rowData[m]) || 0;
       total += val;
       html += '<div class="month-detail-item">';
       html += '<span class="month-detail-name">' + MONTH_NAMES[i] + '</span>';
@@ -159,15 +159,15 @@
   document.addEventListener('DOMContentLoaded', function () {
     // Poll for DataTables ready and generate cards
     function tryGenerate(tableId, columns, maxAttempts) {
-      var attempts = 0;
-      var interval = setInterval(function () {
+      let attempts = 0;
+      const interval = setInterval(function () {
         attempts++;
-        var table = document.getElementById(tableId);
-        var container = document.getElementById(tableId + '-cards');
+        const table = document.getElementById(tableId);
+        const container = document.getElementById(tableId + '-cards');
         if (!table || !container) { clearInterval(interval); return; }
 
         // Check if DataTable has data
-        var rows = table.querySelectorAll('tbody tr');
+        const rows = table.querySelectorAll('tbody tr');
         if (rows.length > 0 && rows[0].querySelector('td') !== null) {
           clearInterval(interval);
           window.siapGenerateCards(tableId, columns);
