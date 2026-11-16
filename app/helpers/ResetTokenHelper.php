@@ -48,6 +48,7 @@
                 . "return '" . $sec . "';\n";
 
             if (@file_put_contents($ruta, $contenido, LOCK_EX) === false && !is_file($ruta)) {
+                error_log('[ResetToken] No se pudo crear ' . $ruta . ' (verifique permisos de escritura).');
                 throw new \RuntimeException('No se pudo crear app/config/reset_secret.php (verifique permisos de escritura).');
             }
 
@@ -59,6 +60,7 @@
                 }
             }
 
+            error_log('[ResetToken] No se pudo leer el secreto en ' . $ruta . '.');
             throw new \RuntimeException('No se pudo leer el secreto de recuperación de contraseña.');
         }
 

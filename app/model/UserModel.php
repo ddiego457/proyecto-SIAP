@@ -150,9 +150,11 @@ class UserModel extends ConnectDB {
                 ResetTokenHelper::huella((string)$hashActual)
             );
         } catch (Exception $e) {
+            error_log('[ResetToken] No se pudo generar el token: ' . $e->getMessage());
             return null;
         } catch (\Throwable $e) {
             // p.ej. no se pudo crear app/config/reset_secret.php
+            error_log('[ResetToken] No se pudo generar el token: ' . $e->getMessage());
             return null;
         }
     }
