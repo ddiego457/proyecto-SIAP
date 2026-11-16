@@ -6,6 +6,26 @@ use Mpdf\Mpdf;
 
 trait ReportePdfGeneratorTrait
 {
+    private function reportPdfLogo(string $relativePath, float $maxWidth, float $maxHeight): string
+    {
+        $path = realpath(__DIR__ . '/../../assets/' . $relativePath);
+        if ($path === false) {
+            throw new \RuntimeException('No se encontró el logo del reporte: ' . $relativePath);
+        }
+
+        $imageSize = getimagesize($path);
+        if ($imageSize === false) {
+            throw new \RuntimeException('No se pudo leer el logo del reporte: ' . $relativePath);
+        }
+
+        $scale = min($maxWidth / $imageSize[0], $maxHeight / $imageSize[1]);
+        $width = $imageSize[0] * $scale;
+        $height = $imageSize[1] * $scale;
+        $src = htmlspecialchars(str_replace('\\', '/', $path), ENT_QUOTES, 'UTF-8');
+
+        return '<img src="' . $src . '" style="width:' . $width . 'mm;height:' . $height . 'mm;">';
+    }
+
     private function createReportPdf(string $title, ?string $year = null): Mpdf
     {
         ini_set('pcre.backtrack_limit', '10000000');
@@ -16,20 +36,28 @@ trait ReportePdfGeneratorTrait
             'format' => 'LETTER-L',
             'margin_left' => 8,
             'margin_right' => 8,
-            'margin_top' => 22,
-            'margin_bottom' => 12,
+            'margin_top' => 30,
+            'margin_bottom' => 28,
             'margin_header' => 5,
-            'margin_footer' => 5,
+            'margin_footer' => 4,
         ]);
 
         $safeTitle = htmlspecialchars(mb_strtoupper($title, 'UTF-8'), ENT_QUOTES, 'UTF-8');
+        $uptaebLogo = $this->reportPdfLogo('img/UPTAEB.png', 42, 18);
+        $siapLogo = $this->reportPdfLogo('img/img/SIAPlogo.png', 28, 18);
         $mpdf->SetHTMLHeader(
-            '<div style="text-align:center;font-weight:bold;font-size:10pt;font-family:sans-serif;border-bottom:1px solid #000;padding-bottom:4px;">'
+            '<table width="100%" cellpadding="0" cellspacing="0" style="font-family:sans-serif;border-bottom:1px solid #000;padding-bottom:3px;">'
+            . '<tr><td width="20%" align="left" valign="middle">' . $uptaebLogo . '</td>'
+            . '<td width="60%" align="center" valign="middle" style="font-weight:bold;font-size:10pt;">'
             . 'REPUBLICA BOLIVARIANA DE VENEZUELA<br>' . $safeTitle . ' - A&Ntilde;O ' . htmlspecialchars($year, ENT_QUOTES, 'UTF-8')
-            . '</div>'
+            . '</td><td width="20%" align="right" valign="middle">' . $siapLogo . '</td></tr></table>'
         );
         $mpdf->SetHTMLFooter(
-            '<table width="100%" style="font-size:7pt;font-family:sans-serif;border-top:1px solid #ccc;">'
+            '<table width="100%" cellpadding="0" cellspacing="0" style="font-family:sans-serif;">'
+            . '<tr><td height="16mm" align="right" valign="bottom"><table width="60mm" cellpadding="0" cellspacing="0" style="font-size:7pt;text-align:center;">'
+            . '<tr><td style="border-bottom:1px solid #000;height:11mm;">&nbsp;</td></tr>'
+            . '<tr><td>Firma y sello</td></tr></table></td></tr></table>'
+            . '<table width="100%" style="font-size:7pt;font-family:sans-serif;border-top:1px solid #ccc;">'
             . '<tr><td width="33%">Fecha de emisi&oacute;n: ' . date('d/m/Y h:i A') . '</td>'
             . '<td width="33%" align="center">P&aacute;gina {PAGENO} de {nbpg}</td>'
             . '<td width="33%" align="right">Sistema SIAP</td></tr></table>'

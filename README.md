@@ -84,24 +84,24 @@ SIAP/
 
 | Tabla | Descripción |
 |-------|-------------|
-| `dependencias` | Unidades organizativas (109 en total) |
+| `dependencias` | Unidades organizativas (26 en total) |
 | `partidas` | Códigos presupuestarios (401, 402, 403, 404, 407) |
-| `items_partida` | Productos, bienes y servicios solicitables |
-| `requerimientos` | Solicitudes por dependencia y año fiscal |
+| `presupuesto` | Productos, bienes y servicios solicitables |
+| `requerimiento` | Solicitudes por dependencia y año fiscal |
 | `detalle_req` | Detalle mensual de cantidades por ítem |
 | `anio_fiscal` | Gestión de años presupuestarios |
 | `periodos_entrega` | Fechas de apertura/cierre de recepción |
-| `proveedores` / `contactos` | Catálogo de proveedores y teléfonos |
-| `responsables` / `cargo_responsable` | Usuarios y su relación con dependencias |
+| `proveedores` / `telefonos` | Catálogo de proveedores y teléfonos |
+| `responsables` / `cargo` | Usuarios y su relación con dependencias |
 | `tasa_bcv` | Histórico de tasas de cambio (USD/BS) |
 | `roles` | Permisos de acceso (admin, dependencia) |
 
 ### 📌 Relaciones Clave
 
-- `requerimientos` → `dependencias` (1:N)
-- `detalle_req` → `items_partida` y `requerimientos` (N:1)
-- `items_partida` → `partidas` y `proveedores` (N:1)
-- `cargo_responsable` → `responsables` y `dependencias` (N:1)
+- `requerimiento` → `dependencias` (1:N)
+- `detalle_req` → `presupuesto` y `requerimiento` (N:1)
+- `presupuesto` → `partidas` y `proveedores` (N:1)
+- `cargo` → `responsables` y `dependencias` (N:1)
 
 ---
 

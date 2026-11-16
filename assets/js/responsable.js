@@ -67,7 +67,7 @@ $(document).ready(function() {
         ajax: { url: currentUrl, method: 'POST', data: { getAll: true }, dataSrc: '' },
         columns: [
             { data: 'id_responsable' },
-            { data: 'nom_rep' },
+            { data: 'nom_resp' },
             { data: 'email', render: (d) => d ? d : '<span style="color:#999;">—</span>' },
             { data: 'rol' },
             { data: 'dependencia_actual' },
@@ -214,7 +214,7 @@ $(document).ready(function() {
     $(document).on('click', '.btn-modificar', function() {
         const data = tabla.row($(this).closest('tr')).data();
         $('#edit_idItem').val(data.id_responsable);
-        $('#edit_nom_rep').val(data.nom_rep);
+        $('#edit_nom_rep').val(data.nom_resp);
         $('#edit_email').val(data.email || '');
         $('#edit_id_rol').val(data.id_rol);
         const esCoordinador = String(data.rol || '').trim().toLowerCase() === 'coordinador';

@@ -3,20 +3,13 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 02-11-2026 a las 11:33:18
+-- Tiempo de generación: 16-11-2026 a las 00:43:36
 -- Versión del servidor: 10.4.28-MariaDB
 -- Versión de PHP: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
--- Base de datos: se crea si no existe y se selecciona
-CREATE DATABASE IF NOT EXISTS `siap_db` DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci;
-USE `siap_db`;
-
--- Claves foraneas desactivadas para poder importar en cualquier orden
-SET FOREIGN_KEY_CHECKS = 0;
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -33,8 +26,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 --
 -- Estructura de tabla para la tabla `anio_fiscal`
 --
+CREATE DATABASE IF NOT EXISTS `siap_db` DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci;
+USE `siap_db`;
 
-DROP TABLE IF EXISTS `anio_fiscal`;
 CREATE TABLE `anio_fiscal` (
   `id_aniof` int(11) NOT NULL,
   `anio` year(4) NOT NULL,
@@ -56,7 +50,7 @@ INSERT INTO `anio_fiscal` (`id_aniof`, `anio`, `activo`) VALUES
 --
 DELIMITER $$
 CREATE TRIGGER `sincronizar_estado_req_con_anio` AFTER UPDATE ON `anio_fiscal` FOR EACH ROW BEGIN
-    UPDATE requerimientos
+    UPDATE requerimiento
     SET estado = NEW.activo
     WHERE id_aniof = NEW.id_aniof;
 END
@@ -69,7 +63,6 @@ DELIMITER ;
 -- Estructura de tabla para la tabla `cargo`
 --
 
-DROP TABLE IF EXISTS `cargo`;
 CREATE TABLE `cargo` (
   `id_cargo` int(11) NOT NULL,
   `id_responsable` int(11) NOT NULL,
@@ -113,7 +106,9 @@ INSERT INTO `cargo` (`id_cargo`, `id_responsable`, `id_dep`, `fecha_inicio`, `fe
 (27, 27, 21, '2026-07-03', NULL, 1),
 (28, 28, 22, '2026-07-05', NULL, 1),
 (29, 29, 23, '2026-07-07', NULL, 1),
-(33, 10001, 27, '2026-11-01', NULL, 1);
+(33, 10001, 27, '2026-11-01', NULL, 1),
+(100000, 100000, 24, '2026-11-15', NULL, 1),
+(100001, 100001, 25, '2026-11-16', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -121,7 +116,6 @@ INSERT INTO `cargo` (`id_cargo`, `id_responsable`, `id_dep`, `fecha_inicio`, `fe
 -- Estructura de tabla para la tabla `dependencias`
 --
 
-DROP TABLE IF EXISTS `dependencias`;
 CREATE TABLE `dependencias` (
   `id_dep` int(11) NOT NULL,
   `nom_dep` varchar(80) NOT NULL,
@@ -140,25 +134,25 @@ INSERT INTO `dependencias` (`id_dep`, `nom_dep`, `estado`) VALUES
 (5, 'Logística y Almacenes', 1),
 (6, 'Mantenimiento y Servicios', 1),
 (7, 'Planificación Estratégica', 1),
-(8, 'tralalero', 1),
+(8, 'Servicios Bibliotecarios', 1),
 (9, 'TIC', 1),
-(10, 'hola', 1),
-(11, 'tung tung', 1),
-(12, 'chamuco', 1),
-(13, 'wwww', 1),
-(14, 'Soccer', 1),
-(15, 'abc', 1),
-(16, 'abcdefg', 1),
-(17, 'pistear', 1),
-(18, 'becerro', 1),
-(19, 'ñame', 1),
-(20, 'Saramambiche', 1),
-(21, 'Saramambiche2', 1),
-(22, 'Saramambiche3', 1),
-(23, '12345', 1),
-(24, '6789', 1),
-(25, '101112', 1),
-(27, 'trolazo', 1);
+(10, 'Bienestar Estudiantil', 1),
+(11, 'Investigación y Postgrado', 1),
+(12, 'Oficina de Planeación', 1),
+(13, 'Seguridad y Salud Laboral', 1),
+(14, 'Cultura y Deportes', 1),
+(15, 'Centro de Idiomas', 1),
+(16, 'Unidad de Admisión', 1),
+(17, 'Archivo y Correspondencia', 1),
+(18, 'Departamento de Alumnos', 1),
+(19, 'Educación Continua', 1),
+(20, 'Coordinación de Pregrado', 1),
+(21, 'Coordinación de Extensión', 1),
+(22, 'Unidad de Calidad Académica', 1),
+(23, 'Laboratorio Central', 1),
+(24, 'Recursos Materiales', 1),
+(25, 'Seguridad Universitaria', 1),
+(27, 'Unidad de Transporte', 1);
 
 -- --------------------------------------------------------
 
@@ -166,9 +160,8 @@ INSERT INTO `dependencias` (`id_dep`, `nom_dep`, `estado`) VALUES
 -- Estructura de tabla para la tabla `detalle_req`
 --
 
-DROP TABLE IF EXISTS `detalle_req`;
 CREATE TABLE `detalle_req` (
-  `id_prod` int(11) DEFAULT NULL,
+  `id_pres` int(11) DEFAULT NULL,
   `id_req` int(11) NOT NULL,
   `mes` tinyint(4) NOT NULL,
   `cant_mes` int(11) NOT NULL
@@ -178,7 +171,7 @@ CREATE TABLE `detalle_req` (
 -- Volcado de datos para la tabla `detalle_req`
 --
 
-INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
+INSERT INTO `detalle_req` (`id_pres`, `id_req`, `mes`, `cant_mes`) VALUES
 (3, 2, 2, 200),
 (4, 2, 2, 10),
 (5, 3, 3, 5),
@@ -238,13 +231,6 @@ INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
 (16, 44, 9, 7),
 (5, 44, 3, 3),
 (6, 44, 3, 7),
-(21, 47, 11, 7),
-(8, 47, 4, 10),
-(10, 47, 7, 10),
-(12, 47, 7, 7),
-(15, 47, 4, 7),
-(5, 47, 2, 10),
-(6, 47, 12, 10),
 (19, 15, 1, 3),
 (19, 15, 8, 3),
 (6, 15, 1, 1),
@@ -344,13 +330,6 @@ INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
 (16, 44, 9, 7),
 (5, 44, 3, 3),
 (6, 44, 3, 7),
-(21, 47, 11, 7),
-(8, 47, 4, 10),
-(10, 47, 7, 10),
-(12, 47, 7, 7),
-(15, 47, 4, 7),
-(5, 47, 2, 10),
-(6, 47, 12, 10),
 (19, 15, 1, 3),
 (19, 15, 8, 3),
 (6, 15, 1, 1),
@@ -397,7 +376,19 @@ INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
 (12, 11, 2, 14),
 (10, 11, 1, 6),
 (10, 11, 2, 6),
-(11, 11, 2, 8);
+(11, 11, 2, 8),
+(36, 52, 3, 12),
+(1027, 52, 1, 13),
+(1, 52, 1, 12),
+(2173, 52, 1, 8),
+(21, 54, 1, 10),
+(5, 47, 2, 10),
+(6, 47, 12, 20),
+(8, 47, 4, 20),
+(10, 47, 7, 20),
+(12, 47, 7, 14),
+(15, 47, 4, 14),
+(21, 47, 11, 14);
 
 -- --------------------------------------------------------
 
@@ -405,7 +396,6 @@ INSERT INTO `detalle_req` (`id_prod`, `id_req`, `mes`, `cant_mes`) VALUES
 -- Estructura de tabla para la tabla `partidas`
 --
 
-DROP TABLE IF EXISTS `partidas`;
 CREATE TABLE `partidas` (
   `id_partida` int(11) NOT NULL,
   `cod_partida` varchar(10) NOT NULL,
@@ -427,10 +417,23 @@ INSERT INTO `partidas` (`id_partida`, `cod_partida`, `descripcion`, `estado`) VA
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id_reset` int(11) NOT NULL,
+  `id_responsable` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `expira_en` datetime NOT NULL,
+  `usado` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `periodos_entrega`
 --
 
-DROP TABLE IF EXISTS `periodos_entrega`;
 CREATE TABLE `periodos_entrega` (
   `id_periodo` int(11) NOT NULL,
   `id_aniof` int(11) NOT NULL,
@@ -449,30 +452,29 @@ INSERT INTO `periodos_entrega` (`id_periodo`, `id_aniof`, `per_inicio`, `per_fin
 (3, 2, '2025-01-01', '2025-06-30', 0),
 (4, 2, '2025-07-01', '2025-12-31', 0),
 (5, 3, '2026-01-01', '2026-06-30', 0),
-(6, 3, '2026-07-01', '2026-12-31', 0),
-(7, 3, '2026-06-01', '2026-07-31', 1);
+(6, 3, '2026-07-01', '2026-12-31', 1),
+(7, 3, '2026-06-01', '2026-07-31', 0);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `productos`
+-- Estructura de tabla para la tabla `presupuesto`
 --
 
-DROP TABLE IF EXISTS `productos`;
-CREATE TABLE `productos` (
-  `id_prod` int(11) NOT NULL,
+CREATE TABLE `presupuesto` (
+  `id_pres` int(11) NOT NULL,
   `id_proveedor` int(11) NOT NULL,
   `id_partida` int(11) NOT NULL,
-  `nom_prod` varchar(150) NOT NULL,
+  `nom_pres` varchar(150) NOT NULL,
   `precio` decimal(12,2) NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
--- Volcado de datos para la tabla `productos`
+-- Volcado de datos para la tabla `presupuesto`
 --
 
-INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `precio`, `estado`) VALUES
+INSERT INTO `presupuesto` (`id_pres`, `id_proveedor`, `id_partida`, `nom_pres`, `precio`, `estado`) VALUES
 (1, 1, 2, 'Cable eléctrico AWG 12', 15.50, 1),
 (2, 1, 2, 'Interruptor termomagnético 20A', 8.75, 1),
 (3, 2, 2, 'Resma de papel bond 80g', 12.00, 1),
@@ -1307,9 +1309,9 @@ INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `p
 (832, 1, 3, 'MANTENIMIENTO DE EQUIPOS DE COMPUTACIÓN, IMPRESORAS, VIDEO BEEM, LAPTOP|SERVICIO|', 11.00, 1),
 (833, 1, 3, 'MANTENIMIENTO Y ORNATO DE JARDINERÍA|SERVICIO|', 115.00, 1),
 (834, 1, 3, 'MANTENIMIENTO DE ORNATO (NUCLEO JIMENEZ)|SERVICIO|', 70.00, 1),
-(835, 1, 3, 'MANTENIMENTO DE SEDE  (NUCLEO JIMENEZ)|SERVICIO|', 146.00, 1),
-(836, 1, 3, 'TRANSPORTE ESTUDIANTIL (NUCLEO JIMENEZ)|SERVICIO|', 7882.00, 1);
-INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `precio`, `estado`) VALUES
+(835, 1, 3, 'MANTENIMENTO DE SEDE  (NUCLEO JIMENEZ)|SERVICIO|', 146.00, 1);
+INSERT INTO `presupuesto` (`id_pres`, `id_proveedor`, `id_partida`, `nom_pres`, `precio`, `estado`) VALUES
+(836, 1, 3, 'TRANSPORTE ESTUDIANTIL (NUCLEO JIMENEZ)|SERVICIO|', 7882.00, 1),
 (837, 1, 3, 'SUSTITUCION DE CANALES DE AGUAS|SERVICIO|', 3332.00, 1),
 (838, 1, 3, 'ACONDICIONAMIENTO DE BATERIA DE BAÑOS|SERVICIO|', 2991.00, 1),
 (839, 1, 3, 'RECUPRACION DE ESPACIOS POR FILTRACIONES|SERVICIO|', 1078.00, 1),
@@ -2112,9 +2114,9 @@ INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `p
 (1647, 5, 2, 'COLADOR DE JUGOS INDUSTRIAL|UNIDAD|', 71.86, 1),
 (1648, 5, 2, 'COLADOR DE JUGOS PEQUEÑOS|UNIDAD|', 53.89, 1),
 (1649, 5, 2, 'COLADOR DE JUGOS MEDIANOS|UNIDAD|', 44.91, 1),
-(1650, 5, 2, 'COLADOR DE CAFÉ O MANGAS PEQUEÑAS|UNIDAD|', 10.78, 1),
-(1651, 5, 2, 'COLADOR DE CAFÉ O MANGAS MEDIANAS|UNIDAD|', 14.37, 1);
-INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `precio`, `estado`) VALUES
+(1650, 5, 2, 'COLADOR DE CAFÉ O MANGAS PEQUEÑAS|UNIDAD|', 10.78, 1);
+INSERT INTO `presupuesto` (`id_pres`, `id_proveedor`, `id_partida`, `nom_pres`, `precio`, `estado`) VALUES
+(1651, 5, 2, 'COLADOR DE CAFÉ O MANGAS MEDIANAS|UNIDAD|', 14.37, 1),
 (1652, 5, 2, 'COLADOR DE CAFÉ O MANGAS GRANDES|UNIDAD|', 17.96, 1),
 (1653, 5, 2, 'JARRAS DE ACERO INOXIDABLES PEQUEÑAS|UNIDAD|', 95.21, 1),
 (1654, 5, 2, 'JARRAS DE ACERO INOXIDABLES MEDIANAS|UNIDAD|', 104.19, 1),
@@ -2637,7 +2639,7 @@ INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `p
 (2171, 5, 5, 'AYUDAS A LOS ESTUDIANTES CON DISCAPACIDAD|UNIDAD|', 17.96, 1),
 (2172, 5, 5, 'AYUDAS A LOS ESTUDIANTES CONSEJO POPULAR EST.|UNIDAD|', 17.96, 1),
 (2173, 5, 1, 'CONTADOR DE TAL|NOMINA|', 89.00, 1),
-(2174, 12, 1, 'trikitrakatelas', 12.00, 1);
+(2174, 12, 1, 'Asistencia administrativa', 12.00, 1);
 
 -- --------------------------------------------------------
 
@@ -2645,40 +2647,39 @@ INSERT INTO `productos` (`id_prod`, `id_proveedor`, `id_partida`, `nom_prod`, `p
 -- Estructura de tabla para la tabla `proveedores`
 --
 
-DROP TABLE IF EXISTS `proveedores`;
 CREATE TABLE `proveedores` (
   `id_proveedor` int(11) NOT NULL,
-  `nom_prov` varchar(100) NOT NULL,
+  `razon_social` varchar(100) NOT NULL,
   `descripcion` varchar(150) DEFAULT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1,
-  `archivo_pdf` varchar(255) DEFAULT NULL
+  `archivo_pdf` varchar(255) DEFAULT NULL,
+  `nombre_pdf` varchar(150) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `proveedores`
 --
 
-INSERT INTO `proveedores` (`id_proveedor`, `nom_prov`, `descripcion`, `estado`) VALUES
-(1, 'Distribuidora Eléctrica C.A.', 'Material eléctrico y equipos', 1),
-(2, 'Papelería Central', 'Útiles de oficina y papelería', 1),
-(3, 'TecnoSoluciones 2025', 'Equipos de cómputo y redes', 1),
-(4, 'Mantenimientos Industriales', 'Servicios de mantenimiento', 1),
-(5, 'Consultores Asociados', 'Servicios de consultoría', 1),
-(6, 'Logística Rápida', 'Transporte y almacenaje', 1),
-(7, 'Suministros Médicos', 'Insumos de salud', 1),
-(8, 'Seguros del Centro', 'Pólizas de seguros', 1),
-(9, 'Impuestos Express', 'Asesoría fiscal', 1),
-(10, 'Publicidad Creativa', 'Diseño y campañas publicitarias', 1),
-(12, 'chabones asociados', 'unos chabones que estan asociados y tal', 1);
+INSERT INTO `proveedores` (`id_proveedor`, `razon_social`, `descripcion`, `estado`, `archivo_pdf`, `nombre_pdf`) VALUES
+(1, 'Distribuidora Eléctrica C.A.', 'Material eléctrico y equipos', 1, 'proveedor_1_20261106_171622_afce8f732b5b.pdf', 'Sistema Web Integrado de Anteproyecto Presupuestario.pdf'),
+(2, 'Papelería Central', 'Útiles de oficina y papelería', 1, NULL, NULL),
+(3, 'TecnoSoluciones 2025', 'Equipos de cómputo y redes', 1, NULL, NULL),
+(4, 'Mantenimientos Industriales', 'Servicios de mantenimiento', 1, NULL, NULL),
+(5, 'Consultores Asociados', 'Servicios de consultoría', 1, NULL, NULL),
+(6, 'Logística Rápida', 'Transporte y almacenaje', 1, NULL, NULL),
+(7, 'Suministros Médicos', 'Insumos de salud', 1, NULL, NULL),
+(8, 'Seguros del Centro', 'Pólizas de seguros', 1, NULL, NULL),
+(9, 'Impuestos Express', 'Asesoría fiscal', 1, NULL, NULL),
+(10, 'Publicidad Creativa', 'Diseño y campañas publicitarias', 1, NULL, NULL),
+(12, 'Comercializadora del Centro, C.A.', 'Suministros generales y servicios', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `requerimientos`
+-- Estructura de tabla para la tabla `requerimiento`
 --
 
-DROP TABLE IF EXISTS `requerimientos`;
-CREATE TABLE `requerimientos` (
+CREATE TABLE `requerimiento` (
   `id_req` int(11) NOT NULL,
   `id_dep` int(11) NOT NULL,
   `id_tasa` int(11) NOT NULL,
@@ -2689,10 +2690,10 @@ CREATE TABLE `requerimientos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
--- Volcado de datos para la tabla `requerimientos`
+-- Volcado de datos para la tabla `requerimiento`
 --
 
-INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado_registro`, `fecha_reg`, `estado`) VALUES
+INSERT INTO `requerimiento` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado_registro`, `fecha_reg`, `estado`) VALUES
 (1, 1, 1, 1, 1, '2024-01-10', 0),
 (2, 2, 2, 1, 1, '2024-02-15', 0),
 (3, 3, 3, 1, 0, '2024-03-20', 0),
@@ -2703,7 +2704,7 @@ INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado
 (8, 3, 8, 2, 0, '2025-04-10', 0),
 (9, 6, 9, 2, 0, '2025-05-12', 0),
 (10, 7, 10, 2, 1, '2025-06-18', 0),
-(11, 1, 11, 3, 1, '2026-01-20', 1),
+(11, 1, 11, 3, 0, '2026-01-20', 0),
 (12, 2, 12, 3, 0, '2026-02-14', 1),
 (13, 3, 13, 3, 1, '2026-03-22', 1),
 (14, 4, 14, 3, 0, '2026-04-05', 1),
@@ -2739,9 +2740,12 @@ INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado
 (44, 17, 10, 3, 0, '2026-06-30', 1),
 (47, 18, 10, 3, 1, '2026-06-30', 1),
 (48, 19, 10, 3, 1, '2026-07-01', 1),
-(49, 20, 10, 3, 1, '2026-07-03', 1),
+(49, 20, 10, 3, 0, '2026-07-03', 0),
 (50, 21, 10, 3, 0, '2026-07-03', 1),
-(51, 22, 10, 3, 0, '2026-07-05', 1);
+(51, 22, 10, 3, 0, '2026-07-05', 1),
+(52, 20, 17, 3, 0, '2026-11-09', 0),
+(53, 20, 16, 3, 0, '2026-11-10', 0),
+(54, 20, 16, 3, 0, '2026-11-10', 0);
 
 -- --------------------------------------------------------
 
@@ -2749,11 +2753,10 @@ INSERT INTO `requerimientos` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado
 -- Estructura de tabla para la tabla `responsables`
 --
 
-DROP TABLE IF EXISTS `responsables`;
 CREATE TABLE `responsables` (
   `id_responsable` int(11) NOT NULL,
   `id_rol` int(11) NOT NULL,
-  `nom_rep` varchar(100) NOT NULL,
+  `nom_resp` varchar(100) NOT NULL,
   `email` varchar(150) DEFAULT NULL,
   `password` varchar(120) NOT NULL,
   `foto` varchar(150) DEFAULT NULL,
@@ -2764,7 +2767,7 @@ CREATE TABLE `responsables` (
 -- Volcado de datos para la tabla `responsables`
 --
 
-INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_rep`, `email`, `password`, `foto`, `estado`) VALUES
+INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_resp`, `email`, `password`, `foto`, `estado`) VALUES
 (1, 1, 'Ana María Pérez', NULL, 'admin123', NULL, 1),
 (2, 2, 'Luis Rodríguez', NULL, 'jefe123', NULL, 0),
 (3, 2, 'Carlos Gómez', NULL, 'analista1', NULL, 1),
@@ -2775,26 +2778,28 @@ INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_rep`, `email`, `pas
 (8, 2, 'Sofía Herrera', NULL, 'jefe2', NULL, 1),
 (9, 2, 'Jorge Díaz', NULL, 'analista2', NULL, 1),
 (10, 2, 'Elena Castro', NULL, 'coord2', NULL, 1),
-(11, 2, 'pepe', NULL, '$2y$10$gBndiZQSy3Rp5MT2fTmFh.2euhEmWnw/VkiMIX5yJ2XFND8bJ1ENK', NULL, 1),
-(12, 1, 'diego', 'floresdiegomiguel@gmail.com', '$2y$10$LvP7O1SmVo524hJzpiGLB.gUooGkHslMe/DtornCvxdRGNfZQI6Aa', 'resp_12_cf120c12a8e11744.jpg', 1),
-(13, 2, 'ronaldo', NULL, '$2y$10$iwY6wy/yEbZ/OOjdsTd9n.aL4c4Jpg6iMloIjN49nch52d1E9GnhO', NULL, 1),
-(14, 2, 'che', NULL, '$2y$10$G6Ku9B8HgEAhSH/FJmToteads3OL2fXcf6HVJhTkbfZ3Qc77x2Sge', NULL, 1),
-(15, 2, 'JV', NULL, '$2y$10$sl2fdBuAEomUhylJCi15/.9zdoRduQb/cENpOPQakl3RS7ohr1Cbm', NULL, 1),
-(16, 2, 'pedro', NULL, '$2y$10$wa1GsdLxLSm8/ehAkxU.VuD2aWFMSIOH4r30cO.aKAS1SQ5RI5qpy', NULL, 1),
-(17, 2, 'steve', NULL, '$2y$10$XQsd//P0vaV.s8wiZ9vCye40T5e.bS2Jl0JkNGfwYoJ9UA361M8Je', NULL, 1),
-(18, 2, 'abc', NULL, '$2y$10$vR9/uO2hkbu9tKraBS05runSC92Gsd1pMAtbzO3K/n4e0s7erI5Ke', NULL, 1),
-(19, 2, 'abc', NULL, '$2y$10$Ug0yClzlD.I7mZE3GoKPs.uFJwcI66YfQ2NESB5tso0DOI2Mpp5Ea', NULL, 1),
-(20, 2, 'abc', NULL, '$2y$10$FjZ1oh3UlfWXLkgg0658xOl/QrxwJIIzvhiJ1FaPaYa8LF9BaYU6u', NULL, 1),
-(21, 2, 'master', NULL, '$2y$10$jiCIlK6Ro1rMFy6N04DsI.HpwXX2ChPhWtfWMjvuA20uHigrKSyL2', NULL, 1),
-(22, 2, 'nashe', NULL, '$2y$10$BsatO0goLoCtHPCy8gDjB.xKJk10K1ZLkSCOTVhZ5YciWZCMJb/ji', NULL, 1),
-(23, 2, 'chavo', NULL, '$2y$10$jWrWFG1Jx/l9Qh33TInbVO2Rzi7w7uyMLzsrOtdNjMto3MlQWVX7W', NULL, 1),
-(24, 2, '1234', NULL, '$2y$10$R2ojrVRq2gvJoHwuPA0m5.Mw2.72QaCIFE0lkxlTy4lQXiLUyuDcu', NULL, 1),
+(11, 2, 'José Pereira', NULL, '$2y$10$gBndiZQSy3Rp5MT2fTmFh.2euhEmWnw/VkiMIX5yJ2XFND8bJ1ENK', NULL, 1),
+(12, 1, 'diego', 'floresdiegomiguel17@gmail.com', '$2y$10$LvP7O1SmVo524hJzpiGLB.gUooGkHslMe/DtornCvxdRGNfZQI6Aa', NULL, 1),
+(13, 2, 'Ronaldo Méndez', NULL, '$2y$10$iwY6wy/yEbZ/OOjdsTd9n.aL4c4Jpg6iMloIjN49nch52d1E9GnhO', NULL, 1),
+(14, 2, 'Ernesto Salazar', NULL, '$2y$10$G6Ku9B8HgEAhSH/FJmToteads3OL2fXcf6HVJhTkbfZ3Qc77x2Sge', NULL, 1),
+(15, 2, 'Jorge Valenzuela', NULL, '$2y$10$sl2fdBuAEomUhylJCi15/.9zdoRduQb/cENpOPQakl3RS7ohr1Cbm', NULL, 1),
+(16, 2, 'Pedro Castillo', NULL, '$2y$10$wa1GsdLxLSm8/ehAkxU.VuD2aWFMSIOH4r30cO.aKAS1SQ5RI5qpy', NULL, 1),
+(17, 2, 'Esteban Rivas', NULL, '$2y$10$XQsd//P0vaV.s8wiZ9vCye40T5e.bS2Jl0JkNGfwYoJ9UA361M8Je', NULL, 1),
+(18, 2, 'Adriana Benítez', NULL, '$2y$10$vR9/uO2hkbu9tKraBS05runSC92Gsd1pMAtbzO3K/n4e0s7erI5Ke', NULL, 1),
+(19, 2, 'Andrés Briceño', NULL, '$2y$10$Ug0yClzlD.I7mZE3GoKPs.uFJwcI66YfQ2NESB5tso0DOI2Mpp5Ea', NULL, 1),
+(20, 2, 'Alejandra Cordero', NULL, '$2y$10$FjZ1oh3UlfWXLkgg0658xOl/QrxwJIIzvhiJ1FaPaYa8LF9BaYU6u', NULL, 1),
+(21, 2, 'Mariana Salcedo', NULL, '$2y$10$jiCIlK6Ro1rMFy6N04DsI.HpwXX2ChPhWtfWMjvuA20uHigrKSyL2', NULL, 1),
+(22, 2, 'Natalia Silva', NULL, '$2y$10$BsatO0goLoCtHPCy8gDjB.xKJk10K1ZLkSCOTVhZ5YciWZCMJb/ji', NULL, 1),
+(23, 2, 'Cristian Chacón', NULL, '$2y$10$jWrWFG1Jx/l9Qh33TInbVO2Rzi7w7uyMLzsrOtdNjMto3MlQWVX7W', NULL, 1),
+(24, 2, 'Daniela Pinto', NULL, '$2y$10$R2ojrVRq2gvJoHwuPA0m5.Mw2.72QaCIFE0lkxlTy4lQXiLUyuDcu', NULL, 1),
 (25, 2, 'baki', NULL, '$2y$10$T.vMUh0HijGEMVPXnCWB1.uu9S3Zsr03L27dtqPj8rC5ejHTE18l2', NULL, 1),
-(26, 2, 'Yujiro', NULL, '$2y$10$7z4wE.99FXkb/f4W3f8GZ.zIYin1LoDal4dhgBtseJdCPKc7mwO6a', NULL, 1),
-(27, 2, 'Yujiro', NULL, '$2y$10$E5CUKr0B.pPz7nXXx85aa.etDz4Karz0tQFDuwxsEPyj/cSP4wMja', NULL, 1),
-(28, 2, 'yuchiro', NULL, '$2y$10$Hl.t/CM4DD2WW8v/VtmGQOLRY6vSCh60VytKOpofJ7qUepcXn4Lq.', NULL, 1),
-(29, 2, 'ronaldiño', NULL, '$2y$10$MZ/S0ZlRBZywZxuzLDP29Ous2h54/hkC4CFKu2ElsJ/UKJfbrOB2C', NULL, 1),
-(10001, 2, 'chamoy', 'chamoy@gmail.com', '$2y$10$3fdynx2ptW0ItsqhFqZ7O.8HZsaHAHPIJ/.ws9adSqO.KJMwveN1S', NULL, 1);
+(26, 2, 'Yuri Jiménez', NULL, '$2y$10$7z4wE.99FXkb/f4W3f8GZ.zIYin1LoDal4dhgBtseJdCPKc7mwO6a', NULL, 1),
+(27, 2, 'Yudit González', NULL, '$2y$10$E5CUKr0B.pPz7nXXx85aa.etDz4Karz0tQFDuwxsEPyj/cSP4wMja', NULL, 1),
+(28, 2, 'Yohanny Pérez', NULL, '$2y$10$Hl.t/CM4DD2WW8v/VtmGQOLRY6vSCh60VytKOpofJ7qUepcXn4Lq.', NULL, 1),
+(29, 2, 'Ronald Intriago', NULL, '$2y$10$MZ/S0ZlRBZywZxuzLDP29Ous2h54/hkC4CFKu2ElsJ/UKJfbrOB2C', NULL, 1),
+(10001, 2, 'Camila Chirinos', 'chamoy@gmail.com', '$2y$10$3fdynx2ptW0ItsqhFqZ7O.8HZsaHAHPIJ/.ws9adSqO.KJMwveN1S', NULL, 1),
+(100000, 3, 'Lulu Lulu', 'lulu@gmail.com', '$2y$10$ipydUNlrpBixLWgNmYYsxeqWFqtYn2rhK5kejDkixHKCIXFcnQUmC', NULL, 1),
+(100001, 3, 'luis', 'luis@gmail.com', '$2y$10$kakZAydHq.PGNavE5y0Toe9xdVZGM8cW2JhJFA0fHlXOZuJCGV8Xy', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -2802,7 +2807,6 @@ INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_rep`, `email`, `pas
 -- Estructura de tabla para la tabla `roles`
 --
 
-DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
   `id_rol` int(11) NOT NULL,
   `descripcion` varchar(70) NOT NULL,
@@ -2816,7 +2820,8 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 (1, 'Administrador', 1),
 (2, 'Usuario', 1),
-(3, 'Coordinador', 1);
+(3, 'Coordinador', 1),
+(4, 'Superadmin', 1);
 
 -- --------------------------------------------------------
 
@@ -2824,7 +2829,6 @@ INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 -- Estructura de tabla para la tabla `tasa_bcv`
 --
 
-DROP TABLE IF EXISTS `tasa_bcv`;
 CREATE TABLE `tasa_bcv` (
   `id_tasa` int(11) NOT NULL,
   `fecha_reg` date NOT NULL,
@@ -2837,22 +2841,27 @@ CREATE TABLE `tasa_bcv` (
 -- Volcado de datos para la tabla `tasa_bcv`
 --
 
-INSERT INTO `tasa_bcv` (`id_tasa`, `fecha_reg`, `tasa_bcv_usd`, `estado`) VALUES
-(1, '2025-01-15', 60.25, 0),
-(2, '2025-02-15', 61.10, 0),
-(3, '2025-03-15', 62.45, 0),
-(4, '2025-04-15', 63.00, 0),
-(5, '2025-05-15', 64.20, 0),
-(6, '2025-06-15', 65.50, 0),
-(7, '2025-07-15', 66.75, 0),
-(8, '2025-08-15', 67.90, 0),
-(9, '2025-09-15', 68.30, 0),
-(10, '2025-10-15', 69.00, 0),
-(11, '2025-11-15', 70.10, 0),
-(12, '2025-12-15', 71.25, 0),
-(13, '2026-01-15', 72.40, 0),
-(14, '2026-02-15', 73.50, 0),
-(16, '2026-11-26', 234.00, 1);
+INSERT INTO `tasa_bcv` (`id_tasa`, `fecha_reg`, `tasa_bcv_usd`, `estado`, `origen`) VALUES
+(1, '2025-01-15', 60.25, 0, 'manual'),
+(2, '2025-02-15', 61.10, 0, 'manual'),
+(3, '2025-03-15', 62.45, 0, 'manual'),
+(4, '2025-04-15', 63.00, 0, 'manual'),
+(5, '2025-05-15', 64.20, 0, 'manual'),
+(6, '2025-06-15', 65.50, 0, 'manual'),
+(7, '2025-07-15', 66.75, 0, 'manual'),
+(8, '2025-08-15', 67.90, 0, 'manual'),
+(9, '2025-09-15', 68.30, 0, 'manual'),
+(10, '2025-10-15', 69.00, 0, 'manual'),
+(11, '2025-11-15', 70.10, 0, 'manual'),
+(12, '2025-12-15', 71.25, 0, 'manual'),
+(13, '2026-01-15', 72.40, 0, 'manual'),
+(14, '2026-02-15', 73.50, 0, 'manual'),
+(16, '2026-11-26', 234.90, 0, 'manual'),
+(17, '2026-11-13', 234.20, 0, 'manual'),
+(20, '2026-12-13', 911.62, 0, 'automatica'),
+(21, '2026-11-14', 911.62, 0, 'automatica'),
+(22, '2026-11-15', 911.62, 0, 'automatica'),
+(23, '2026-11-16', 911.00, 1, 'manual');
 
 -- --------------------------------------------------------
 
@@ -2860,7 +2869,6 @@ INSERT INTO `tasa_bcv` (`id_tasa`, `fecha_reg`, `tasa_bcv_usd`, `estado`) VALUES
 -- Estructura de tabla para la tabla `telefonos`
 --
 
-DROP TABLE IF EXISTS `telefonos`;
 CREATE TABLE `telefonos` (
   `id_telf` int(11) NOT NULL,
   `id_proveedor` int(11) NOT NULL,
@@ -2885,7 +2893,7 @@ INSERT INTO `telefonos` (`id_telf`, `id_proveedor`, `telefono`, `estado`) VALUES
 (10, 8, '+58-212-555-8001', 1),
 (11, 9, '+58-212-555-9001', 1),
 (12, 10, '+58-212-555-0001', 1),
-(13, 1, 'fasdf', 1);
+(13, 1, '+58-212-555-0013', 1);
 
 --
 -- Índices para tablas volcadas
@@ -2916,13 +2924,21 @@ ALTER TABLE `dependencias`
 --
 ALTER TABLE `detalle_req`
   ADD KEY `id_req` (`id_req`),
-  ADD KEY `id_prod` (`id_prod`);
+  ADD KEY `id_pres` (`id_pres`);
 
 --
 -- Indices de la tabla `partidas`
 --
 ALTER TABLE `partidas`
   ADD PRIMARY KEY (`id_partida`);
+
+--
+-- Indices de la tabla `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id_reset`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `id_responsable` (`id_responsable`);
 
 --
 -- Indices de la tabla `periodos_entrega`
@@ -2932,10 +2948,10 @@ ALTER TABLE `periodos_entrega`
   ADD KEY `id_aniof` (`id_aniof`);
 
 --
--- Indices de la tabla `productos`
+-- Indices de la tabla `presupuesto`
 --
-ALTER TABLE `productos`
-  ADD PRIMARY KEY (`id_prod`),
+ALTER TABLE `presupuesto`
+  ADD PRIMARY KEY (`id_pres`),
   ADD KEY `id_proveedor` (`id_proveedor`),
   ADD KEY `id_partida` (`id_partida`);
 
@@ -2946,9 +2962,9 @@ ALTER TABLE `proveedores`
   ADD PRIMARY KEY (`id_proveedor`);
 
 --
--- Indices de la tabla `requerimientos`
+-- Indices de la tabla `requerimiento`
 --
-ALTER TABLE `requerimientos`
+ALTER TABLE `requerimiento`
   ADD PRIMARY KEY (`id_req`),
   ADD KEY `id_dep` (`id_dep`),
   ADD KEY `id_tasa` (`id_tasa`),
@@ -2995,13 +3011,13 @@ ALTER TABLE `anio_fiscal`
 -- AUTO_INCREMENT de la tabla `cargo`
 --
 ALTER TABLE `cargo`
-  MODIFY `id_cargo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id_cargo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100002;
 
 --
 -- AUTO_INCREMENT de la tabla `dependencias`
 --
 ALTER TABLE `dependencias`
-  MODIFY `id_dep` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id_dep` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `partidas`
@@ -3010,34 +3026,40 @@ ALTER TABLE `partidas`
   MODIFY `id_partida` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT de la tabla `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id_reset` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `periodos_entrega`
 --
 ALTER TABLE `periodos_entrega`
   MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT de la tabla `productos`
+-- AUTO_INCREMENT de la tabla `presupuesto`
 --
-ALTER TABLE `productos`
-  MODIFY `id_prod` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2175;
+ALTER TABLE `presupuesto`
+  MODIFY `id_pres` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2177;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT de la tabla `requerimientos`
+-- AUTO_INCREMENT de la tabla `requerimiento`
 --
-ALTER TABLE `requerimientos`
-  MODIFY `id_req` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+ALTER TABLE `requerimiento`
+  MODIFY `id_req` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT de la tabla `responsables`
 --
 ALTER TABLE `responsables`
-  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10002;
+  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100002;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -3049,13 +3071,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT de la tabla `tasa_bcv`
 --
 ALTER TABLE `tasa_bcv`
-  MODIFY `id_tasa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_tasa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT de la tabla `telefonos`
 --
 ALTER TABLE `telefonos`
-  MODIFY `id_telf` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id_telf` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Restricciones para tablas volcadas
@@ -3072,8 +3094,14 @@ ALTER TABLE `cargo`
 -- Filtros para la tabla `detalle_req`
 --
 ALTER TABLE `detalle_req`
-  ADD CONSTRAINT `detalle_req_ibfk_2` FOREIGN KEY (`id_req`) REFERENCES `requerimientos` (`id_req`),
-  ADD CONSTRAINT `id_prod` FOREIGN KEY (`id_prod`) REFERENCES `productos` (`id_prod`);
+  ADD CONSTRAINT `detalle_req_ibfk_2` FOREIGN KEY (`id_req`) REFERENCES `requerimiento` (`id_req`),
+  ADD CONSTRAINT `id_pres` FOREIGN KEY (`id_pres`) REFERENCES `presupuesto` (`id_pres`);
+
+--
+-- Filtros para la tabla `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`id_responsable`) REFERENCES `responsables` (`id_responsable`);
 
 --
 -- Filtros para la tabla `periodos_entrega`
@@ -3082,19 +3110,19 @@ ALTER TABLE `periodos_entrega`
   ADD CONSTRAINT `periodos_entrega_ibfk_1` FOREIGN KEY (`id_aniof`) REFERENCES `anio_fiscal` (`id_aniof`);
 
 --
--- Filtros para la tabla `productos`
+-- Filtros para la tabla `presupuesto`
 --
-ALTER TABLE `productos`
-  ADD CONSTRAINT `productos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`),
-  ADD CONSTRAINT `productos_ibfk_2` FOREIGN KEY (`id_partida`) REFERENCES `partidas` (`id_partida`);
+ALTER TABLE `presupuesto`
+  ADD CONSTRAINT `presupuesto_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`),
+  ADD CONSTRAINT `presupuesto_ibfk_2` FOREIGN KEY (`id_partida`) REFERENCES `partidas` (`id_partida`);
 
 --
--- Filtros para la tabla `requerimientos`
+-- Filtros para la tabla `requerimiento`
 --
-ALTER TABLE `requerimientos`
-  ADD CONSTRAINT `requerimientos_ibfk_1` FOREIGN KEY (`id_dep`) REFERENCES `dependencias` (`id_dep`),
-  ADD CONSTRAINT `requerimientos_ibfk_2` FOREIGN KEY (`id_tasa`) REFERENCES `tasa_bcv` (`id_tasa`),
-  ADD CONSTRAINT `requerimientos_ibfk_3` FOREIGN KEY (`id_aniof`) REFERENCES `anio_fiscal` (`id_aniof`);
+ALTER TABLE `requerimiento`
+  ADD CONSTRAINT `requerimiento_ibfk_1` FOREIGN KEY (`id_dep`) REFERENCES `dependencias` (`id_dep`),
+  ADD CONSTRAINT `requerimiento_ibfk_2` FOREIGN KEY (`id_tasa`) REFERENCES `tasa_bcv` (`id_tasa`),
+  ADD CONSTRAINT `requerimiento_ibfk_3` FOREIGN KEY (`id_aniof`) REFERENCES `anio_fiscal` (`id_aniof`);
 
 --
 -- Filtros para la tabla `responsables`
@@ -3107,7 +3135,6 @@ ALTER TABLE `responsables`
 --
 ALTER TABLE `telefonos`
   ADD CONSTRAINT `telefonos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
-SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

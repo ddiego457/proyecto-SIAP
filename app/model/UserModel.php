@@ -39,7 +39,7 @@ class UserModel extends ConnectDB {
         return $this->executeLoginSistema($usuario, $password);
     }
 
-    // Busca usuario activo por correo O por usuario (nom_rep) para la
+    // Busca usuario activo por correo O por usuario (nom_resp) para la
     // recuperación de contraseña. Sin resultados (o formato inválido) -> null.
     public function getByEmailOUsuario($dato) {
         $dato = trim((string)$dato);
@@ -90,12 +90,12 @@ class UserModel extends ConnectDB {
     private function executeLoginSistema(string $usuario, string $password) {
         try {
             $query = $this->conex->prepare("SELECT d.nom_dep as dependencia, r.id_responsable,
-                r.nom_rep as responsable, r.id_rol, rl.descripcion as rol, password, r.foto, d.id_dep as id_dep
+                r.nom_resp as responsable, r.id_rol, rl.descripcion as rol, password, r.foto, d.id_dep as id_dep
                 FROM responsables as r
                 JOIN cargo as cr ON cr.id_responsable = r.id_responsable AND cr.estado = 1
                 JOIN dependencias as d ON d.id_dep = cr.id_dep
                 JOIN roles as rl on rl.id_rol = r.id_rol
-                WHERE r.nom_rep = ? AND r.estado = 1");
+                WHERE r.nom_resp = ? AND r.estado = 1");
             $query->bindValue(1, $usuario);
             $query->execute();
             $data = $query->fetch(PDO::FETCH_ASSOC);
@@ -117,9 +117,9 @@ class UserModel extends ConnectDB {
 
     private function executeGetByEmailOUsuario($dato) {
         try {
-            $stmt = $this->conex->prepare("SELECT id_responsable, nom_rep, email
+            $stmt = $this->conex->prepare("SELECT id_responsable, nom_resp, email
                 FROM responsables
-                WHERE (email = ? OR nom_rep = ?) AND estado = 1
+                WHERE (email = ? OR nom_resp = ?) AND estado = 1
                 LIMIT 1");
             $dato = trim((string)$dato);
             $stmt->bindValue(1, $dato);
@@ -204,7 +204,7 @@ class UserModel extends ConnectDB {
 
     private function executeGetUser($id) {
         try {
-            $consulta = $this->conex->prepare("SELECT r.id_responsable, r.nom_rep, r.id_rol,
+            $consulta = $this->conex->prepare("SELECT r.id_responsable, r.nom_resp, r.id_rol,
                 rl.descripcion as rol, d.id_dep, d.nom_dep as dependencia
                 FROM responsables as r
                 JOIN cargo as cr ON cr.id_responsable = r.id_responsable
@@ -223,7 +223,7 @@ class UserModel extends ConnectDB {
         foreach ($usuario as $user) {
             $resp[] = array(
                 'id_responsable' => $user["id_responsable"],
-                'nombre'         => $user["nom_rep"],
+                'nombre'         => $user["nom_resp"],
                 'rol'            => $user["rol"],
                 'id_dep'         => $user["id_dep"],
                 'dependencia'    => $user["dependencia"]

@@ -48,10 +48,10 @@ $(document).ready(function() {
       }
     },
     columns: [
-      { data: 'id_prod' },
+      { data: 'id_pres' },
       { data: 'cod_partida' },
       { data: 'proveedor' },
-      { data: 'nom_prod' },
+      { data: 'nom_pres' },
       { data: 'precio' },
       { data: null, render: (d) => {
           return (d.estado == 1)
@@ -60,11 +60,11 @@ $(document).ready(function() {
         }
       },
       { data: null, render: (d) => {
-          let acciones = `<button value="${d.id_prod}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+          let acciones = `<button value="${d.id_pres}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
           if ((d.estado|0) === 1) {
-            acciones += ` <button value="${d.id_prod}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+            acciones += ` <button value="${d.id_pres}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
           } else {
-            acciones += ` <button value="${d.id_prod}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+            acciones += ` <button value="${d.id_pres}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
           }
           return acciones;
         }
@@ -143,10 +143,10 @@ $(document).ready(function() {
 
   $(document).on('click', '.btn-modificar', function() {
     const data = tabla.row($(this).closest('tr')).data();
-    $('#edit_idItem').val(data.id_prod);
+    $('#edit_idItem').val(data.id_pres);
     $('#edit_partida_id').val(data.id_partida);
     $('#edit_proveedor_id').val(data.id_proveedor);
-    $('#edit_nom_prod').val(data.nom_prod);
+    $('#edit_nom_prod').val(data.nom_pres);
     $('#edit_precio').val(data.precio);
     $('#formEditar').siapValidar('limpiar');
     $('#modalEditar').show();

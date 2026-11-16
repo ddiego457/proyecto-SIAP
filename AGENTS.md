@@ -23,7 +23,7 @@ SIAP is a PHP MVC web application for managing university budget requests (Siste
 
 - **Database**: MySQL/MariaDB (`siap_db.sql` is schema + seed data). Connection via PDO with ERRMODE_EXCEPTION, FETCH_ASSOC.
 - **Models**: Extend `ConnectDB`. Most follow pattern: constructor sets `$this->conex = $this->getConnection()`, public methods wrap private execution methods (e.g., `getAll()` calls `executeSelectAll()`). 
-- **Important tables**: `dependencias`, `partidas`, `items_partida`, `requerimientos`, `detalle_req`, `anio_fiscal`, `periodos_entrega`, `proveedores/contactos`, `responsables/cargo`, `tasa_bcv`, `roles`.
+- **Important tables**: `dependencias`, `partidas`, `presupuesto`, `requerimiento`, `detalle_req`, `anio_fiscal`, `periodos_entrega`, `proveedores/telefonos`, `responsables/cargo`, `tasa_bcv`, `roles`.
 - **Roles**: Seeded as 1=Administrador, 2=Usuario, 3=Coordinador (identified by `roles.descripcion` text, matched in `SessionTrait` and `sidebar.php`). Roles have a full CRUD in the UI (`?url=responsable&type=main` → "Roles" button); users (`responsables`) need an active `cargo` (dependency) to log in. Login redirects per role via `SessionTrait::$homeUrlPorRol`.
 
 ## Development & Execution
