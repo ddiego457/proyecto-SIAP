@@ -16,13 +16,21 @@ $pageTitle = isset($pageTitle) ? $pageTitle . ' — SIAP' : 'SIAP';
 <body>
 <div class="app-layout">
     <script>
-        try {
-            if (localStorage.getItem('siap-sidebar-collapsed') === 'true') {
-                document.currentScript.parentElement.classList.add('sidebar-collapsed');
+        (function() {
+            const appLayout = document.currentScript.parentElement;
+            let sidebarCollapsedPreference = false;
+            try {
+                sidebarCollapsedPreference = localStorage.getItem('siap-sidebar-collapsed') === 'true';
+            } catch (error) {
+                console.error('No se pudo restaurar la preferencia del menú lateral.', error);
             }
-        } catch (error) {
-            console.error('No se pudo restaurar el estado del menú lateral.', error);
-        }
+            appLayout.dataset.sidebarCollapsedPreference = String(sidebarCollapsedPreference);
+            if (window.matchMedia('(min-width: 901px)').matches) {
+                appLayout.classList.add('sidebar-desktop-collapsed');
+            } else if (sidebarCollapsedPreference) {
+                appLayout.classList.add('sidebar-collapsed');
+            }
+        })();
     </script>
     <button
         id="sidebarToggleBtn"

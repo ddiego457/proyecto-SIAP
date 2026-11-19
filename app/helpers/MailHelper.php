@@ -5,7 +5,7 @@ namespace EquipoSiap\Siap\helpers;
 use PHPMailer\PHPMailer\PHPMailer;
 
 class MailHelper {
-
+    
     // Envía un correo HTML. Devuelve true si se envió, false si falló (el error queda en error_log).
     public static function send(string $to, string $subject, string $htmlBody): bool {
         $config = require dirname(__DIR__) . '/config/mail.php';

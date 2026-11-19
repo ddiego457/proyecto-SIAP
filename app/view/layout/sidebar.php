@@ -13,7 +13,7 @@ if (!function_exists('sidebarLink')) {
     }
 }
 ?>
-<aside class="sidebar">
+<aside id="sidebarPanel" class="sidebar" data-open="false">
     <div class="sidebar-brand">
         <div class="sidebar-brand-logo">
             <img src="assets/img/SIAPlogo.png" alt="SIAP" >
@@ -23,7 +23,7 @@ if (!function_exists('sidebarLink')) {
         <div class="sidebar-brand-sub">Anteproyecto Presupuestario</div>
     </div>
 
-    <nav class="sidebar-nav">
+    <nav class="sidebar-nav" aria-label="Menú principal">
         <?php if ($esAdmin): ?>
             <div class="sidebar-section-title">M&oacute;dulos</div>
             <?php sidebarLink('dependencia',         '&#127970;', 'Dependencias',               $urlActual); ?>

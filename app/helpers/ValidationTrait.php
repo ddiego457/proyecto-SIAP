@@ -83,6 +83,7 @@ trait ValidationTrait
     // ===== MÉTODOS PRIVADOS DE VALIDACIÓN (prefijo val_ para evitar colisiones) =====
 
     // --- Dependencia ---
+
     private function valNombreDependencia($nombre): ?string
     {
         $nombre = trim((string)$nombre);

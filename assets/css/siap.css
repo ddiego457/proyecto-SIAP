@@ -212,8 +212,8 @@ a { text-decoration: none; color: inherit; }
 }
 .field-input::placeholder { color: var(--text-light); }
 /* Textarea (ej. descripción del proveedor): se mantiene con el ancho del
-   contenedor y solo redimensionable en vertical, para que no se estire
-   hacia la derecha y rompa la vista de registro ni la de edición. */
+    contenedor y solo redimensionable en vertical, para que no se estire
+    hacia la derecha y rompa la vista de registro ni la de edición. */
 textarea.field-input {
   width: 100%;
   max-width: 100%;
@@ -355,7 +355,7 @@ textarea.field-input {
 }
 
 /* ============================================================
-   MAIN LAYOUT (sidebar + content)
+    MAIN LAYOUT (sidebar + content)
    ============================================================ */
 .app-layout {
   min-height: 100vh;
@@ -902,34 +902,34 @@ textarea.field-input {
 }
 
 /* Requerimientos — la cabecera lleva el buscador a la derecha y los
-   botones inmediatamente a su izquierda:
-   [Título] .............. [Botones] [Buscador]
+    botones inmediatamente a su izquierda:
+    [Título] .............. [Botones] [Buscador]
 
-   Antes .row (el buscador) tenía flex:1 1 auto y absorbía todo el
-   espacio libre, con lo que el título quedaba pegado a los botones y
-   el buscador al fondo. Ahora el que crece es el título y .row
-   conserva solo su ancho, de modo que botones y buscador viajan
-   pegados contra el borde derecho.
+    Antes .row (el buscador) tenía flex:1 1 auto y absorbía todo el
+    espacio libre, con lo que el título quedaba pegado a los botones y
+    el buscador al fondo. Ahora el que crece es el título y .row
+    conserva solo su ancho, de modo que botones y buscador viajan
+    pegados contra el borde derecho.
 
-   flex-shrink:0 en el título conserva la intención de la regla base
-   ("evitar que se comprima"); solo se le añade flex-grow.
+    flex-shrink:0 en el título conserva la intención de la regla base
+    ("evitar que se comprima"); solo se le añade flex-grow.
 
-   Todo va bajo .card-header-with-search para no tocar a las otras 7
-   vistas que usan .card-header / .card-header-actions. */
-/* flex-grow:1 absorbe el espacio libre para empujar acciones+buscador
-   contra el borde derecho. flex-shrink:0 para que el título (ancho
-   natural 220px = 1 línea) nunca se parta: comprimirlo a ~116px lo
-   rompía en 2 líneas ya desde 1440px. El que cede sitio son las
-   acciones, que envuelven. */
+    Todo va bajo .card-header-with-search para no tocar a las otras 7
+    vistas que usan .card-header / .card-header-actions. */
+  /* flex-grow:1 absorbe el espacio libre para empujar acciones+buscador
+    contra el borde derecho. flex-shrink:0 para que el título (ancho
+    natural 220px = 1 línea) nunca se parta: comprimirlo a ~116px lo
+    rompía en 2 líneas ya desde 1440px. El que cede sitio son las
+    acciones, que envuelven. */
 .card-header-with-search > .card-title {
     flex: 1 0 auto;
 }
 
 /* flex-grow:0 para no comerse el espacio libre (lo absorbe el título) y
-   flex-shrink:0 porque .col-md-4 tiene min-width:210px: si la fila
-   pudiera encogerse, el input desbordaría por main-start (row-reverse)
-   hacia la IZQUIEDA y pisaría los botones. Así la fila conserva su
-   ancho y, si falta sitio, se encogen las acciones (que sí envuelven). */
+    flex-shrink:0 porque .col-md-4 tiene min-width:210px: si la fila
+    pudiera encogerse, el input desbordaría por main-start (row-reverse)
+    hacia la IZQUIEDA y pisaría los botones. Así la fila conserva su
+    ancho y, si falta sitio, se encogen las acciones (que sí envuelven). */
 .card-header-with-search > .row {
     flex: 0 0 auto;
     min-width: 250px;
@@ -1283,9 +1283,9 @@ table.siap-table {
     font-weight: 500;
 }
 /* Inputs de cantidades: estilo común para la tabla principal (#tablaMain),
-   el modal de edición de cantidades (#tablaModalCantidades) y el modal de
-   registro de requerimientos (#tabla-registro). Dimensiones tomadas del
-   estilo original del modal de registro (48px / padding 9px 4px / 13px). */
+    el modal de edición de cantidades (#tablaModalCantidades) y el modal de
+    registro de requerimientos (#tabla-registro). Dimensiones tomadas del
+    estilo original del modal de registro (48px / padding 9px 4px / 13px). */
 #tablaMain input[type="number"],
 #tablaModalCantidades input[type="number"],
 #tabla-registro input[type="number"] {
@@ -1387,7 +1387,7 @@ table.siap-table {
 
 
 /* ============================================================
-   SIDEBAR BASE
+    SIDEBAR BASE
    ============================================================ */
 
 .sidebar {
@@ -1984,6 +1984,192 @@ table.siap-table {
     pointer-events: none;
 }
 
+/* Expansión temporal al pasar el cursor o navegar con teclado en escritorio */
+@media (min-width: 901px) {
+    .sidebar-toggle-btn-global {
+        display: none;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) {
+        width: var(--sidebar-collapsed);
+        min-width: var(--sidebar-collapsed);
+    }
+
+    .app-layout.sidebar-desktop-collapsed .main-content {
+        margin-left: var(--sidebar-collapsed);
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-brand {
+        min-height: 94px;
+        padding: 15px 8px;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-brand-logo {
+        width: 46px;
+        height: 46px;
+        margin-bottom: 0;
+        border-radius: 12px;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-brand-logo img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-nav {
+        padding: 8px 7px 14px;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-brand-eyebrow,
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-brand-name,
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-brand-sub,
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-section-title,
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-link-label,
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-user-info {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        pointer-events: none;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-link {
+        width: 54px;
+        min-height: 45px;
+        justify-content: center;
+        gap: 0;
+        margin: 3px auto;
+        padding: 10px 0;
+        border-left: 0;
+        border-radius: 10px;
+        transform: none;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-link.active {
+        background: rgba(42,112,194,.18);
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-link.active::after {
+        left: 0;
+        width: 3px;
+        height: 20px;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-link .icon {
+        width: 26px;
+        min-width: 26px;
+        height: 26px;
+        font-size: 17px;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-user {
+        justify-content: center;
+        margin: 0 7px 8px;
+        padding: 10px 5px;
+        border-color: transparent;
+        background: transparent;
+    }
+
+    .app-layout.sidebar-desktop-collapsed .sidebar:not([data-open="true"]) .sidebar-avatar {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border-radius: 11px;
+    }
+
+    .sidebar[data-open="true"] {
+        width: var(--sidebar-expanded);
+        min-width: var(--sidebar-expanded);
+        z-index: 260;
+        box-shadow: 8px 0 28px rgba(15,23,42,.18);
+    }
+
+    .sidebar[data-open="true"] .sidebar-brand {
+        min-height: 155px;
+        padding: 20px 18px 18px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-brand-logo {
+        width: 62px;
+        height: 62px;
+        margin-bottom: 10px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-brand-logo img {
+        width: 54px;
+        height: 54px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-nav {
+        padding: 8px 9px 14px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-brand-eyebrow,
+    .sidebar[data-open="true"] .sidebar-brand-name,
+    .sidebar[data-open="true"] .sidebar-brand-sub,
+    .sidebar[data-open="true"] .sidebar-section-title,
+    .sidebar[data-open="true"] .sidebar-link-label,
+    .sidebar[data-open="true"] .sidebar-user-info {
+        opacity: 1;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        pointer-events: auto;
+    }
+
+    .sidebar[data-open="true"] .sidebar-brand-eyebrow {
+        margin-bottom: 3px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-brand-sub {
+        margin-top: 3px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-section-title {
+        padding: 16px 10px 7px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-link {
+        width: auto;
+        min-height: 43px;
+        justify-content: flex-start;
+        gap: 12px;
+        margin: 3px 0;
+        padding: 10px 12px;
+        border-left: 3px solid transparent;
+        border-radius: 9px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-link .icon {
+        width: 22px;
+        min-width: 22px;
+        height: 22px;
+        font-size: 15px;
+    }
+
+    .sidebar[data-open="true"] .sidebar-link-label,
+    .sidebar[data-open="true"] .sidebar-user-info {
+        transform: none;
+    }
+
+    .sidebar[data-open="true"] .sidebar-user {
+        justify-content: flex-start;
+        margin: 0 9px 9px;
+        padding: 12px;
+        border-color: rgba(255,255,255,.06);
+        background: rgba(255,255,255,.035);
+    }
+
+    .sidebar[data-open="true"] .sidebar-avatar {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 10px;
+    }
+}
+
 
 /* ============================================================
     ANIMACIÓN DE APARICIÓN DEL TEXTO
@@ -2027,26 +2213,24 @@ table.siap-table {
    ============================================================ */
 
 /* ─── CABECERA CON BUSCADOR: envuelve cuando no cabe todo en una línea ───
-   Entre ~905px y ~1100px (la ventana previa a la media query de 900px)
-   la cabecera va en nowrap y NO caben título(220) + botones + buscador
-   (250): .card-header-actions se aplastaba hasta 33px y sus botones
-   (nowrap) desbordaban su caja, llegando a rozar el input del buscador.
+    Entre ~905px y ~1100px (la ventana previa a la media query de 900px)
+    la cabecera va en nowrap y NO caben título(220) + botones + buscador
+    (250): .card-header-actions se aplastaba hasta 33px y sus botones
+    (nowrap) desbordaban su caja, llegando a rozar el input del buscador.
 
-   En vez de comprimir nada (romper el título en 2 líneas, o estrechar
-   el input), el título toma línea propia a ancho completo y las acciones
-   y el buscador comparten la de abajo. .row necesita width:100% aquí:
-   al ir solo en su línea, space-between coloca un hijo único en
-   flex-start y el input se quedaría pegado a la IZQUIEDA. Por debajo de
-   900px ya lo fija la regla global (.row width:100%). */
+    En vez de comprimir nada (romper el título en 2 líneas, o estrechar
+    el input), el título toma línea propia a ancho completo y las acciones
+    y el buscador comparten la de abajo. .row necesita width:100% aquí:
+    al ir solo en su línea, space-between coloca un hijo único en
+    flex-start y el input se quedaría pegado a la IZQUIEDA. Por debajo de
+    900px ya lo fija la regla global (.row width:100%). */
 @media (max-width: 1100px) {
     .card-header-with-search {
         flex-wrap: wrap;
     }
-
     .card-header-with-search > .card-title {
         flex-basis: 100%;
     }
-
     .card-header-with-search > .row {
         width: 100%;
         justify-content: flex-start;
@@ -2058,16 +2242,13 @@ table.siap-table {
   .sidebar-collapsed .sidebar-toggle-btn-global {
     left: calc(var(--sidebar-collapsed) - 0);
 }
-
     :root {
         --sidebar-expanded: 230px;
     }
-
     .sidebar {
         box-shadow:
             4px 0 22px rgba(0,0,0,.12);
     }
-
     .page-body {
         padding:
             24px;
@@ -2076,11 +2257,9 @@ table.siap-table {
     .card-header {
         flex-wrap: wrap;
     }
-
     .card-header > .card-title {
         flex-basis: 100%;
     }
-
     .card-header > .row {
         justify-content: flex-start;
         width: 100%;
@@ -2094,29 +2273,25 @@ table.siap-table {
     .topbar-user-btn {
         padding: 5px;
     }
-
     .card-header {
         padding: 16px;
         gap: 16px;
     }
-
     .card-header > .row {
         flex-direction: column;
         align-items: stretch;
         gap: 16px;
     }
-
     .card-header > .row > .col-md-4 {
         width: 100%;
         min-width: 0;
         flex-basis: auto;
     }
-
     /* El switch "Ver resumen" ya no vive en .row (ahora está en
-       .card-header-actions junto a los botones), por lo que las reglas
-       :has(#modalViewToggle) y #btn-ver-cantidades { width:100% } se
-       eliminaron: forzarían el ancho completo y separarían el botón del
-       resto de la fila de acciones. */
+        .card-header-actions junto a los botones), por lo que las reglas
+        :has(#modalViewToggle) y #btn-ver-cantidades { width:100% } se
+        eliminaron: forzarían el ancho completo y separarían el botón del
+        resto de la fila de acciones. */
 }
 
 
@@ -2133,12 +2308,10 @@ table.siap-table {
     :root {
         --sidebar-expanded: 250px;
     }
-
     /*
         En móvil la sidebar funciona como panel lateral.
         El contenido ocupa toda la pantalla cuando está cerrada.
     */
-
     .sidebar {
         width:var(--sidebar-expanded);
         min-width:var(--sidebar-expanded);
@@ -2146,11 +2319,9 @@ table.siap-table {
         box-shadow:8px 0 30px rgba(0,0,0,.20);
         transition:transform .24s cubic-bezier(.4,0,.2,1);
     }
-
     /*
         Cuando NO está colapsada = abierta.
     */
-
     .app-layout:not(.sidebar-collapsed) .sidebar {
         transform:
             translateX(0);
@@ -2161,8 +2332,6 @@ table.siap-table {
         margin-left:0;
         width:100%;
     }
-
-
     /* Botón */
     .sidebar-collapsed{
         left:14px;
@@ -2171,22 +2340,15 @@ table.siap-table {
         height:40px;
         z-index:300;
     }
-
-
     /*
         En móvil no usamos el estado de 68px.
         La clase collapsed significa sidebar cerrada.
     */
 
     .sidebar-collapsed .sidebar {
-        width:
-            var(--sidebar-expanded);
-
-        min-width:
-            var(--sidebar-expanded);
-
-        transform:
-            translateX(-100%);
+        width:var(--sidebar-expanded);
+        min-width:var(--sidebar-expanded);
+        transform:translateX(-100%);
     }
 
 
@@ -2196,11 +2358,8 @@ table.siap-table {
     */
 
     .app-layout:not(.sidebar-collapsed) .sidebar-brand {
-        min-height:
-            155px;
-
-        padding:
-            20px 18px 18px;
+        min-height:155px;
+        padding:20px 18px 18px;
     }
 
     .app-layout:not(.sidebar-collapsed)
@@ -2215,95 +2374,50 @@ table.siap-table {
     .sidebar-link-label,
     .app-layout:not(.sidebar-collapsed)
     .sidebar-user-info {
-        opacity:
-            1;
-
-        width:
-            auto;
-
-        height:
-            auto;
-
-        overflow:
-            visible;
-
-        pointer-events:
-            auto;
+        opacity:1;
+        width:auto;
+        height:auto;
+        overflow:visible;
+        pointer-events:auto;
     }
 
     .app-layout:not(.sidebar-collapsed) .sidebar-link {
-        width:
-            auto;
-
-        min-height:
-            43px;
-
-        justify-content:
-            flex-start;
-
-        gap:
-            12px;
-
-        margin:
-            3px 0;
-
-        padding:
-            10px 12px;
-
-        border-left:
-            3px solid transparent;
+        width:auto;
+        min-height:43px;
+        justify-content:flex-start;
+        gap:12px;
+        margin:3px 0;
+        padding:10px 12px;
+        border-left:3px solid transparent;
     }
 
     .app-layout:not(.sidebar-collapsed)
-    .sidebar-link.active {
-        border-left-color:
-            var(--sidebar-active);
+    .sidebar-link.active {border-left-color:var(--sidebar-active);
     }
 
     .app-layout:not(.sidebar-collapsed)
-    .sidebar-link.active::after {
-        left:
-            -1px;
+    .sidebar-link.active::after {left:-1px;
     }
 
     .app-layout:not(.sidebar-collapsed)
-    .sidebar-user {
-        justify-content:
-            flex-start;
-
-        margin:
-            0 9px 9px;
-
-        padding:
-            12px;
+    .sidebar-user {justify-content:flex-start;
+        margin:0 9px 9px;
+        padding:12px;
     }
-
 
     /*
         Overlay visual.
         No requiere HTML adicional.
     */
-
     .app-layout:not(.sidebar-collapsed)::after {
         content: "";
-
         position: fixed;
-
         inset: 0;
-
         z-index: 90;
-
-        background:
-            rgba(5,13,24,.46);
-
-        backdrop-filter:
-            blur(1.5px);
-
-        pointer-events:
-            none;
-
-        animation:
-            mobileOverlayIn .2s ease both;
+        background:rgba(5,13,24,.46);
+        backdrop-filter:blur(1.5px);
+        pointer-events:none;
+        animation:mobileOverlayIn .2s ease both;
     }
 
     @keyframes mobileOverlayIn {
@@ -2317,24 +2431,22 @@ table.siap-table {
     }
 
     /*
-       El sidebar y botón permanecen por encima del overlay.
+        El sidebar y botón permanecen por encima del overlay.
     */
 
     .app-layout:not(.sidebar-collapsed) .sidebar {
-        z-index:
-            200;
+        z-index:200;
     }
 
     .app-layout:not(.sidebar-collapsed){
-        z-index:
-            300;
+        z-index:300;
     }
 
 }
 
 
 /* ============================================================
-   MÓVILES PEQUEÑOS
+    MÓVILES PEQUEÑOS
    ============================================================ */
 
 @media (max-width: 480px) {
@@ -2347,11 +2459,8 @@ table.siap-table {
     }
 
     .sidebar {
-        width:
-            var(--sidebar-expanded);
-
-        min-width:
-            var(--sidebar-expanded);
+        width:var(--sidebar-expanded);
+        min-width:var(--sidebar-expanded);
     }
     .sidebar-collapsed .sidebar {
       width:var(--sidebar-expanded);

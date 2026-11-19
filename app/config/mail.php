@@ -11,6 +11,11 @@
  * https://myaccount.google.com/apppasswords (Gmail rechaza la contraseña normal
  * de la cuenta con el error 535-5.7.8). Se guarda sin espacios.
  */
+//explica quien capta estos datos y como se usan en el siguiente comentario
+// Estos datos son captados por la clase MailHelper en el método send(). Cuando se llama
+// pero como los llama si no tiene namespaces ni se guarda en ningun metodo
+// al enviar un correo, la clase MailHelper carga este archivo de configuración para obtener los detalles del servidor SMTP, como el host, puerto, tipo de cifrado, nombre de usuario y contraseña. Luego utiliza estos datos para configurar PHPMailer y enviar correos electrónicos a través del servidor SMTP especificado.
+
 return [
     'host'       => 'smtp.gmail.com',
     'port'       => 587,

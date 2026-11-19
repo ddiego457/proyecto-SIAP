@@ -7,18 +7,18 @@ use EquipoSiap\Siap\helpers\ValidationTrait;
 
 class proveedorModel extends ConnectDB
 {
-    use ValidationTrait;
 
-    private $conex;
-    private $id;
-    private $nombre;
-    private $descripcion;
+    use ValidationTrait;
+    private $idProveedor;
     private $estado;
+    private $descripcion;
+    private $idContacto;
+    private $archivo;
+    private $conex;
     // Carpeta destino de documentos PDF (misma usada antiguamente por la importación Excel)
     private $directorioDocumentos;
 
-    public function __construct()
-    {
+    public function __construct(){
         parent::__construct();
         $this->conex = $this->getConnection();
         // Se resuelve desde app/model/ hacia la raíz del proyecto

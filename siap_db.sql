@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Servidor: localhost
--- Tiempo de generación: 16-11-2026 a las 00:43:36
--- Versión del servidor: 10.4.28-MariaDB
--- Versión de PHP: 8.2.4
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 18-11-2026 a las 15:58:18
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -26,8 +26,6 @@ SET time_zone = "+00:00";
 --
 -- Estructura de tabla para la tabla `anio_fiscal`
 --
-CREATE DATABASE IF NOT EXISTS `siap_db` DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci;
-USE `siap_db`;
 
 CREATE TABLE `anio_fiscal` (
   `id_aniof` int(11) NOT NULL,
@@ -108,7 +106,8 @@ INSERT INTO `cargo` (`id_cargo`, `id_responsable`, `id_dep`, `fecha_inicio`, `fe
 (29, 29, 23, '2026-07-07', NULL, 1),
 (33, 10001, 27, '2026-11-01', NULL, 1),
 (100000, 100000, 24, '2026-11-15', NULL, 1),
-(100001, 100001, 25, '2026-11-16', NULL, 1);
+(100001, 100001, 25, '2026-11-16', NULL, 1),
+(100002, 100002, 29, '2026-11-17', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -152,7 +151,9 @@ INSERT INTO `dependencias` (`id_dep`, `nom_dep`, `estado`) VALUES
 (23, 'Laboratorio Central', 1),
 (24, 'Recursos Materiales', 1),
 (25, 'Seguridad Universitaria', 1),
-(27, 'Unidad de Transporte', 1);
+(27, 'Unidad de Transporte', 1),
+(29, 'PNF Turismo', 1),
+(33, 'PNF Ciencias en la Inf', 1);
 
 -- --------------------------------------------------------
 
@@ -388,7 +389,9 @@ INSERT INTO `detalle_req` (`id_pres`, `id_req`, `mes`, `cant_mes`) VALUES
 (10, 47, 7, 20),
 (12, 47, 7, 14),
 (15, 47, 4, 14),
-(21, 47, 11, 14);
+(21, 47, 11, 14),
+(1031, 57, 3, 8),
+(909, 57, 1, 3);
 
 -- --------------------------------------------------------
 
@@ -2745,7 +2748,8 @@ INSERT INTO `requerimiento` (`id_req`, `id_dep`, `id_tasa`, `id_aniof`, `estado_
 (51, 22, 10, 3, 0, '2026-07-05', 1),
 (52, 20, 17, 3, 0, '2026-11-09', 0),
 (53, 20, 16, 3, 0, '2026-11-10', 0),
-(54, 20, 16, 3, 0, '2026-11-10', 0);
+(54, 20, 16, 3, 0, '2026-11-10', 0),
+(57, 20, 23, 3, 0, '2026-11-18', 1);
 
 -- --------------------------------------------------------
 
@@ -2799,7 +2803,8 @@ INSERT INTO `responsables` (`id_responsable`, `id_rol`, `nom_resp`, `email`, `pa
 (29, 2, 'Ronald Intriago', NULL, '$2y$10$MZ/S0ZlRBZywZxuzLDP29Ous2h54/hkC4CFKu2ElsJ/UKJfbrOB2C', NULL, 1),
 (10001, 2, 'Camila Chirinos', 'chamoy@gmail.com', '$2y$10$3fdynx2ptW0ItsqhFqZ7O.8HZsaHAHPIJ/.ws9adSqO.KJMwveN1S', NULL, 1),
 (100000, 3, 'Lulu Lulu', 'lulu@gmail.com', '$2y$10$ipydUNlrpBixLWgNmYYsxeqWFqtYn2rhK5kejDkixHKCIXFcnQUmC', NULL, 1),
-(100001, 3, 'luis', 'luis@gmail.com', '$2y$10$kakZAydHq.PGNavE5y0Toe9xdVZGM8cW2JhJFA0fHlXOZuJCGV8Xy', NULL, 1);
+(100001, 3, 'luis', 'luis@gmail.com', '$2y$10$kakZAydHq.PGNavE5y0Toe9xdVZGM8cW2JhJFA0fHlXOZuJCGV8Xy', NULL, 1),
+(100002, 3, 'jeremy', 'montillajeremy80@gmail.com', '$2y$10$dOXxzdY4t7TEINdWHClbQOXqD5wRTDf/qVuH3ZIejfMdzuhebdXeW', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -2820,8 +2825,7 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_rol`, `descripcion`, `estado`) VALUES
 (1, 'Administrador', 1),
 (2, 'Usuario', 1),
-(3, 'Coordinador', 1),
-(4, 'Superadmin', 1);
+(3, 'Coordinador', 1);
 
 -- --------------------------------------------------------
 
@@ -3011,13 +3015,13 @@ ALTER TABLE `anio_fiscal`
 -- AUTO_INCREMENT de la tabla `cargo`
 --
 ALTER TABLE `cargo`
-  MODIFY `id_cargo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100002;
+  MODIFY `id_cargo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100003;
 
 --
 -- AUTO_INCREMENT de la tabla `dependencias`
 --
 ALTER TABLE `dependencias`
-  MODIFY `id_dep` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id_dep` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT de la tabla `partidas`
@@ -3053,13 +3057,13 @@ ALTER TABLE `proveedores`
 -- AUTO_INCREMENT de la tabla `requerimiento`
 --
 ALTER TABLE `requerimiento`
-  MODIFY `id_req` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id_req` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT de la tabla `responsables`
 --
 ALTER TABLE `responsables`
-  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100002;
+  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100003;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
