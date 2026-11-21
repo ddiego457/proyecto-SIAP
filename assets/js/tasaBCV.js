@@ -128,8 +128,10 @@ $(document).ready(function() {
                     : '<span class="badge badge-gray">Manual</span>';
             } },
             { data: null, render: (d) => {
-                let actions = `<button value="${d.id_tasa}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+                let actions = '';
                 if ((d.estado|0) === 1) {
+                    // Solo la tasa activa se puede editar
+                    actions += `<button value="${d.id_tasa}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                     if (esUnicaTasaActiva(d.id_tasa)) {
                         // Única tasa activa: botón deshabilitado porque el
                         // sistema la necesita para realizar los cálculos.
@@ -138,6 +140,7 @@ $(document).ready(function() {
                         actions += ` <button value="${d.id_tasa}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inactivar" title="Inactivar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                     }
                 } else {
+                    // Tasa inactiva: no se puede editar, solo activar
                     actions += ` <button value="${d.id_tasa}" class="btn btn-success btn-sm btn-activar" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
                 return actions;
@@ -330,7 +333,7 @@ $(document).ready(function() {
 
     // Activar
     $(document).on('click', '.btn-activar', function() {
-        if (!confirm('¿Activar esta tasa y desactivar otras?')) return;
+        if (!confirm('¿Activar esta tasa? La tasa activa actual será desactivada automáticamente (solo puede haber una tasa activa).')) return;
         const idTasa = this.value;
         $.ajax({ url: currentUrl, method: 'POST', dataType: 'json',
             data: { id_tasa: idTasa, activateItem: true },

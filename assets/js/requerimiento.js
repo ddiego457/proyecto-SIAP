@@ -988,6 +988,7 @@ $(document).ready(function() {
                             $('#partida_actual').val('401');
                             $('#titulo-partida').text('401');
                             $('#btn-guardar').removeClass('d-none');
+                            $('#btnNuevoRegistro').hide(); // Hiding register button after finalization.
                             tablaRegistro.ajax.reload(null, false);
                             // Refrescar el listado consolidado
                             if ($('#tablaMain').length && $.fn.DataTable.isDataTable('#tablaMain')) {

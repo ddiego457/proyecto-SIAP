@@ -284,7 +284,7 @@ class proveedorModel extends ConnectDB
     private function executeDeleteContact(int $idContacto)
     {
         try {
-            $stmt = $this->conex->prepare("UPDATE telefonos SET estado = 0 WHERE id_telf = ?");
+            $stmt = $this->conex->prepare("DELETE FROM telefonos WHERE id_telf = ?");
             $stmt->bindValue(1, $idContacto, \PDO::PARAM_INT);
             return $stmt->execute();
         } catch (\PDOException $e) {
@@ -317,7 +317,13 @@ class proveedorModel extends ConnectDB
 
     private function executeInactivateContact(int $idContacto)
     {
-        return $this->deleteContact($idContacto);
+        try {
+            $stmt = $this->conex->prepare("UPDATE telefonos SET estado = 0 WHERE id_telf = ?");
+            $stmt->bindValue(1, $idContacto, \PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (\PDOException $e) {
+            return false;
+        }
     }
 
     // ─── Documentos PDF del proveedor ─────────────────────────────────
