@@ -9,6 +9,7 @@ $this->requireModule('productosServicios');
 $object = new productosServiciosModel();
 $proveedorModel = new proveedorModel();
 $partidas = $object->getPartidas();
+$unidades = $object->getUnidadesMedida();
 $proveedores = $proveedorModel->getActive();
 $partidaSeleccionada = null;
 
@@ -26,6 +27,14 @@ foreach ($accionesGestionPartidas as $accionGestionPartidas) {
     if (isset($_POST[$accionGestionPartidas]) && !$this->puedeGestionarPartidas()) {
         http_response_code(403);
         sendJsonResponse(['success' => false, 'message' => 'No tiene permisos para gestionar el catálogo de partidas presupuestarias.']);
+    }
+}
+
+$accionesGestionUnidades = ['getAllUnidadesMedida', 'registerUnidadMedida', 'updateUnidadMedida', 'deleteUnidadMedida', 'activateUnidadMedida'];
+foreach ($accionesGestionUnidades as $accionGestionUnidades) {
+    if (isset($_POST[$accionGestionUnidades]) && !$this->puedeGestionarUnidades()) {
+        http_response_code(403);
+        sendJsonResponse(['success' => false, 'message' => 'No tiene permisos para gestionar el catálogo de unidades de medida.']);
     }
 }
 
@@ -62,15 +71,18 @@ if (isset($_GET['type'])) {
         if (isset($_POST['registerProductosServicios'])) {
             $idPartida = isset($_POST['id_partida']) ? (int)$_POST['id_partida'] : 0;
             $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
+            $idUnidad = isset($_POST['id_unidad']) ? (int)$_POST['id_unidad'] : 0;
             $nombre = isset($_POST['nom_item']) ? trim((string)$_POST['nom_item']) : '';
             $precio = isset($_POST['precio']) ? (float)$_POST['precio'] : null;
 
             $validPartidaIds = array_map('intval', array_column($partidas, 'id_partida'));
             $validProveedorIds = array_map('intval', array_column($proveedores, 'id_proveedor'));
+            $validUnidadIds = array_map('intval', array_column($unidades, 'id_unidad'));
             if ($idPartida <= 0 || !in_array($idPartida, $validPartidaIds, true) ||
-                $idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true)
+                $idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true) ||
+                $idUnidad <= 0 || !in_array($idUnidad, $validUnidadIds, true)
             ) {
-                sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida o proveedor inválido.']);
+                sendJsonResponse(['success' => false, 'message' => 'Faltan campos obligatorios, partida, proveedor o unidad de medida inválido.']);
             }
 
             $errorValidacion = $object->validar('nombre_producto', $nombre);
@@ -87,7 +99,7 @@ if (isset($_GET['type'])) {
                 sendJsonResponse(['success' => false, 'message' => 'Ya existe un producto/servicio con ese nombre para la misma partida y proveedor.']);
             }
 
-            $result = $object->add($idPartida, $idProveedor, $nombre, $precio);
+            $result = $object->add($idPartida, $idProveedor, $idUnidad, $nombre, $precio);
             // El JS cierra el modal de registro y recarga el listado.
             sendJsonResponse([
                 'success' => (bool)$result,
@@ -199,10 +211,17 @@ if (isset($_GET['type'])) {
 
         if (isset($_POST['updateItem'])) {
             $idProveedor = isset($_POST['id_proveedor']) ? (int)$_POST['id_proveedor'] : 0;
+            $idUnidadUpdate = isset($_POST['id_unidad']) ? (int)$_POST['id_unidad'] : 0;
             $validProveedorIds = array_map('intval', array_column($proveedores, 'id_proveedor'));
 
             if ($idProveedor <= 0 || !in_array($idProveedor, $validProveedorIds, true)) {
                 sendJsonResponse(['success' => false, 'message' => 'Proveedor inválido.']);
+            }
+
+            // Se acepta la unidad aunque esté inhabilitada (no se pierde la
+            // referencia de un producto que ya la usa); solo debe existir.
+            if ($idUnidadUpdate <= 0 || !$object->existsUnidadMedidaById($idUnidadUpdate)) {
+                sendJsonResponse(['success' => false, 'message' => 'Unidad de medida inválida.']);
             }
 
             $nomItemUpdate = isset($_POST['nom_item']) ? trim((string)$_POST['nom_item']) : '';
@@ -220,10 +239,83 @@ if (isset($_GET['type'])) {
                 (int)$_POST['idItem'],
                 (int)$_POST['id_partida'],
                 $idProveedor,
+                $idUnidadUpdate,
                 $nomItemUpdate,
                 (float)$precioUpdate
             );
             sendJsonResponse(['success' => (bool)$result, 'message' => $result ? 'Registro actualizado' : 'Error al actualizar']);
+        }
+
+        if (isset($_POST['getAllUnidadesMedida'])) {
+            sendJsonResponse($object->getAllUnidadesMedida());
+        }
+
+        if (isset($_POST['registerUnidadMedida'])) {
+            $unidad = isset($_POST['unidad']) ? trim((string)$_POST['unidad']) : '';
+
+            $errorValidacion = $object->validar('unidad_medida', $unidad);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+
+            // Evitar unidades duplicadas (sin distinguir mayúsculas)
+            if ($object->existsUnidadMedida($unidad)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe una unidad de medida con ese nombre.']);
+            }
+
+            $result = $object->addUnidadMedida($unidad);
+            sendJsonResponse([
+                'success' => (bool)$result,
+                'message' => $result ? 'Unidad de medida registrada' : 'Error al guardar la unidad de medida (duplicado o error BD).'
+            ]);
+        }
+
+        if (isset($_POST['updateUnidadMedida'])) {
+            $idUnidad = isset($_POST['idUnidad']) ? (int)$_POST['idUnidad'] : 0;
+            $unidad = isset($_POST['unidad']) ? trim((string)$_POST['unidad']) : '';
+            $estado = isset($_POST['estado']) ? (int)$_POST['estado'] : 1;
+
+            if ($idUnidad <= 0) {
+                sendJsonResponse(['success' => false, 'message' => 'Unidad de medida no válida.']);
+            }
+
+            $errorValidacion = $object->validar('unidad_medida', $unidad);
+            if ($errorValidacion !== null) {
+                sendJsonResponse(['success' => false, 'message' => $errorValidacion]);
+            }
+
+            // El nombre no puede pertenecer a otra unidad
+            if ($object->existsUnidadMedida($unidad, $idUnidad)) {
+                sendJsonResponse(['success' => false, 'message' => 'Ya existe otra unidad de medida con ese nombre.']);
+            }
+
+            $result = $object->updateUnidadMedida($idUnidad, $unidad, $estado);
+            sendJsonResponse([
+                'success' => (bool)$result,
+                'message' => $result ? 'Unidad de medida actualizada' : 'Error al actualizar la unidad de medida (nombre duplicado o error BD).'
+            ]);
+        }
+
+        if (isset($_POST['deleteUnidadMedida'])) {
+            $idUnidad = isset($_POST['idUnidad']) ? (int)$_POST['idUnidad'] : 0;
+
+            if ($idUnidad <= 0) {
+                sendJsonResponse(['success' => false, 'message' => 'Unidad de medida no válida.']);
+            }
+
+            $res = $object->deleteUnidadMedida($idUnidad);
+            sendJsonResponse(['success' => (bool)$res, 'message' => $res ? 'Unidad de medida inhabilitada' : 'Error al inhabilitar la unidad de medida']);
+        }
+
+        if (isset($_POST['activateUnidadMedida'])) {
+            $idUnidad = isset($_POST['idUnidad']) ? (int)$_POST['idUnidad'] : 0;
+
+            if ($idUnidad <= 0) {
+                sendJsonResponse(['success' => false, 'message' => 'Unidad de medida no válida.']);
+            }
+
+            $res = $object->activateUnidadMedida($idUnidad);
+            sendJsonResponse(['success' => (bool)$res, 'message' => $res ? 'Unidad de medida activada' : 'Error al activar la unidad de medida']);
         }
 
         include 'app/view/productosServicios/productosServiciosUserView.php';

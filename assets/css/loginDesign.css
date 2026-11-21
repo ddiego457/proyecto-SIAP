@@ -292,6 +292,7 @@ body {
 .field-error {
     display: block;
     margin-top: 5px;
+    margin-bottom: 8px;
     color: #b42318;
     font-size: 12px;
     line-height: 1.35;

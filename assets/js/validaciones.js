@@ -113,6 +113,10 @@
         return regexCodigoPartida.test(recortar(valor));
     }
 
+    function validarUnidadMedida(valor) {
+        return regexUnidadMedida.test(recortar(valor));
+    }
+
     function validarTasa(valor) {
         return regexTasa.test(recortar(valor));
     }
@@ -132,7 +136,7 @@
     const mensajes = {
         email: 'Ingrese un correo electrónico válido (ej. usuario@dominio.com).',
         nombre: 'El nombre solo puede contener letras, espacios, puntos, guiones y apóstrofes, entre 3 y 100 caracteres.',
-        contrasenia: 'La contraseña debe tener al menos 4 caracteres y solo puede contener letras, números y los caracteres _ . -',
+        contrasenia: 'La contraseña debe tener al menos 8 caracteres e incluir al menos un número y un carácter especial (sin espacios).',
         telefono: 'Formato de teléfono inválido. Solo se permiten dígitos, "+" al inicio y "-". Ej: +58-212-5551234',
         nomPresupuesto: 'Formato esperado: nombre|unidad|',
         cantidad: 'La cantidad debe ser un número de 4 dígitos.',
@@ -148,6 +152,7 @@
         descripcionProveedor: 'La descripción es obligatoria y debe contener texto (al menos una letra), sin etiquetas HTML ni caracteres de control, entre 3 y 150 caracteres.',
         nombreProducto: 'El nombre del producto solo puede contener letras, números, espacios y los caracteres . , - ( ) / % " |, entre 2 y 150 caracteres.',
         codigoPartida: 'El código de la partida solo puede contener números y puntos, máximo 10 caracteres. Ej: 401 o 4.01',
+        unidadMedida: 'La unidad de medida solo puede contener letras, números, espacios y los caracteres . , - ( ) /, entre 2 y 40 caracteres.',
         tasa: 'La tasa debe ser un número positivo con hasta 2 decimales (ej. 36.50).',
         cantidadMes: 'La cantidad debe ser un número entero positivo, máximo 9 dígitos.',
         fecha: 'Use el formato AAAA-MM-DD.'
@@ -172,6 +177,7 @@
         descripcionProveedor: { validar: validarDescripcionProveedor, mensaje: mensajes.descripcionProveedor },
         nombreProducto: { validar: validarNombreProducto, mensaje: mensajes.nombreProducto },
         codigoPartida: { validar: validarCodigoPartida, mensaje: mensajes.codigoPartida },
+        unidadMedida: { validar: validarUnidadMedida, mensaje: mensajes.unidadMedida },
         tasa: { validar: validarTasa, mensaje: mensajes.tasa },
         cantidadMes: { validar: validarCantidadMes, mensaje: mensajes.cantidadMes },
         fecha: { validar: validarFechaISO, mensaje: mensajes.fecha }
@@ -185,8 +191,17 @@
         return 'siap-error-' + idForm + '-' + idCampo;
     }
 
+    // Ubica el <small> con el mensaje de un campo. El mensaje se coloca dentro
+    // de .field-group (formularios con etiqueta) o fuera del bloque .field
+    // (vistas tipo login/recuperación) para no desplazar el icono: en ambos
+    // casos se busca por su id, que es único dentro del formulario.
+    function elementoError($campo, id) {
+        const $form = $campo.closest('form');
+        const $busqueda = $form.length ? $form : $(document);
+        return $busqueda.find('small.field-error[data-siap-error-id="' + id + '"]');
+    }
+
     function mostrarError($campo, mensaje) {
-        const $grupo = $campo.closest('.field-group');
         let id = $campo.data('siap-error-id');
 
         if (!id) {
@@ -196,7 +211,7 @@
 
         $campo.addClass('is-invalid').attr('aria-invalid', 'true').attr('aria-describedby', id);
 
-        let $error = $grupo.find('small.field-error[data-siap-error-id="' + id + '"]');
+        let $error = elementoError($campo, id);
         if (!$error.length) {
             $error = $('<small>', {
                 class: 'field-error',
@@ -204,10 +219,14 @@
                 'data-siap-error-id': id,
                 'aria-live': 'polite'
             });
+            const $grupo = $campo.closest('.field-group');
             if ($grupo.length) {
                 $grupo.append($error);
             } else {
-                $campo.after($error);
+                // Se coloca FUERA del bloque .field para que al aparecer el mensaje
+                // no crezca su altura y se desplace el icono absoluto (top:50%).
+                const $bloque = $campo.closest('.field');
+                ($bloque.length ? $bloque : $campo).after($error);
             }
         }
         $error.text(mensaje);
@@ -218,8 +237,7 @@
         $campo.removeClass('is-invalid').removeAttr('aria-invalid').removeAttr('aria-describedby');
 
         if (id) {
-            const $grupo = $campo.closest('.field-group');
-            $grupo.find('small.field-error[data-siap-error-id="' + id + '"]').remove();
+            elementoError($campo, id).remove();
             $campo.removeData('siap-error-id');
         }
     }

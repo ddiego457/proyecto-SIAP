@@ -14,6 +14,7 @@ trait ValidationTrait
     public $expPrecio = '/^\d{1,9}(\.\d{1,2})?$/';
     public $expCodPartida = '/^[0-9]+(\.[0-9]+)?$/';
     public $expDescripcionPartida = '/^[^<>\x00-\x1F\x7F]{1,150}$/';
+    public $expUnidadMedida = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\.\,\-\(\)\/]{2,40}$/';
     // Proveedor
     public $expNombreProv = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\.\-\&\(\)]{3,100}$/';
     public $expDescripcionProv = '/^(?=.*[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])[^\x00-\x1F\x7F<>]{3,150}$/u';
@@ -29,7 +30,12 @@ trait ValidationTrait
     // Responsable (incluye UserModel)
     public $expNomRep = '/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\'\-]{3,100}$/';
     public $expEmail = '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/';
-    public $expPassword = '/^[a-zA-Z0-9_\.\-]{4,}$/';
+    // Contraseña (alta/cambio): mín. 8 caracteres SIN espacios, al menos un
+    // número y al menos un carácter especial (no letra ni número Unicode).
+    public $expPassword = '/^(?=.*\d)(?=.*[^\p{L}\p{N}])\S{8,100}$/u';
+    // Contraseña (solo LOGIN): se comprueba con password_verify();
+    // aquí solo se descarta lo claramente inválido para no consultar la BD.
+    public $expPasswordLogin = '/^.{1,100}$/u';
     public $expFechaISO = '/^\d{4}-\d{2}-\d{2}$/';
     public $expRolDescripcion = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\.\,\-\_\/\(\)]{1,70}$/';
     public $expUsuario = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ_\.\-\s]{2,100}$/';
@@ -55,6 +61,7 @@ trait ValidationTrait
             'precio'                 => $this->valPrecio($valor),
             'codigo_partida'         => $this->valCodigoPartida($valor),
             'descripcion_partida'    => $this->valDescripcionPartida($valor),
+            'unidad_medida'          => $this->valUnidadMedida($valor),
             'nombre_proveedor'       => $this->valNombreProveedor($valor),
             'descripcion_proveedor'  => $this->valDescripcionProveedor($valor),
             'telefono'               => $this->valTelefono($valor),
@@ -68,9 +75,13 @@ trait ValidationTrait
             'estado_registro_reporte'   => $this->valEstadoRegistroReporte($valor),
             'filtro_dependencias'    => $this->valFiltroDependenciasReporte($valor),
             'modo_requerimiento_global' => $this->valModoReqGlobal($valor),
+            'anio_reporte'           => $this->valAnioReporte($valor),
+            'unidades_reporte'       => $this->valUnidadesReporte($valor),
+            'rango_precios_reporte'  => $this->valRangoPreciosReporte($valor),
             'nombre_responsable'     => $this->valNombreResponsable($valor),
             'email'                  => $this->valEmail($valor),
             'password'               => $this->valPassword($valor),
+            'password_login'         => $this->valPasswordLogin($valor),
             'fecha_asignacion'       => $this->valFechaAsignacion($valor),
             'descripcion_rol'        => $this->valDescripcionRol($valor),
             'usuario'                => $this->valUsuario($valor),
@@ -175,6 +186,18 @@ trait ValidationTrait
         }
         if (!preg_match($this->expDescripcionPartida, $descripcion)) {
             return 'La descripción de la partida solo puede contener texto (sin etiquetas HTML) de hasta 150 caracteres.';
+        }
+        return null;
+    }
+
+    private function valUnidadMedida($unidad): ?string
+    {
+        $unidad = trim((string)$unidad);
+        if ($unidad === '') {
+            return 'La unidad de medida no puede estar vacía.';
+        }
+        if (mb_strlen($unidad, 'UTF-8') > 40 || !preg_match($this->expUnidadMedida, $unidad)) {
+            return 'La unidad de medida solo puede contener letras, números, espacios y los caracteres . , - ( ) /, entre 2 y 40 caracteres.';
         }
         return null;
     }
@@ -334,6 +357,64 @@ trait ValidationTrait
         return null;
     }
 
+    private function valAnioReporte($anio): ?string
+    {
+        $anio = trim((string)$anio);
+        if ($anio === '') {
+            return 'Seleccione el año del informe.';
+        }
+        if (!preg_match($this->expAnioFiscal, $anio)) {
+            return 'El año del informe debe tener 4 dígitos (ej. 2026).';
+        }
+        return null;
+    }
+
+    private function valUnidadesReporte($unidades): ?string
+    {
+        if ($unidades === 'todas') {
+            return null;
+        }
+        if (!is_array($unidades) || $unidades === []) {
+            return 'Seleccione una o varias unidades de medida, o todas.';
+        }
+        foreach ($unidades as $unidad) {
+            if (!is_scalar($unidad)) {
+                return 'La selección de unidades de medida no es válida.';
+            }
+            $unidad = trim((string)$unidad);
+            if ($unidad === '' || mb_strlen($unidad, 'UTF-8') > 40) {
+                return 'La selección de unidades de medida no es válida.';
+            }
+        }
+        return null;
+    }
+
+    private function valRangoPreciosReporte($rango): ?string
+    {
+        if (!is_array($rango)) {
+            return 'El rango de precios no es válido.';
+        }
+        $campos = [
+            'precio_min' => $rango['precio_min'] ?? null,
+            'precio_max' => $rango['precio_max'] ?? null,
+        ];
+        foreach ($campos as $nombre => $valor) {
+            if ($valor === null || $valor === '') {
+                continue;
+            }
+            if (!is_scalar($valor) || !preg_match('/^\d{1,9}(\.\d{1,2})?$/', (string)$valor)) {
+                return 'El ' . ($nombre === 'precio_min' ? 'precio mínimo' : 'precio máximo')
+                    . ' debe ser un número positivo con hasta 2 decimales (ej. 5.50).';
+            }
+        }
+        if ($campos['precio_min'] !== null && $campos['precio_min'] !== ''
+            && $campos['precio_max'] !== null && $campos['precio_max'] !== ''
+            && (float)$campos['precio_min'] > (float)$campos['precio_max']) {
+            return 'El precio mínimo no puede ser mayor que el precio máximo.';
+        }
+        return null;
+    }
+
     // --- Responsable ---
     private function valNombreResponsable($nombre): ?string
     {
@@ -364,8 +445,21 @@ trait ValidationTrait
         if ((string)$password === '') {
             return 'La contraseña no puede estar vacía.';
         }
-        if (!preg_match($this->expPassword, $password)) {
-            return 'La contraseña solo puede contener letras, números y los caracteres _ . - (mínimo 4 caracteres).';
+        if (!preg_match($this->expPassword, (string)$password)) {
+            return 'La contraseña debe tener al menos 8 caracteres e incluir al menos un número y un carácter especial (sin espacios).';
+        }
+        return null;
+    }
+
+    // Formato mínimo para INTENTAR un login: la contraseña real se
+    // comprueba con password_verify() contra el hash guardado.
+    private function valPasswordLogin($password): ?string
+    {
+        if ((string)$password === '') {
+            return 'La contraseña no puede estar vacía.';
+        }
+        if (!preg_match($this->expPasswordLogin, (string)$password)) {
+            return 'La contraseña no es válida.';
         }
         return null;
     }

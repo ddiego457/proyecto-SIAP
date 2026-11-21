@@ -88,30 +88,36 @@ trait ReportePdfGeneratorTrait
         ';
     }
 
-    public function exportReqIndividualPDF(int $idDep, bool $incluirNoEnviados = false): void
+    public function exportReqIndividualPDF(int $idDep, bool $incluirNoEnviados = false, ?int $anio = null): void
     {
-        $data = $this->executeGetReqReport($idDep, $incluirNoEnviados);
-        $context = $this->getReqReportContext($idDep, $incluirNoEnviados);
+        $anio ??= (int)$this->getActiveFiscalYear();
+        $data = $this->executeGetReqReport($idDep, $incluirNoEnviados, $anio);
+        $context = $this->getReqReportContext($idDep, $incluirNoEnviados, $anio);
         $context['estado'] = $incluirNoEnviados ? 'No enviados' : 'Enviados';
         $title = $this->buildIndividualReportTitle($context);
         $filename = $this->buildIndividualReportFilename($context) . '.pdf';
         $this->executeGetPdfReqReport($data, $title, $filename, (string)$context['anio']);
     }
 
-    public function exportReqGlobalPDF(string $modo = 'consolidado'): void
+    public function exportReqGlobalPDF(string $modo = 'consolidado', ?int $anio = null): void
     {
-        $data = $this->executeGetReqReport();
+        $anio ??= (int)$this->getActiveFiscalYear();
+        $data = $this->executeGetReqReport('', false, $anio);
         if ($modo === 'consolidado') {
-            $year = $this->getActiveFiscalYear();
+            $year = (string)$anio;
             $this->executeGetPdfReqReport($data, 'Consolidado POA Global', 'POA_Global_' . $year . '.pdf', $year);
             return;
         }
-        $this->executeGetPdfGlobalResumen($data, $modo);
+        $this->executeGetPdfGlobalResumen($data, $modo, (string)$anio);
     }
 
-    public function exportProductosPDF(array $idPartidas = []): void
-    {
-        $data = $this->executeGetProReport($idPartidas);
+    public function exportProductosPDF(
+        array $idPartidas = [],
+        array $unidades = [],
+        ?float $precioMin = null,
+        ?float $precioMax = null
+    ): void {
+        $data = $this->executeGetProReport($idPartidas, $unidades, $precioMin, $precioMax);
         $this->executeGetPdfProReport($data, $idPartidas);
     }
 
@@ -124,10 +130,9 @@ trait ReportePdfGeneratorTrait
         $this->executeGetPdfDependenciasResponsable($data, $filtro);
     }
 
-    private function executeGetPdfGlobalResumen(array $data, string $modo): void
+    private function executeGetPdfGlobalResumen(array $data, string $modo, string $year): void
     {
         $rows = $this->getGlobalReportRows($data, $modo);
-        $year = $this->getActiveFiscalYear();
         $title = $modo === 'cantidades'
             ? 'Cantidades anuales por producto y partida'
             : 'Totales por partida en USD y Bs.';
@@ -189,7 +194,8 @@ trait ReportePdfGeneratorTrait
 
             if (!empty($datos)) {
                 foreach ($datos as $fila) {
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion']);
+                    [$descripcion, $uMedidaParseada] = $this->parseProductDescription((string)$fila['Descripcion']);
+                    $uMedida = $this->resolveUnidadFila($fila, $uMedidaParseada);
 
                     $partidaCode = $fila['codigo'];
                     if (strlen($partidaCode) === 3 && is_numeric($partidaCode)) {
@@ -313,7 +319,8 @@ trait ReportePdfGeneratorTrait
 
             if (!empty($datos)) {
                 foreach ($datos as $fila) {
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion']);
+                    [$descripcion, $uMedidaParseada] = $this->parseProductDescription((string)$fila['Descripcion']);
+                    $uMedida = $this->resolveUnidadFila($fila, $uMedidaParseada);
 
                     $html .= '<tr>
                         <td class="font-bold">' . htmlspecialchars($fila['codigo']) . '</td>

@@ -465,6 +465,7 @@ CREATE TABLE `presupuesto` (
   `id_pres` int(11) NOT NULL,
   `id_proveedor` int(11) NOT NULL,
   `id_partida` int(11) NOT NULL,
+  `id_unidad` int(11) DEFAULT NULL,
   `nom_pres` varchar(150) NOT NULL,
   `precio` decimal(12,2) NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1
@@ -2895,6 +2896,65 @@ INSERT INTO `telefonos` (`id_telf`, `id_proveedor`, `telefono`, `estado`) VALUES
 (12, 10, '+58-212-555-0001', 1),
 (13, 1, '+58-212-555-0013', 1);
 
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `unidades_medida`
+--
+
+CREATE TABLE `unidades_medida` (
+  `id_unidad` int(11) NOT NULL,
+  `unidad` varchar(40) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `unidades_medida`
+--
+
+INSERT INTO `unidades_medida` (`id_unidad`, `unidad`, `estado`) VALUES
+(1, 'UND', 1),
+(2, 'UNIDAD', 1),
+(3, 'RESMA', 1),
+(4, 'CAJA', 1),
+(5, 'PLIEGOS', 1),
+(6, 'ROLLO', 1),
+(7, 'PAQUETE', 1),
+(8, 'SERVICIO', 1),
+(9, 'UNIDADES', 1),
+(10, 'CAJAS', 1),
+(11, 'GALON', 1),
+(12, 'CUÑETE', 1),
+(13, 'PAQUETES', 1),
+(14, 'METROS', 1),
+(15, 'PAR', 1),
+(16, 'JERINGA', 1),
+(17, 'FRASCO', 1),
+(18, 'ENVASE', 1),
+(19, 'LITROS', 1),
+(20, 'FRACO', 1),
+(21, 'BOBINA', 1),
+(22, 'TUBO', 1),
+(23, 'GOTAS', 1),
+(24, 'BULTO', 1),
+(25, 'PAQUTE', 1),
+(26, 'SACO', 1),
+(27, 'BIDON', 1),
+(28, 'JUEGO', 1),
+(29, 'KILO', 1),
+(30, 'PIPA', 1),
+(31, 'PIPAS', 1),
+(32, 'GRAMO', 1),
+(33, 'M2', 1),
+(34, 'TOBO', 1),
+(35, 'DOCENA', 1),
+(36, 'PAILA', 1),
+(37, 'POTE', 1),
+(38, 'S09001)', 1),
+(39, 'CAJA 1X10', 1),
+(40, 'DOCENAS', 1),
+(41, 'NOMINA', 1);
+
 --
 -- Índices para tablas volcadas
 --
@@ -2953,7 +3013,8 @@ ALTER TABLE `periodos_entrega`
 ALTER TABLE `presupuesto`
   ADD PRIMARY KEY (`id_pres`),
   ADD KEY `id_proveedor` (`id_proveedor`),
-  ADD KEY `id_partida` (`id_partida`);
+  ADD KEY `id_partida` (`id_partida`),
+  ADD KEY `id_unidad` (`id_unidad`);
 
 --
 -- Indices de la tabla `proveedores`
@@ -2996,6 +3057,13 @@ ALTER TABLE `tasa_bcv`
 ALTER TABLE `telefonos`
   ADD PRIMARY KEY (`id_telf`),
   ADD KEY `id_proveedor` (`id_proveedor`);
+
+--
+-- Indices de la tabla `unidades_medida`
+--
+ALTER TABLE `unidades_medida`
+  ADD PRIMARY KEY (`id_unidad`),
+  ADD UNIQUE KEY `unidad` (`unidad`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -3080,6 +3148,12 @@ ALTER TABLE `telefonos`
   MODIFY `id_telf` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
+-- AUTO_INCREMENT de la tabla `unidades_medida`
+--
+ALTER TABLE `unidades_medida`
+  MODIFY `id_unidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+
+--
 -- Restricciones para tablas volcadas
 --
 
@@ -3114,7 +3188,8 @@ ALTER TABLE `periodos_entrega`
 --
 ALTER TABLE `presupuesto`
   ADD CONSTRAINT `presupuesto_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`),
-  ADD CONSTRAINT `presupuesto_ibfk_2` FOREIGN KEY (`id_partida`) REFERENCES `partidas` (`id_partida`);
+  ADD CONSTRAINT `presupuesto_ibfk_2` FOREIGN KEY (`id_partida`) REFERENCES `partidas` (`id_partida`),
+  ADD CONSTRAINT `presupuesto_ibfk_3` FOREIGN KEY (`id_unidad`) REFERENCES `unidades_medida` (`id_unidad`);
 
 --
 -- Filtros para la tabla `requerimiento`
@@ -3135,6 +3210,16 @@ ALTER TABLE `responsables`
 --
 ALTER TABLE `telefonos`
   ADD CONSTRAINT `telefonos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
+
+--
+-- Asignación de la columna `id_unidad` de `presupuesto` según lo extraído
+-- del formato "DESCRIPCION|UNIDAD|" de nom_pres (los productos sin unidad
+-- se asumen UND, igual que en los reportes).
+--
+UPDATE `presupuesto` `p`
+JOIN `unidades_medida` `u` ON `u`.`unidad` = UPPER(TRIM(COALESCE(NULLIF(CASE WHEN LOCATE('|', `p`.`nom_pres`) > 0 THEN SUBSTRING_INDEX(SUBSTRING_INDEX(`p`.`nom_pres`, '|', 2), '|', -1) ELSE '' END, ''), 'UND')))
+SET `p`.`id_unidad` = `u`.`id_unidad`
+WHERE `p`.`id_unidad` IS NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

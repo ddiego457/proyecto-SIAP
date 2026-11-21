@@ -76,6 +76,7 @@ include_once 'app/view/layout/head.php';
                 <div class="field-group">
                     <label class="field-label">Contraseña</label>
                     <input type="password" name="contrasena" class="field-input" required>
+                    <small class="field-hint">Mínimo 8 caracteres, con al menos un número y un carácter especial.</small>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Rol</label>
@@ -131,6 +132,7 @@ include_once 'app/view/layout/head.php';
                 <div class="field-group">
                     <label class="field-label">Contraseña (opcional)</label>
                     <input type="password" id="edit_contrasena" name="contrasena" class="field-input">
+                    <small class="field-hint">Mínimo 8 caracteres, con al menos un número y un carácter especial.</small>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Rol</label>
@@ -179,6 +181,7 @@ include_once 'app/view/layout/head.php';
                         <th>Descripción</th>
                         <th>Responsables</th>
                         <th>Estado</th>
+                        <th>Acceso</th>
                         <th>Acciones</th>
                     </tr>
                     </thead>
@@ -238,6 +241,47 @@ include_once 'app/view/layout/head.php';
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModalEditarRol2" class="btn btn-outline">Cancelar</button>
                 <button type="submit" class="btn btn-success">&#10003; Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL ACCESO A MÓDULOS DEL ROL (personalización de permisos) -->
+<div id="modalModulosRol" class="modal-backdrop" style="display:none; z-index:240;">
+    <div class="modal-panel" style="max-width:620px;">
+        <div class="modal-header">
+            <h3 id="modulosRolTitulo">Acceso a m&oacute;dulos</h3>
+            <button id="btnCerrarModalModulosRol" class="modal-close">&times;</button>
+        </div>
+
+        <form id="formModulosRol">
+            <input type="hidden" id="modulosRol_id" name="idRol">
+
+            <div class="modal-body">
+                <div id="modulosRolAviso" class="alert-banner alert-info" style="display:none;">
+                    <div class="alert-banner-left">
+                        <div class="alert-banner-title"><strong>Rol protegido del sistema</strong></div>
+                        <div class="alert-banner-sub">
+                            Los roles Administrador y Coordinador siempre tienen acceso total a todos los
+                            m&oacute;dulos; su configuraci&oacute;n no puede modificarse.
+                        </div>
+                    </div>
+                </div>
+
+                <label class="modulos-todos">
+                    <input type="checkbox" id="modulosRolTodos">
+                    <span>Acceso a todos los m&oacute;dulos</span>
+                </label>
+
+                <div class="field-group" style="margin-top:14px; margin-bottom:0;">
+                    <label class="field-label">M&oacute;dulos individuales</label>
+                    <div id="modulosRolLista" class="modulos-checklist"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalModulosRol2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" id="btnGuardarModulosRol" class="btn btn-success">&#10003; Guardar acceso</button>
             </div>
         </form>
     </div>

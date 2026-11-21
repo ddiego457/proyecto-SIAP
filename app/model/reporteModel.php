@@ -37,6 +37,49 @@ class reporteModel extends ConnectDB
         }
     }
 
+    public function getAniosParaReporte(): array
+    {
+        try {
+            $stmt = $this->conex->query(
+                "SELECT id_aniof, anio, activo
+                 FROM anio_fiscal
+                 ORDER BY anio DESC"
+            );
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new \RuntimeException('Error cargando años fiscales para el reporte: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Unidades de medida activas del catálogo exclusivo (unidades_medida).
+     */
+    public function getUnidadesParaReporte(): array
+    {
+        try {
+            $stmt = $this->conex->query(
+                "SELECT UPPER(TRIM(unidad)) AS unidad
+                 FROM unidades_medida
+                 WHERE estado = 1
+                 ORDER BY unidad"
+            );
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new \RuntimeException('Error cargando unidades de medida para el reporte: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Expresión SQL que extrae la unidad de medida del formato
+     * "DESCRIPCION|UNIDAD|" de un campo nom_pres (sin unidad => 'UND').
+     */
+    private function exprUnidad(string $campo): string
+    {
+        return "COALESCE(NULLIF(CASE WHEN LOCATE('|', {$campo}) > 0 "
+            . "THEN SUBSTRING_INDEX(SUBSTRING_INDEX({$campo}, '|', 2), '|', -1) "
+            . "ELSE '' END, ''), 'UND')";
+    }
+
     public function getDependenciasConResponsable(
         string $filtro = 'activas_con_responsable',
         bool $ocultarCoordinadores = false
@@ -84,7 +127,7 @@ class reporteModel extends ConnectDB
         }
     }
 
-    public function buscarDependenciasParaReporte(int $estadoRegistro, string $nombre): array
+    public function buscarDependenciasParaReporte(int $estadoRegistro, string $nombre, int $anio): array
     {
         try {
             $nombre = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($nombre));
@@ -95,11 +138,12 @@ class reporteModel extends ConnectDB
                 AND d.nom_dep LIKE :nombre ESCAPE '!'
                 AND EXISTS (
                     SELECT 1 FROM requerimiento r
-                    JOIN anio_fiscal af ON af.id_aniof = r.id_aniof AND af.activo = 1
+                    JOIN anio_fiscal af ON af.id_aniof = r.id_aniof
                     JOIN detalle_req dr ON dr.id_req = r.id_req AND dr.cant_mes > 0
                     WHERE r.id_dep = d.id_dep
-                    AND r.estado = 1
                     AND r.estado_registro = :estado_registro
+                    AND af.anio = :anio
+                    AND (af.activo = 0 OR r.estado = 1)
                 )
                 ORDER BY d.nom_dep ASC
                 LIMIT 20
@@ -108,6 +152,7 @@ class reporteModel extends ConnectDB
             $stmt->execute([
                 ':nombre' => '%' . $nombre . '%',
                 ':estado_registro' => $estadoRegistro,
+                ':anio' => $anio,
             ]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
@@ -115,7 +160,7 @@ class reporteModel extends ConnectDB
         }
     }
 
-    public function hasReqReportData(int $idDep, bool $incluirNoEnviados = false): bool
+    public function hasReqReportData(int $idDep, bool $incluirNoEnviados = false, int $anio = 0): bool
     {
         try {
             $estadoRegistro = $incluirNoEnviados ? 0 : 1;
@@ -125,20 +170,20 @@ class reporteModel extends ConnectDB
                 JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
                 JOIN detalle_req dr ON dr.id_req = r.id_req
                 WHERE r.id_dep = ?
-                AND r.estado = 1
                 AND dr.cant_mes > 0
-                AND af.activo = 1
+                AND af.anio = ?
+                AND (af.activo = 0 OR r.estado = 1)
                 AND r.estado_registro = ?
                 LIMIT 1"
             );
-            $stmt->execute([$idDep, $estadoRegistro]);
+            $stmt->execute([$idDep, $anio, $estadoRegistro]);
             return (bool)$stmt->fetchColumn();
         } catch (\PDOException $e) {
             throw new \RuntimeException('Error verificando datos del requerimiento: ' . $e->getMessage());
         }
     }
 
-    private function getReqReportContext(int $idDep, bool $incluirNoEnviados): array
+    private function getReqReportContext(int $idDep, bool $incluirNoEnviados, int $anio = 0): array
     {
         $estadoRegistro = $incluirNoEnviados ? 0 : 1;
         $stmt = $this->conex->prepare(
@@ -148,12 +193,12 @@ class reporteModel extends ConnectDB
             JOIN anio_fiscal af ON af.id_aniof = r.id_aniof
             JOIN detalle_req dr ON dr.id_req = r.id_req AND dr.cant_mes > 0
             WHERE d.id_dep = ?
-            AND r.estado = 1
             AND r.estado_registro = ?
-            AND af.activo = 1
+            AND af.anio = ?
+            AND (af.activo = 0 OR r.estado = 1)
             LIMIT 1"
         );
-        $stmt->execute([$idDep, $estadoRegistro]);
+        $stmt->execute([$idDep, $estadoRegistro, $anio]);
         $context = $stmt->fetch(\PDO::FETCH_ASSOC);
         if (!$context) {
             throw new \RuntimeException('No se encontró el año fiscal y requerimiento para generar el informe.');
@@ -163,8 +208,19 @@ class reporteModel extends ConnectDB
 
     // ===================== CONSULTAS BASE =====================
 
-    private function executeGetReqReport($id = '', bool $incluirNoEnviados = false)
+    private function executeGetReqReport($id = '', bool $incluirNoEnviados = false, ?int $anio = null)
     {
+        $anio = $anio !== null ? (int)$anio : (int)$this->getActiveFiscalYear();
+        // Año no activo: los cálculos se hacen con la tasa BCV vigente (más reciente).
+        $esAnioActivo = $anio === (int)$this->getActiveFiscalYear();
+        $joinTasa = $esAnioActivo
+            ? 'JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa'
+            : 'JOIN tasa_bcv tb ON tb.id_tasa = COALESCE('
+                . '(SELECT t.id_tasa FROM tasa_bcv t WHERE t.estado = 1 ORDER BY t.fecha_reg DESC, t.id_tasa DESC LIMIT 1)'
+                . ', (SELECT t.id_tasa FROM tasa_bcv t ORDER BY t.fecha_reg DESC, t.id_tasa DESC LIMIT 1))';
+        $filtroAnio = "af.anio = {$anio} AND (af.activo = 0 OR r.estado = 1)";
+        $exprUnidad = $this->exprUnidad('prod.nom_pres');
+
         $params = [];
         if (!empty($id)) {
             $estadoRegistro = $incluirNoEnviados ? 0 : 1;
@@ -173,6 +229,7 @@ class reporteModel extends ConnectDB
                     p.cod_partida AS codigo,
                     p.descripcion AS partida,
                     prod.nom_pres AS Descripcion,
+                    COALESCE(um.unidad, {$exprUnidad}) AS unidad,
                     prod.precio AS precio,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), 0) AS Ene,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), 0) AS Feb,
@@ -192,6 +249,7 @@ class reporteModel extends ConnectDB
                     COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
                 FROM presupuesto prod
                 JOIN partidas p ON prod.id_partida = p.id_partida
+                LEFT JOIN unidades_medida um ON um.id_unidad = prod.id_unidad
                 LEFT JOIN (
                     SELECT 
                         dr.id_pres, 
@@ -201,15 +259,16 @@ class reporteModel extends ConnectDB
                     FROM detalle_req dr
                     JOIN requerimiento r ON dr.id_req = r.id_req
                     JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
-                    JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
-                    WHERE r.estado = 1 AND af.activo = 1 AND r.estado_registro = {$estadoRegistro} AND r.id_dep = ?
+                    {$joinTasa}
+                    WHERE {$filtroAnio} AND r.estado_registro = {$estadoRegistro} AND r.id_dep = ?
                 ) AS req_valido ON prod.id_pres = req_valido.id_pres
                 GROUP BY 
                     p.cod_partida, 
                     p.descripcion,
                     prod.id_pres, 
                     prod.nom_pres, 
-                    prod.precio
+                    prod.precio,
+                    um.unidad
                 HAVING COALESCE(SUM(req_valido.cant_mes), 0) > 0
                 ORDER BY 
                     p.cod_partida ASC, 
@@ -221,6 +280,7 @@ class reporteModel extends ConnectDB
                     p.cod_partida AS codigo,
                     p.descripcion AS partida,
                     prod.nom_pres AS Descripcion,
+                    COALESCE(um.unidad, {$exprUnidad}) AS unidad,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 1 THEN req_valido.cant_mes ELSE 0 END), 0) AS Ene,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 2 THEN req_valido.cant_mes ELSE 0 END), 0) AS Feb,
                     COALESCE(SUM(CASE WHEN req_valido.mes = 3 THEN req_valido.cant_mes ELSE 0 END), 0) AS Mar,
@@ -240,6 +300,7 @@ class reporteModel extends ConnectDB
                     COALESCE(SUM(req_valido.cant_mes * prod.precio * req_valido.tasa_bcv_usd), 0) AS Total_precio
                 FROM presupuesto prod
                 JOIN partidas p ON prod.id_partida = p.id_partida
+                LEFT JOIN unidades_medida um ON um.id_unidad = prod.id_unidad
                 LEFT JOIN (
                     SELECT 
                         dr.id_pres, 
@@ -249,15 +310,16 @@ class reporteModel extends ConnectDB
                     FROM detalle_req dr
                     JOIN requerimiento r ON dr.id_req = r.id_req
                     JOIN anio_fiscal af ON r.id_aniof = af.id_aniof
-                    JOIN tasa_bcv tb ON r.id_tasa = tb.id_tasa
-                    WHERE r.estado = 1 AND r.estado_registro = 1 AND af.activo = 1
+                    {$joinTasa}
+                    WHERE {$filtroAnio} AND r.estado_registro = 1
                 ) AS req_valido ON prod.id_pres = req_valido.id_pres
                 GROUP BY 
                     p.cod_partida, 
                     p.descripcion,
                     prod.id_pres, 
                     prod.nom_pres, 
-                    prod.precio
+                    prod.precio,
+                    um.unidad
                 ORDER BY 
                     p.cod_partida ASC, 
                     prod.nom_pres ASC";
@@ -276,27 +338,51 @@ class reporteModel extends ConnectDB
         }
     }
 
-    private function executeGetProReport(array $idPartidas = [])
-    {
+    private function executeGetProReport(
+        array $idPartidas = [],
+        array $unidades = [],
+        ?float $precioMin = null,
+        ?float $precioMax = null
+    ) {
         try {
-            $filtroPartidas = '';
+            $condiciones = [];
             $params = [];
             if ($idPartidas) {
                 $placeholders = implode(',', array_fill(0, count($idPartidas), '?'));
-                $filtroPartidas = "WHERE prod.id_partida IN ({$placeholders})";
-                $params = $idPartidas;
+                $condiciones[] = "prod.id_partida IN ({$placeholders})";
+                $params = array_merge($params, $idPartidas);
             }
+
+            $exprUnidad = $this->exprUnidad('prod.nom_pres');
+            if ($unidades) {
+                $placeholders = implode(',', array_fill(0, count($unidades), '?'));
+                $condiciones[] = "UPPER(TRIM(COALESCE(um.unidad, {$exprUnidad}))) IN ({$placeholders})";
+                $params = array_merge($params, array_values($unidades));
+            }
+
+            if ($precioMin !== null) {
+                $condiciones[] = 'prod.precio >= ?';
+                $params[] = $precioMin;
+            }
+            if ($precioMax !== null) {
+                $condiciones[] = 'prod.precio <= ?';
+                $params[] = $precioMax;
+            }
+
+            $whereSql = $condiciones ? 'WHERE ' . implode(' AND ', $condiciones) : '';
             $query = "
                 SELECT 
                     p.descripcion AS partida,
                     p.cod_partida AS codigo,
                     prod.nom_pres AS Descripcion,
+                    COALESCE(um.unidad, {$exprUnidad}) AS unidad,
                     prod.precio AS precio_dolares,
                     COALESCE(prod.precio * tb.tasa_bcv_usd, prod.precio) AS precio_bolivares
                 FROM presupuesto prod
                 JOIN partidas p ON prod.id_partida = p.id_partida
+                LEFT JOIN unidades_medida um ON um.id_unidad = prod.id_unidad
                 LEFT JOIN tasa_bcv tb ON tb.estado = 1
-                {$filtroPartidas}
+                {$whereSql}
                 ORDER BY 
                     p.cod_partida ASC, 
                     prod.nom_pres ASC";

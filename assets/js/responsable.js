@@ -328,6 +328,15 @@ $(document).ready(function() {
             { data: 'responsables' },
             { data: 'estado', render: (d) => Number(d) === 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>' },
             { data: null, render: (d) => {
+                if (Number(d.acceso_total) === 1) {
+                    return '<span class="badge badge-success">Todos</span>';
+                }
+                const total = Number(d.total_modulos) || 0;
+                return total > 0
+                    ? `<span class="badge badge-gray">${total} m&oacute;dulo${total > 1 ? 's' : ''}</span>`
+                    : '<span class="badge badge-danger">Sin acceso</span>';
+            }},
+            { data: null, render: (d) => {
                 let actions = '';
                 if (Number(d.protegido) === 1) {
                     actions = '<span class="badge badge-gray">protegido</span>';
@@ -342,6 +351,7 @@ $(document).ready(function() {
                         actions += ` <button value="${d.id_rol}" class="btn btn-success btn-sm btn-activar-rol" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                     }
                 }
+                actions += ` <button value="${d.id_rol}" class="btn btn-sm btn-edit btn-modulos-rol" aria-label="Módulos" title="Acceso a módulos"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></button>`;
                 return actions;
             }}
         ],
@@ -370,13 +380,14 @@ $(document).ready(function() {
     $('#btnCerrarModalRoles, #btnCerrarModalRoles2').on('click', function() { $('#modalRoles').hide(); });
     $('#btnCerrarModalRol, #btnCerrarModalRol2').on('click', function() { $('#modalRol').hide(); });
     $('#btnCerrarModalEditarRol, #btnCerrarModalEditarRol2').on('click', function() { $('#modalEditarRol').hide(); });
+    $('#btnCerrarModalModulosRol, #btnCerrarModalModulosRol2').on('click', function() { $('#modalModulosRol').hide(); });
 
-    $('#modalRoles, #modalRol, #modalEditarRol').on('click', function(e) {
+    $('#modalRoles, #modalRol, #modalEditarRol, #modalModulosRol').on('click', function(e) {
         if (e.target === this) $(this).hide();
     });
 
     $(document).on('keydown', function(e) {
-        if (e.key === 'Escape') $('#modalRoles, #modalRol, #modalEditarRol').hide();
+        if (e.key === 'Escape') $('#modalRoles, #modalRol, #modalEditarRol, #modalModulosRol').hide();
     });
 
     // Editar rol
@@ -499,6 +510,108 @@ $(document).ready(function() {
                 console.error('AJAX update rol error:', status, error, xhr.responseText);
                 alert('Error en la petición de actualización. Revise la consola.');
                 $btn.prop('disabled', false).text('✓ Guardar cambios');
+            }
+        });
+    });
+
+    // ─── Acceso a módulos por rol (personalización de permisos) ──────
+    function pintarModulosRol(res) {
+        $('#modulosRol_id').val(res.id_rol);
+        $('#modulosRolTitulo').html('Acceso a m&oacute;dulos &mdash; ' + $('<div>').text(res.descripcion).html());
+
+        const protegido = Number(res.protegido) === 1;
+        const accesoTotal = !!res.accesoTotal;
+        const modulos = Array.isArray(res.modulos) ? res.modulos : [];
+        const catalogo = (res.catalogo && typeof res.catalogo === 'object') ? res.catalogo : {};
+
+        $('#modulosRolAviso').toggle(protegido);
+        $('#modulosRolTodos').prop({ checked: accesoTotal, disabled: protegido });
+        $('#btnGuardarModulosRol').prop('disabled', protegido);
+
+        const $lista = $('#modulosRolLista').empty();
+        Object.keys(catalogo).forEach(function(clave) {
+            const marcado = accesoTotal || modulos.indexOf(clave) !== -1;
+            const $check = $('<input type="checkbox">').attr('value', clave)
+                .prop('checked', marcado).prop('disabled', protegido);
+            $lista.append(
+                $('<label class="modulo-check"></label>')
+                    .append($check)
+                    .append($('<span></span>').text(catalogo[clave]))
+            );
+        });
+    }
+
+    $(document).on('click', '.btn-modulos-rol', function() {
+        const idRol = this.value;
+
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: { getModulosRol: true, idRol: idRol },
+            success: function(res) {
+                if (res && res.success) {
+                    pintarModulosRol(res);
+                    $('#modalModulosRol').show();
+                } else {
+                    alert((res && res.message) || 'No se pudo cargar el acceso a módulos del rol.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX getModulosRol error:', status, error, xhr.responseText);
+                alert('Error en la petición. Revise la consola.');
+            }
+        });
+    });
+
+    // Marcar/desmarcar todos los módulos
+    $('#modulosRolTodos').on('change', function() {
+        const todos = this.checked;
+        $('#modulosRolLista input[type="checkbox"]').prop('checked', todos);
+    });
+
+    // Si se desmarca un módulo se desactiva "todos"; si quedan todos marcados se activa
+    $(document).on('change', '#modulosRolLista input[type="checkbox"]', function() {
+        const $checks = $('#modulosRolLista input[type="checkbox"]');
+        $('#modulosRolTodos').prop('checked', $checks.length > 0 && $checks.filter(':checked').length === $checks.length);
+    });
+
+    $('#formModulosRol').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#btnGuardarModulosRol');
+        if ($btn.prop('disabled')) return;
+
+        const modulos = [];
+        $('#modulosRolLista input[type="checkbox"]').each(function() {
+            if (this.checked) modulos.push(this.value);
+        });
+
+        $btn.prop('disabled', true).text('Guardando…');
+
+        $.ajax({
+            url: currentUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                saveModulosRol: true,
+                idRol: $('#modulosRol_id').val(),
+                accesoTotal: $('#modulosRolTodos').is(':checked') ? '1' : '0',
+                modulos: modulos
+            },
+            success: function(res) {
+                $btn.prop('disabled', false).text('✓ Guardar acceso');
+                if (res && res.success) {
+                    alert(res.message || 'Acceso a módulos actualizado');
+                    $('#modalModulosRol').hide();
+                    recargarRoles();
+                } else {
+                    alert((res && res.message) || 'Error al guardar el acceso a módulos.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX saveModulosRol error:', status, error, xhr.responseText);
+                $btn.prop('disabled', false).text('✓ Guardar acceso');
+                alert('Error en la petición. Revise la consola.');
             }
         });
     });

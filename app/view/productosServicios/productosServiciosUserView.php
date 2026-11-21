@@ -19,6 +19,9 @@ include_once 'app/view/layout/head.php';
                 <?php if ($this->puedeGestionarPartidas()): ?>
                     <button type="button" id="btnPartidas" class="btn btn-outline btn-sm"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Partidas presupuestaria</button>
                 <?php endif; ?>
+                <?php if ($this->puedeGestionarUnidades()): ?>
+                    <button type="button" id="btnUnidades" class="btn btn-outline btn-sm"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> Unidades de medida</button>
+                <?php endif; ?>
             </div>
         </div>
         <div class="card-body">
@@ -47,6 +50,7 @@ include_once 'app/view/layout/head.php';
                         <th>Partida</th>
                         <th>Proveedor</th>
                         <th>Nombre</th>
+                        <th>Unidad</th>
                         <th>Precio unitario (USD)</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -66,13 +70,16 @@ include_once 'app/view/layout/head.php';
             <h3>Nuevo registro &mdash; Producto o Servicio</h3>
             <button id="btnCerrarModalRegistro" class="modal-close">&times;</button>
         </div>
-        <?php if (empty($partidas) || empty($proveedores)): ?>
+        <?php if (empty($partidas) || empty($proveedores) || empty($unidades)): ?>
             <div class="modal-body">
                 <?php if (empty($partidas)): ?>
                     <div class="alert-banner-sub">No se encontraron partidas existentes. Cree primero las partidas 401, 402, 403, 404 o 407 en el catálogo correspondiente.</div>
                 <?php endif; ?>
                 <?php if (empty($proveedores)): ?>
                     <div class="alert-banner-sub">No se encontraron proveedores activos. Cree primero un proveedor en el catálogo correspondiente.</div>
+                <?php endif; ?>
+                <?php if (empty($unidades)): ?>
+                    <div class="alert-banner-sub">No se encontraron unidades de medida activas. Cree primero las unidades de medida en el catálogo correspondiente.</div>
                 <?php endif; ?>
             </div>
             <div class="modal-footer">
@@ -98,6 +105,17 @@ include_once 'app/view/layout/head.php';
                             <?php foreach ($proveedores as $proveedor): ?>
                                 <option value="<?php echo htmlspecialchars((string)$proveedor['id_proveedor']); ?>">
                                     <?php echo htmlspecialchars($proveedor['nombre']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Unidad de medida</label>
+                        <select name="id_unidad" class="field-input field-select" required>
+                            <?php foreach ($unidades as $unidad): ?>
+                                <option value="<?php echo htmlspecialchars((string)$unidad['id_unidad']); ?>">
+                                    <?php echo htmlspecialchars($unidad['unidad']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -150,6 +168,17 @@ include_once 'app/view/layout/head.php';
                         <?php foreach ($proveedores as $proveedor): ?>
                             <option value="<?php echo htmlspecialchars((string)$proveedor['id_proveedor']); ?>">
                                 <?php echo htmlspecialchars($proveedor['nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Unidad de medida</label>
+                    <select id="edit_unidad_id" name="id_unidad" class="field-input field-select" required>
+                        <?php foreach ($unidades as $unidad): ?>
+                            <option value="<?php echo htmlspecialchars((string)$unidad['id_unidad']); ?>">
+                                <?php echo htmlspecialchars($unidad['unidad']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -266,6 +295,94 @@ include_once 'app/view/layout/head.php';
 
             <div class="modal-footer">
                 <button type="button" id="btnCerrarModalEditarPartida2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($this->puedeGestionarUnidades()): ?>
+<div id="modalUnidades" class="modal-backdrop" style="display:none; z-index:210;">
+    <div class="modal-panel" style="max-width:700px;">
+        <div class="modal-header">
+            <h3>Unidades de medida</h3>
+            <button id="btnCerrarModalUnidades" class="modal-close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="table-wrap">
+                <table id="tablaUnidades" class="siap-table" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Unidad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" id="btnNuevaUnidad" class="btn btn-outline" style="margin-right:auto;">&#43; Nueva unidad</button>
+            <button type="button" id="btnCerrarModalUnidades2" class="btn btn-success">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalUnidad" class="modal-backdrop" style="display:none; z-index:220;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nueva unidad de medida</h3>
+            <button id="btnCerrarModalUnidad" class="modal-close">&times;</button>
+        </div>
+
+        <form id="formUnidad">
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Unidad de medida</label>
+                    <input type="text" id="unidad_nombre" name="unidad" class="field-input" maxlength="40" placeholder="Ej. CAJA" required>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalUnidad2" class="btn btn-outline">Cancelar</button>
+                <button type="submit" class="btn btn-success">&#10003; Guardar unidad</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalEditarUnidad" class="modal-backdrop" style="display:none; z-index:230;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Editar unidad de medida</h3>
+            <button id="btnCerrarModalEditarUnidad" class="modal-close">&times;</button>
+        </div>
+
+        <form id="formUnidadEditar">
+            <input type="hidden" id="editUnidad_id" name="idUnidad">
+
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Unidad de medida</label>
+                    <input type="text" id="editUnidad_nombre" name="unidad" class="field-input" maxlength="40" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Estado</label>
+                    <select id="editUnidad_estado" name="estado" class="field-input field-select" required>
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btnCerrarModalEditarUnidad2" class="btn btn-outline">Cancelar</button>
                 <button type="submit" class="btn btn-success">&#10003; Guardar cambios</button>
             </div>
         </form>

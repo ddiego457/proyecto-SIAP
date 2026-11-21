@@ -5,6 +5,7 @@ $(document).ready(function() {
   $('#formRegistroPS').siapValidar({
     id_partida: { regla: 'requerido', mensaje: 'Seleccione una partida presupuestaria.' },
     id_proveedor: { regla: 'requerido', mensaje: 'Seleccione un proveedor.' },
+    id_unidad: { regla: 'requerido', mensaje: 'Seleccione una unidad de medida.' },
     nom_item: { regla: 'nombreProducto' },
     precio: { regla: 'precio' }
   });
@@ -12,6 +13,7 @@ $(document).ready(function() {
   $('#formEditar').siapValidar({
     id_partida: { regla: 'requerido', mensaje: 'Seleccione una partida presupuestaria.' },
     id_proveedor: { regla: 'requerido', mensaje: 'Seleccione un proveedor.' },
+    id_unidad: { regla: 'requerido', mensaje: 'Seleccione una unidad de medida.' },
     nom_item: { regla: 'nombreProducto' },
     precio: { regla: 'precio' }
   });
@@ -24,6 +26,15 @@ $(document).ready(function() {
   $('#formPartidaEditar').siapValidar({
     cod_partida: { regla: 'codigoPartida' },
     descripcion: { regla: 'descrPresupuesto' },
+    estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
+  });
+
+  $('#formUnidad').siapValidar({
+    unidad: { regla: 'unidadMedida' }
+  });
+
+  $('#formUnidadEditar').siapValidar({
+    unidad: { regla: 'unidadMedida' },
     estado: { regla: 'requerido', mensaje: 'Seleccione un estado.' }
   });
 
@@ -52,6 +63,7 @@ $(document).ready(function() {
       { data: 'cod_partida' },
       { data: 'proveedor' },
       { data: 'nom_pres' },
+      { data: 'unidad' },
       { data: 'precio' },
       { data: null, render: (d) => {
           return (d.estado == 1)
@@ -146,6 +158,14 @@ $(document).ready(function() {
     $('#edit_idItem').val(data.id_pres);
     $('#edit_partida_id').val(data.id_partida);
     $('#edit_proveedor_id').val(data.id_proveedor);
+    // La unidad puede estar inhabilitada: si no está en el select (que solo
+    // muestra activas) se agrega para no perder la referencia al guardar.
+    const $selUnidad = $('#edit_unidad_id');
+    const idUnidad = data.id_unidad || '';
+    if (idUnidad && !$selUnidad.find('option[value="' + idUnidad + '"]').length) {
+      $selUnidad.append($('<option>', { value: idUnidad, text: (data.unidad || '—') + ' (inactiva)' }));
+    }
+    $selUnidad.val(String(idUnidad));
     $('#edit_nom_prod').val(data.nom_pres);
     $('#edit_precio').val(data.precio);
     $('#formEditar').siapValidar('limpiar');
@@ -207,7 +227,7 @@ $(document).ready(function() {
   // Cerrar con la tecla ESC
   $(document).on('keydown', function(e) {
     if (e.key === 'Escape') {
-      $('#modalPartida, #modalPartidas, #modalEditarPartida').hide();
+      $('#modalPartida, #modalPartidas, #modalEditarPartida, #modalUnidad, #modalUnidades, #modalEditarUnidad').hide();
     }
   });
 
@@ -410,6 +430,219 @@ $(document).ready(function() {
       },
       error: function(xhr, status, error) {
         console.error('AJAX update partida error:', status, error, xhr.responseText);
+        alert('Error en la petición de actualización. Revise la consola.');
+        $btn.prop('disabled', false).text('✓ Guardar cambios');
+      }
+    });
+  });
+
+  // ─── Mantenimiento de unidades de medida ──────────────────────────
+  const tablaUnidades = $('#tablaUnidades').length ? $('#tablaUnidades').DataTable({
+    ajax: {
+      url: currentUrl,
+      method: 'POST',
+      data: { getAllUnidadesMedida: true },
+      dataSrc: function(json) {
+        return (json && Array.isArray(json)) ? json : [];
+      }
+    },
+    columns: [
+      { data: 'id_unidad' },
+      { data: 'unidad' },
+      { data: 'estado', render: function(d) {
+          return (parseInt(d, 10) === 1)
+            ? '<span class="badge badge-success">Activo</span>'
+            : '<span class="badge badge-danger">Inactivo</span>';
+        }
+      },
+      { data: null, render: function(d) {
+          let acciones = `<button value="${d.id_unidad}" class="btn btn-sm btn-edit btn-modificar-unidad" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
+          if (parseInt(d.estado, 10) === 1) {
+            acciones += `<button value="${d.id_unidad}" class="btn btn-warning btn-sm btn-inactivar-unidad" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
+          } else {
+            acciones += `<button value="${d.id_unidad}" class="btn btn-success btn-sm btn-activar-unidad" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
+          }
+          return acciones;
+        }
+      }
+    ],
+    autoWidth: false,
+    language: {
+      url: "assets/js/DataTables/spanish.json"
+    }
+  }) : null;
+
+  function recargarUnidades() {
+    if (tablaUnidades) tablaUnidades.ajax.reload();
+    // La tabla principal muestra la unidad de medida del producto
+    tabla.ajax.reload();
+  }
+
+  // Topbar: abrir el listado de unidades de medida
+  $('#btnUnidades').on('click', function() {
+    $('#modalUnidades').show();
+    if (tablaUnidades) tablaUnidades.ajax.reload();
+  });
+
+  // Desde el listado, abrir el formulario de registro
+  $('#btnNuevaUnidad').on('click', function() {
+    $('#formUnidad')[0].reset();
+    $('#formUnidad').siapValidar('limpiar');
+    $('#modalUnidad').show();
+    $('#unidad_nombre').focus();
+  });
+
+  $('#btnCerrarModalUnidades, #btnCerrarModalUnidades2').on('click', function() {
+    $('#modalUnidades').hide();
+  });
+
+  $('#modalUnidades').on('click', function(e) {
+    if (e.target === this) $('#modalUnidades').hide();
+  });
+
+  $('#btnCerrarModalUnidad, #btnCerrarModalUnidad2').on('click', function() {
+    $('#modalUnidad').hide();
+  });
+
+  $('#modalUnidad').on('click', function(e) {
+    if (e.target === this) $('#modalUnidad').hide();
+  });
+
+  $('#btnCerrarModalEditarUnidad, #btnCerrarModalEditarUnidad2').on('click', function() {
+    $('#modalEditarUnidad').hide();
+  });
+
+  $('#modalEditarUnidad').on('click', function(e) {
+    if (e.target === this) $('#modalEditarUnidad').hide();
+  });
+
+  $('#formUnidad').on('submit', function(e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    if ($btn.prop('disabled')) return;
+
+    const formData = new FormData(e.target);
+    formData.append('registerUnidadMedida', true);
+
+    $btn.prop('disabled', true).text('Guardando…');
+
+    $.ajax({
+      url: currentUrl,
+      method: 'POST',
+      data: formData,
+      dataType: 'json',
+      processData: false,
+      contentType: false,
+      success: function(res) {
+        if (res && res.success) {
+          alert(res.message || 'Unidad de medida registrada correctamente');
+          // Recarga la página para actualizar los selects de producto (se renderizan en PHP)
+          window.location.reload();
+        } else {
+          alert((res && res.message) || 'Error al registrar la unidad de medida.');
+          $btn.prop('disabled', false).text('✓ Guardar unidad');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX unidad error:', status, error, xhr.responseText);
+        alert('Error en la petición. Revise la consola.');
+        $btn.prop('disabled', false).text('✓ Guardar unidad');
+      }
+    });
+  });
+
+  // Editar unidad de medida
+  $(document).on('click', '.btn-modificar-unidad', function() {
+    if (!tablaUnidades) return;
+    const data = tablaUnidades.row($(this).closest('tr')).data();
+    $('#editUnidad_id').val(data.id_unidad);
+    $('#editUnidad_nombre').val(data.unidad);
+    $('#editUnidad_estado').val(parseInt(data.estado, 10) === 1 ? '1' : '0');
+    $('#formUnidadEditar').siapValidar('limpiar');
+    $('#modalEditarUnidad').show();
+  });
+
+  // Inhabilitar unidad (estado = 0)
+  $(document).on('click', '.btn-inactivar-unidad', function() {
+    if (!confirm('¿Inhabilitar esta unidad de medida? Los productos que la usan mantienen la referencia.')) return;
+    const idUnidad = this.value;
+
+    $.ajax({
+      url: currentUrl,
+      method: 'POST',
+      dataType: 'json',
+      data: { idUnidad: idUnidad, deleteUnidadMedida: true },
+      success: function(res) {
+        if (res && res.success) {
+          alert(res.message || 'Unidad de medida inhabilitada');
+          recargarUnidades();
+        } else {
+          alert((res && res.message) || 'Error al inhabilitar la unidad de medida.');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX delete unidad error:', status, error, xhr.responseText);
+        alert('Error en la petición de inhabilitación. Revise la consola.');
+      }
+    });
+  });
+
+  // Activar unidad (estado = 1)
+  $(document).on('click', '.btn-activar-unidad', function() {
+    const idUnidad = this.value;
+
+    $.ajax({
+      url: currentUrl,
+      method: 'POST',
+      dataType: 'json',
+      data: { idUnidad: idUnidad, activateUnidadMedida: true },
+      success: function(res) {
+        if (res && res.success) {
+          alert(res.message || 'Unidad de medida activada');
+          recargarUnidades();
+        } else {
+          alert((res && res.message) || 'Error al activar la unidad de medida.');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX activate unidad error:', status, error, xhr.responseText);
+        alert('Error en la petición de activación. Revise la consola.');
+      }
+    });
+  });
+
+  $('#formUnidadEditar').on('submit', function(e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    if ($btn.prop('disabled')) return;
+
+    const formData = new FormData($form[0]);
+    formData.append('updateUnidadMedida', true);
+
+    $btn.prop('disabled', true).text('Guardando…');
+
+    $.ajax({
+      url: currentUrl,
+      method: 'POST',
+      data: formData,
+      dataType: 'json',
+      processData: false,
+      contentType: false,
+      success: function(res) {
+        if (res && res.success) {
+          alert(res.message || 'Unidad de medida actualizada exitosamente');
+          $('#modalEditarUnidad').hide();
+          // Recarga para refrescar los selects de producto (PHP) y el listado
+          window.location.reload();
+        } else {
+          alert((res && res.message) || 'Error al actualizar la unidad de medida.');
+          $btn.prop('disabled', false).text('✓ Guardar cambios');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX update unidad error:', status, error, xhr.responseText);
         alert('Error en la petición de actualización. Revise la consola.');
         $btn.prop('disabled', false).text('✓ Guardar cambios');
       }

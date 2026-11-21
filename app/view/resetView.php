@@ -12,7 +12,7 @@ $token = isset($token) ? $token : '';
 <link rel="icon" type="image/x-icon" href="assets/img/SIAPpeque%C3%B1o.ico">
 <link rel="apple-touch-icon" href="assets/img/SIAPlogo.png">
 
-<link rel="stylesheet" href="assets/css/loginDesign.css">
+<link rel="stylesheet" href="assets/css/loginDesign.css?v=<?php echo file_exists('assets/css/loginDesign.css') ? filemtime('assets/css/loginDesign.css') : time(); ?>">
 </head>
 
 <body>
@@ -60,10 +60,6 @@ $token = isset($token) ? $token : '';
 
             <button type="submit" class="btn">Guardar contraseña →</button>
         </form>
-
-        <p style="text-align:center; margin-top:18px; font-size:14px;">
-            <a href="?url=inicio" style="color:#1f6f54;">← Volver al login</a>
-        </p>
         </section>
 
         <section class="footer">

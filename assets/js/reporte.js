@@ -5,6 +5,12 @@
     let dependencySearchTimer = null;
     let dependencySearchController = null;
     let dependencySuggestionsOpen = false;
+    let currentExport = null;
+    let lastFocusedElement = null;
+    let partidasCache = null;
+    let aniosCache = null;
+    let anioActivo = null;
+    let unidadesCache = null;
 
     const reportDefinitions = [
         {
@@ -48,6 +54,27 @@
                     <small id="lblPartidasSeleccionadas" class="partidas-selection-count" aria-live="polite">
                         Todas las partidas seleccionadas
                     </small>
+                </div>
+                <div class="field-group partidas-filter" style="margin-bottom:12px;">
+                    <span class="field-label" style="font-size:.85rem;">Unidades de medida</span>
+                    <label class="partidas-all-option">
+                        <input type="checkbox" id="chkTodasUnidadesReport" checked>
+                        <span><strong>Todas las unidades</strong><small>Incluye todas las unidades registradas</small></span>
+                    </label>
+                    <div id="selUnidadesReport" class="partidas-options" aria-label="Unidades de medida">
+                        <div class="partidas-loading">Cargando unidades...</div>
+                    </div>
+                    <small id="lblUnidadesSeleccionadas" class="partidas-selection-count" aria-live="polite">
+                        Todas las unidades seleccionadas
+                    </small>
+                </div>
+                <div class="field-group partidas-filter" style="margin-bottom:12px;">
+                    <span class="field-label" style="font-size:.85rem;">Rango de precios (USD)</span>
+                    <div class="price-range">
+                        <input type="number" id="precioMinReport" class="field-input" min="0" step="0.01" inputmode="decimal" placeholder="Precio mínimo" aria-label="Precio mínimo">
+                        <input type="number" id="precioMaxReport" class="field-input" min="0" step="0.01" inputmode="decimal" placeholder="Precio máximo" aria-label="Precio máximo">
+                    </div>
+                    <small class="partidas-selection-count">Déjelo vacío para no limitar el precio.</small>
                 </div>`;
         }
 
@@ -74,6 +101,7 @@
 
         if (code === 'req_individual') {
             return `
+                ${renderAnioFilterHtml()}
                 ${isAdmin ? `
                     <div class="field-group dependency-search" style="margin-bottom:12px;">
                         <label class="field-label" for="selDepIndividual" style="font-size:.85rem;">Dependencia</label>
@@ -110,6 +138,7 @@
 
         if (code === 'req_global') {
             return `
+                ${renderAnioFilterHtml()}
                 <div class="field-group report-choice-group" style="margin-bottom:12px;">
                     <span class="field-label">Tipo de consolidado</span>
                     <div id="selModoGlobal" class="report-choice-list" role="radiogroup" aria-label="Tipo de consolidado">
@@ -132,6 +161,17 @@
         return '';
     }
 
+    function renderAnioFilterHtml() {
+        return `
+                <div class="field-group" style="margin-bottom:12px;">
+                    <label class="field-label" for="selAnioReporte" style="font-size:.85rem;">Año fiscal</label>
+                    <select id="selAnioReporte" class="field-select" aria-describedby="avisoAnioReporte">
+                        <option value="">Cargando años...</option>
+                    </select>
+                    <small id="avisoAnioReporte" class="report-note" aria-live="polite"></small>
+                </div>`;
+    }
+
     function renderReportCards() {
         const grid = document.getElementById('reportGrid');
         const intro = document.getElementById('reportIntro');
@@ -140,8 +180,8 @@
         const isAdmin = grid.dataset.isAdmin === 'true';
         const reports = reportDefinitions.filter(report => isAdmin || !report.adminOnly);
         intro.textContent = isAdmin
-            ? 'Selecciona cualquiera de los cuatro informes y el formato. Los archivos se generan y descargan directamente.'
-            : 'Solo puedes generar un informe de tu propio requerimiento. Si está vacío, el sistema te indicará qué debes completar.';
+            ? 'Selecciona cualquiera de los cuatro informes y el formato. Al elegir uno se abrirá una ventana para completar los filtros de descarga.'
+            : 'Solo puedes generar un informe de tu propio requerimiento. Al elegir el formato se abrirá una ventana para completar los filtros de descarga.';
         grid.classList.toggle('report-grid-single', reports.length === 1);
         grid.innerHTML = reports.map(report => {
             const description = !isAdmin && report.code === 'req_individual'
@@ -149,18 +189,18 @@
                 : report.description;
             const exportButtons = report.code === 'req_individual'
                 ? `
-                    <button type="button" class="btn btn-success btn-full" data-report-export data-report-code="${report.code}" data-report-format="excel" id="btnExpIndExcel">
+                    <button type="button" class="btn btn-success btn-full" data-report-open data-report-code="${report.code}" data-report-format="excel" id="btnExpIndExcel">
                         <span>&#128190;</span> Exportar Excel
                     </button>
-                    <button type="button" class="btn btn-primary btn-full" data-report-export data-report-code="${report.code}" data-report-format="pdf" style="margin-top:8px;" id="btnExpIndPdf">
+                    <button type="button" class="btn btn-primary btn-full" data-report-open data-report-code="${report.code}" data-report-format="pdf" style="margin-top:8px;" id="btnExpIndPdf">
                         <span>&#128221;</span> Exportar PDF
                     </button>`
                 : `
                     <div class="flex gap-10">
-                        <button type="button" class="btn btn-success" data-report-export data-report-code="${report.code}" data-report-format="excel" style="flex:1;">
+                        <button type="button" class="btn btn-success" data-report-open data-report-code="${report.code}" data-report-format="excel" style="flex:1;">
                             <span>&#128190;</span> Excel
                         </button>
-                        <button type="button" class="btn btn-primary" data-report-export data-report-code="${report.code}" data-report-format="pdf" style="flex:1;">
+                        <button type="button" class="btn btn-primary" data-report-open data-report-code="${report.code}" data-report-format="pdf" style="flex:1;">
                             <span>&#128221;</span> PDF
                         </button>
                     </div>`;
@@ -169,10 +209,133 @@
                 <div class="report-card">
                     <div class="report-card-title">${report.title}</div>
                     <div class="report-card-text">${description}</div>
-                    ${renderReportOptions(report.code, isAdmin)}
                     ${exportButtons}
                 </div>`;
         }).join('');
+    }
+
+    function openExportModal(code, format, trigger) {
+        if (exportInProgress) return;
+        const report = reportDefinitions.find(definition => definition.code === code);
+        const modal = document.getElementById('exportModal');
+        const title = document.getElementById('exportModalTitle');
+        const body = document.getElementById('exportModalBody');
+        const confirmButton = document.getElementById('btnConfirmExport');
+        if (!report || !modal || !title || !body || !confirmButton) return;
+
+        const grid = document.getElementById('reportGrid');
+        const isAdmin = grid?.dataset.isAdmin === 'true';
+        const formatLabel = format === 'pdf' ? 'PDF' : 'Excel';
+
+        lastFocusedElement = trigger instanceof HTMLElement ? trigger : document.activeElement;
+        currentExport = { code: code, format: format };
+
+        title.textContent = report.title + ' — ' + formatLabel;
+        body.innerHTML = renderReportOptions(code, isAdmin);
+        confirmButton.className = 'btn ' + (format === 'pdf' ? 'btn-primary' : 'btn-success');
+        confirmButton.innerHTML = '<span>&#128221;</span> Descargar ' + formatLabel;
+        modal.style.display = 'flex';
+
+        initModalFilters(code);
+        confirmButton.focus();
+    }
+
+    function closeExportModal() {
+        if (exportInProgress) return;
+        const modal = document.getElementById('exportModal');
+        const body = document.getElementById('exportModalBody');
+        if (!modal || !body || modal.style.display === 'none') return;
+
+        clearTimeout(dependencySearchTimer);
+        dependencySearchController?.abort();
+        setDependencySuggestionsOpen(false);
+
+        modal.style.display = 'none';
+        body.innerHTML = '';
+        currentExport = null;
+
+        if (lastFocusedElement instanceof HTMLElement) lastFocusedElement.focus();
+        lastFocusedElement = null;
+    }
+
+    function initModalFilters(code) {
+        const body = document.getElementById('exportModalBody');
+        if (!body) return;
+
+        body.querySelectorAll('.report-choice-list input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                radio.closest('.report-choice-list').querySelectorAll('.report-choice').forEach(choice => {
+                    choice.classList.toggle('is-selected', choice.querySelector('input').checked);
+                });
+                if (radio.closest('.report-choice-list').id === 'selEstadoReq') {
+                    const idDepInput = document.getElementById('idDepIndividual');
+                    if (idDepInput) idDepInput.value = '';
+                    scheduleDependencySearch();
+                }
+            });
+        });
+
+        if (code === 'productos_partida') {
+            document.getElementById('chkTodasPartidasReport')?.addEventListener('change', () => {
+                const optionsContainer = document.getElementById('selPartidasReport');
+                if (!optionsContainer) return;
+                optionsContainer.querySelectorAll('.partida-option-input').forEach(option => {
+                    option.checked = false;
+                    option.closest('.partida-option').classList.remove('is-selected');
+                });
+                updatePartidaSelectionSummary();
+            });
+            document.getElementById('chkTodasUnidadesReport')?.addEventListener('change', () => {
+                const optionsContainer = document.getElementById('selUnidadesReport');
+                if (!optionsContainer) return;
+                optionsContainer.querySelectorAll('.unidad-option-input').forEach(option => {
+                    option.checked = false;
+                    option.closest('.partida-option').classList.remove('is-selected');
+                });
+                updateUnidadSelectionSummary();
+            });
+            ensurePartidasLoaded();
+            ensureUnidadesLoaded();
+        }
+
+        if (code === 'req_individual' || code === 'req_global') {
+            document.getElementById('selAnioReporte')?.addEventListener('change', () => {
+                updateAvisoAnio();
+                if (code === 'req_individual') {
+                    const idDepInput = document.getElementById('idDepIndividual');
+                    if (idDepInput) idDepInput.value = '';
+                    scheduleDependencySearch();
+                }
+            });
+            ensureAniosLoaded().then(() => {
+                if (code === 'req_individual' && document.getElementById('selDepIndividual')) {
+                    searchDependencias();
+                }
+            });
+        }
+
+        if (code === 'req_individual') {
+            const dependencyInput = document.getElementById('selDepIndividual');
+            const dependencyToggle = document.getElementById('alternarSugerenciasDep');
+            dependencyInput?.addEventListener('input', () => {
+                const idDepInput = document.getElementById('idDepIndividual');
+                if (idDepInput) idDepInput.value = '';
+                scheduleDependencySearch();
+            });
+            dependencyToggle?.addEventListener('click', () => {
+                const results = document.getElementById('opcionesDepIndividual');
+                if (dependencySuggestionsOpen) {
+                    setDependencySuggestionsOpen(false);
+                    return;
+                }
+                if (results?.children.length) {
+                    setDependencySuggestionsOpen(true);
+                } else {
+                    setDependencySuggestionsOpen(true);
+                    searchDependencias();
+                }
+            });
+        }
     }
 
     function setDependencySuggestionsOpen(open) {
@@ -208,6 +371,15 @@
         return document.querySelector('#' + containerId + ' input[type="radio"]:checked')?.value || '';
     }
 
+    function parsePrecioReporte(input) {
+        if (!input) return null;
+        const raw = input.value.trim();
+        if (raw === '') return null;
+        const valor = Number(raw);
+        if (!Number.isFinite(valor) || valor < 0) return false;
+        return valor;
+    }
+
     function renderDependencySearchMessage(message) {
         const results = document.getElementById('opcionesDepIndividual');
         if (!results) return;
@@ -229,6 +401,14 @@
             return;
         }
 
+        const anioSelect = document.getElementById('selAnioReporte');
+        if (anioSelect && !anioSelect.value) {
+            renderDependencySearchMessage(anioSelect.textContent.includes('Error')
+                ? 'No se pudieron cargar los años fiscales.'
+                : 'Cargando años fiscales...');
+            return;
+        }
+
         const status = getChoiceValue('selEstadoReq') || 'registrado';
         dependencySearchController?.abort();
         dependencySearchController = new AbortController();
@@ -242,6 +422,7 @@
                 type: 'get_dependencias',
                 estado_registro: status,
                 q: nombre,
+                anio: document.getElementById('selAnioReporte')?.value || '',
             });
             const res = await fetch('?' + params.toString(), { signal: controller.signal });
             const data = await res.json();
@@ -288,41 +469,57 @@
         dependencySearchTimer = setTimeout(searchDependencias, 250);
     }
 
-    async function loadPartidas() {
+    function renderPartidasOptions(partidas) {
         const optionsContainer = document.getElementById('selPartidasReport');
         if (!optionsContainer) return;
+
+        optionsContainer.innerHTML = '';
+        partidas.forEach(partida => {
+            const label = document.createElement('label');
+            label.className = 'partida-option';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'partida-option-input';
+            checkbox.value = partida.id_partida;
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    const allCheckbox = document.getElementById('chkTodasPartidasReport');
+                    if (allCheckbox) allCheckbox.checked = false;
+                }
+                label.classList.toggle('is-selected', checkbox.checked);
+                updatePartidaSelectionSummary();
+            });
+
+            const text = document.createElement('span');
+            text.textContent = partida.cod_partida + ' - ' + partida.descripcion;
+
+            label.append(checkbox, text);
+            optionsContainer.appendChild(label);
+        });
+        updatePartidaSelectionSummary();
+    }
+
+    async function ensurePartidasLoaded() {
+        const optionsContainer = document.getElementById('selPartidasReport');
+        if (!optionsContainer) return;
+
+        if (Array.isArray(partidasCache)) {
+            renderPartidasOptions(partidasCache);
+            return;
+        }
 
         try {
             const res = await fetch('?url=reporte&type=get_partidas');
             const data = await res.json();
             if (!data.success) throw new Error(data.message);
 
-            optionsContainer.innerHTML = '';
-            (data.data || []).forEach(partida => {
-                const label = document.createElement('label');
-                label.className = 'partida-option';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'partida-option-input';
-                checkbox.value = partida.id_partida;
-                checkbox.addEventListener('change', () => {
-                    if (checkbox.checked) {
-                        document.getElementById('chkTodasPartidasReport').checked = false;
-                    }
-                    label.classList.toggle('is-selected', checkbox.checked);
-                    updatePartidaSelectionSummary();
-                });
-
-                const text = document.createElement('span');
-                text.textContent = partida.cod_partida + ' - ' + partida.descripcion;
-
-                label.append(checkbox, text);
-                optionsContainer.appendChild(label);
-            });
-            updatePartidaSelectionSummary();
+            partidasCache = data.data || [];
+            renderPartidasOptions(partidasCache);
         } catch (err) {
-            optionsContainer.innerHTML = '<div class="partidas-loading">Error al cargar partidas</div>';
+            partidasCache = null;
+            const container = document.getElementById('selPartidasReport');
+            if (container) container.innerHTML = '<div class="partidas-loading">Error al cargar partidas</div>';
             showToast('No se pudieron cargar las partidas: ' + err.message);
         }
     }
@@ -343,18 +540,151 @@
             : selectedCount + ' partidas seleccionadas';
     }
 
-    async function exportReport(reportCode, format, button) {
-        if (exportInProgress) return;
+    async function ensureUnidadesLoaded() {
+        const optionsContainer = document.getElementById('selUnidadesReport');
+        if (!optionsContainer) return;
+
+        if (Array.isArray(unidadesCache)) {
+            renderUnidadesOptions(unidadesCache);
+            return;
+        }
+
+        try {
+            const res = await fetch('?url=reporte&type=get_unidades');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            unidadesCache = data.data || [];
+            renderUnidadesOptions(unidadesCache);
+        } catch (err) {
+            unidadesCache = null;
+            const container = document.getElementById('selUnidadesReport');
+            if (container) container.innerHTML = '<div class="partidas-loading">Error al cargar unidades</div>';
+            showToast('No se pudieron cargar las unidades de medida: ' + err.message);
+        }
+    }
+
+    function renderUnidadesOptions(unidades) {
+        const optionsContainer = document.getElementById('selUnidadesReport');
+        if (!optionsContainer) return;
+
+        optionsContainer.innerHTML = '';
+        if (!unidades.length) {
+            optionsContainer.innerHTML = '<div class="partidas-loading">No hay unidades registradas</div>';
+            updateUnidadSelectionSummary();
+            return;
+        }
+
+        unidades.forEach(unidad => {
+            const label = document.createElement('label');
+            label.className = 'partida-option';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'unidad-option-input';
+            checkbox.value = unidad.unidad;
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    const allCheckbox = document.getElementById('chkTodasUnidadesReport');
+                    if (allCheckbox) allCheckbox.checked = false;
+                }
+                label.classList.toggle('is-selected', checkbox.checked);
+                updateUnidadSelectionSummary();
+            });
+
+            const text = document.createElement('span');
+            text.textContent = unidad.unidad;
+
+            label.append(checkbox, text);
+            optionsContainer.appendChild(label);
+        });
+        updateUnidadSelectionSummary();
+    }
+
+    function updateUnidadSelectionSummary() {
+        const allCheckbox = document.getElementById('chkTodasUnidadesReport');
+        const countLabel = document.getElementById('lblUnidadesSeleccionadas');
+        if (!countLabel) return;
+
+        if (allCheckbox?.checked) {
+            countLabel.textContent = 'Todas las unidades seleccionadas';
+            return;
+        }
+
+        const selectedCount = document.querySelectorAll('#selUnidadesReport .unidad-option-input:checked').length;
+        countLabel.textContent = selectedCount === 1
+            ? '1 unidad seleccionada'
+            : selectedCount + ' unidades seleccionadas';
+    }
+
+    async function ensureAniosLoaded() {
+        const select = document.getElementById('selAnioReporte');
+        if (!select) return;
+
+        if (Array.isArray(aniosCache)) {
+            renderAniosOptions(select);
+            return;
+        }
+
+        try {
+            const res = await fetch('?url=reporte&type=get_anios');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            aniosCache = data.data || [];
+            const activo = aniosCache.find(anio => Number(anio.activo) === 1);
+            anioActivo = activo ? Number(activo.anio) : null;
+            renderAniosOptions(select);
+        } catch (err) {
+            aniosCache = null;
+            select.innerHTML = '<option value="">Error al cargar años</option>';
+            showToast('No se pudieron cargar los años fiscales: ' + err.message);
+        }
+    }
+
+    function renderAniosOptions(select) {
+        select.innerHTML = aniosCache.map(anio => {
+            const valor = Number(anio.anio);
+            const activo = valor === anioActivo;
+            return '<option value="' + valor + '"' + (activo ? ' selected' : '') + '>'
+                + valor + (activo ? ' (activo)' : '')
+                + '</option>';
+        }).join('');
+        updateAvisoAnio();
+    }
+
+    function updateAvisoAnio() {
+        const select = document.getElementById('selAnioReporte');
+        const aviso = document.getElementById('avisoAnioReporte');
+        if (!select || !aviso) return;
+
+        const elegido = Number(select.value);
+        aviso.textContent = (anioActivo !== null && elegido && elegido !== anioActivo)
+            ? 'Año no activo: los cálculos se harán con la tasa BCV vigente (más reciente).'
+            : '';
+    }
+
+    async function exportReport(reportCode, format) {
+        if (exportInProgress || !currentExport) return;
 
         const selectedDependency = document.getElementById('idDepIndividual')?.value || '';
         const selectedStatus = getChoiceValue('selEstadoReq');
         const allPartidasCheckbox = document.getElementById('chkTodasPartidasReport');
+        const allUnidadesCheckbox = document.getElementById('chkTodasUnidadesReport');
+        const precioMinInput = document.getElementById('precioMinReport');
+        const precioMaxInput = document.getElementById('precioMaxReport');
+        const anioSelect = document.getElementById('selAnioReporte');
         const selectedDependencyFilter = getChoiceValue('selFiltroDependencias');
         const selectedGlobalMode = getChoiceValue('selModoGlobal');
 
         let idDep = 0;
         let estadoRegistro = '';
         let partidas = [];
+        let unidades = [];
+        let todasUnidades = false;
+        let anio = '';
+        let precioMin = null;
+        let precioMax = null;
         if (reportCode === 'req_individual') {
             estadoRegistro = selectedStatus;
             if (!estadoRegistro) {
@@ -375,6 +705,25 @@
                 showToast('Seleccione una o varias partidas, o todas.');
                 return;
             }
+            todasUnidades = Boolean(allUnidadesCheckbox?.checked);
+            if (!todasUnidades) {
+                unidades = Array.from(document.querySelectorAll('#selUnidadesReport .unidad-option-input:checked'))
+                    .map(checkbox => checkbox.value);
+                if (unidades.length === 0) {
+                    showToast('Seleccione una o varias unidades de medida, o todas.');
+                    return;
+                }
+            }
+            precioMin = parsePrecioReporte(precioMinInput);
+            precioMax = parsePrecioReporte(precioMaxInput);
+            if (precioMin === false || precioMax === false) {
+                showToast('El rango de precios debe ser un número positivo con hasta 2 decimales.');
+                return;
+            }
+            if (precioMin !== null && precioMax !== null && precioMin > precioMax) {
+                showToast('El precio mínimo no puede ser mayor que el precio máximo.');
+                return;
+            }
         } else if (reportCode === 'dependencias_responsable' && !selectedDependencyFilter) {
             showToast('Seleccione el tipo de dependencias.');
             return;
@@ -383,35 +732,55 @@
             return;
         }
 
-        const exportButtons = Array.from(document.querySelectorAll('[data-report-export]'));
-        const parameterControls = Array.from(document.querySelectorAll('.report-grid select, .report-grid input[type="checkbox"], .report-grid input[type="radio"], .report-grid input[type="search"]'));
-        const clickedButton = button instanceof HTMLButtonElement
-            ? button
-            : document.activeElement instanceof HTMLButtonElement
-                ? document.activeElement
-                : null;
-        const buttonStates = exportButtons.map(btn => ({ button: btn, disabled: btn.disabled }));
-        const controlStates = parameterControls.map(control => ({ control, disabled: control.disabled }));
-        const originalButtonText = clickedButton ? clickedButton.innerHTML : '';
-        exportInProgress = true;
-
-        exportButtons.forEach(btn => { btn.disabled = true; });
-        parameterControls.forEach(control => { control.disabled = true; });
-        if (clickedButton) {
-            clickedButton.innerHTML = '<span class="spinner"></span> Generando...';
+        if (reportCode === 'req_individual' || reportCode === 'req_global') {
+            anio = anioSelect?.value || '';
+            if (!anio) {
+                showToast('Seleccione el año del informe.');
+                return;
+            }
         }
 
+        const cardButtons = Array.from(document.querySelectorAll('[data-report-open]'));
+        const parameterControls = Array.from(document.querySelectorAll('#exportModalBody select, #exportModalBody input[type="checkbox"], #exportModalBody input[type="radio"], #exportModalBody input[type="search"], #exportModalBody input[type="number"]'));
+        const modalButtons = ['btnConfirmExport', 'btnCancelExport', 'btnCloseExportModal']
+            .map(id => document.getElementById(id))
+            .filter(control => control instanceof HTMLButtonElement);
+        const confirmButton = document.getElementById('btnConfirmExport');
+        const buttonStates = cardButtons.map(btn => ({ button: btn, disabled: btn.disabled }));
+        const controlStates = parameterControls.map(control => ({ control, disabled: control.disabled }));
+        const modalButtonStates = modalButtons.map(btn => ({ button: btn, disabled: btn.disabled }));
+        const originalConfirmText = confirmButton ? confirmButton.innerHTML : '';
+        exportInProgress = true;
+
+        cardButtons.forEach(btn => { btn.disabled = true; });
+        parameterControls.forEach(control => { control.disabled = true; });
+        modalButtons.forEach(btn => { btn.disabled = true; });
+        if (confirmButton) {
+            confirmButton.innerHTML = '<span class="spinner"></span> Generando...';
+        }
+
+        let downloadOk = false;
         try {
             let url = '?url=reporte&type=export&report=' + encodeURIComponent(reportCode) + '&format=' + encodeURIComponent(format);
             const formData = new FormData();
             if (idDep) formData.append('id_dep', idDep);
             if (estadoRegistro) formData.append('estado_registro', estadoRegistro);
+            if (reportCode === 'req_individual' || reportCode === 'req_global') {
+                formData.append('anio', anio);
+            }
             if (reportCode === 'productos_partida') {
                 if (partidas[0] === 'todas') {
                     formData.append('id_partidas', 'todas');
                 } else {
                     partidas.forEach(idPartida => formData.append('id_partidas[]', idPartida));
                 }
+                if (todasUnidades) {
+                    formData.append('unidades', 'todas');
+                } else {
+                    unidades.forEach(unidad => formData.append('unidades[]', unidad));
+                }
+                if (precioMin !== null) formData.append('precio_min', String(precioMin));
+                if (precioMax !== null) formData.append('precio_max', String(precioMax));
             }
             if (reportCode === 'dependencias_responsable') {
                 formData.append('filtro_dependencias', selectedDependencyFilter);
@@ -447,80 +816,56 @@
             window.URL.revokeObjectURL(downloadUrl);
 
             showToast('Descarga completada', 'success');
+            downloadOk = true;
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
         } finally {
-            if (clickedButton) clickedButton.innerHTML = originalButtonText;
+            if (confirmButton) confirmButton.innerHTML = originalConfirmText;
             buttonStates.forEach(state => { state.button.disabled = state.disabled; });
             controlStates.forEach(state => { state.control.disabled = state.disabled; });
+            modalButtonStates.forEach(state => { state.button.disabled = state.disabled; });
             exportInProgress = false;
         }
+
+        if (downloadOk) closeExportModal();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         renderReportCards();
-        loadPartidas();
+
         document.getElementById('reportGrid')?.addEventListener('click', event => {
-            const button = event.target.closest('[data-report-export]');
+            const button = event.target.closest('[data-report-open]');
             if (button) {
-                exportReport(button.dataset.reportCode, button.dataset.reportFormat, button);
+                openExportModal(button.dataset.reportCode, button.dataset.reportFormat, button);
             }
         });
-        const dependencyInput = document.getElementById('selDepIndividual');
-        const dependencyToggle = document.getElementById('alternarSugerenciasDep');
-        dependencyInput?.addEventListener('input', () => {
-            document.getElementById('idDepIndividual').value = '';
-            scheduleDependencySearch();
+
+        document.getElementById('btnCloseExportModal')?.addEventListener('click', closeExportModal);
+        document.getElementById('btnCancelExport')?.addEventListener('click', closeExportModal);
+        document.getElementById('btnConfirmExport')?.addEventListener('click', () => {
+            if (currentExport) exportReport(currentExport.code, currentExport.format);
         });
-        dependencyToggle?.addEventListener('click', () => {
-            const results = document.getElementById('opcionesDepIndividual');
+
+        const exportModal = document.getElementById('exportModal');
+        exportModal?.addEventListener('click', event => {
+            if (event.target === exportModal) closeExportModal();
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return;
+            if (!exportModal || exportModal.style.display === 'none') return;
             if (dependencySuggestionsOpen) {
                 setDependencySuggestionsOpen(false);
                 return;
             }
-            if (results?.children.length) {
-                setDependencySuggestionsOpen(true);
-            } else {
-                setDependencySuggestionsOpen(true);
-                searchDependencias();
-            }
+            closeExportModal();
         });
-        dependencyInput?.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                setDependencySuggestionsOpen(false);
-            }
-        });
-        if (dependencyInput) {
-            searchDependencias();
-        }
-        document.querySelectorAll('.report-choice-list:not(#selDepIndividual) input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                radio.closest('.report-choice-list').querySelectorAll('.report-choice').forEach(choice => {
-                    choice.classList.toggle('is-selected', choice.querySelector('input').checked);
-                });
-                if (radio.closest('.report-choice-list').id === 'selEstadoReq') {
-                    const selectedDependency = document.getElementById('idDepIndividual');
-                    if (selectedDependency) selectedDependency.value = '';
-                    scheduleDependencySearch();
-                }
-            });
-        });
+
         document.addEventListener('click', event => {
             if (!event.target.closest('.dependency-search')) {
                 const results = document.getElementById('opcionesDepIndividual');
                 if (results && !results.hidden) setDependencySuggestionsOpen(false);
             }
         });
-        document.getElementById('chkTodasPartidasReport')?.addEventListener('change', event => {
-            const checkbox = event.currentTarget;
-            const optionsContainer = document.getElementById('selPartidasReport');
-            if (!optionsContainer) return;
-            optionsContainer.querySelectorAll('.partida-option-input').forEach(option => {
-                option.checked = false;
-                option.closest('.partida-option').classList.remove('is-selected');
-            });
-            updatePartidaSelectionSummary();
-        });
-        window.exportReport = exportReport;
     });
 })();

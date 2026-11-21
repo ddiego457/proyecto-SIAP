@@ -1,0 +1,11 @@
+{
+    "Superadmin": [
+        "dependencia",
+        "responsable",
+        "proveedor"
+    ],
+    "Usuario": [
+        "requerimiento",
+        "reporte"
+    ]
+}

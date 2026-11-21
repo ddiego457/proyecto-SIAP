@@ -1,0 +1,29 @@
+# ─── Protección de archivos sensibles (SIAP) ──────────────────
+# Requiere AllowOverride All (activado en el Directory de htdocs).
+
+# Cualquier punto y coma de configuración: .env (credenciales SMTP),
+# .gitignore, .htaccess, .git/, etc. Nunca se sirven por HTTP.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Esquema de base de datos, documentación interna y bloqueos de composer:
+# contienen datos de instalación que no deben ser públicos.
+<FilesMatch "\.(sql|md|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Contador de intentos fallidos de login (storage/login_attempts.json)
+<FilesMatch "^login_attempts\.json$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear el histórico .git completo y la config de herramientas:
+# <FilesMatch> solo mira el nombre base, así que estos directorios
+# necesitan una regla sobre la ruta. .git contiene el histórico con
+# datos que ya no deben ser accesibles.
+RewriteEngine On
+RewriteRule (^|/)\.(git|sixth)(/|$) - [F,L]
+
+# Sin listado de directorios
+Options -Indexes

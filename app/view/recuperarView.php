@@ -12,7 +12,7 @@ $success = isset($success) ? $success : false;
 <link rel="icon" type="image/x-icon" href="assets/img/SIAPpeque%C3%B1o.ico">
 <link rel="apple-touch-icon" href="assets/img/SIAPlogo.png">
 
-<link rel="stylesheet" href="assets/css/loginDesign.css">
+<link rel="stylesheet" href="assets/css/loginDesign.css?v=<?php echo file_exists('assets/css/loginDesign.css') ? filemtime('assets/css/loginDesign.css') : time(); ?>">
 </head>
 
 <body>
@@ -42,7 +42,7 @@ $success = isset($success) ? $success : false;
             </div>
         <?php endif; ?>
 
-        <form method="post" autocomplete="off">
+        <form id="formRecuperar" method="post" autocomplete="off">
             <div class="field">
             <span class="icon-left" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -66,5 +66,9 @@ $success = isset($success) ? $success : false;
         <div style="margin-top:4px;">Dirección de Planificación Presupuestaria — UPTAEB</div>
         </section>
     </main>
+    <script src="assets/js/DataTables/jquery.js"></script>
+    <script src="assets/js/constantes.js?v=<?php echo file_exists('assets/js/constantes.js') ? filemtime('assets/js/constantes.js') : time(); ?>"></script>
+    <script src="assets/js/validaciones.js?v=<?php echo file_exists('assets/js/validaciones.js') ? filemtime('assets/js/validaciones.js') : time(); ?>"></script>
+    <script src="assets/js/recuperarPassword.js?v=<?php echo file_exists('assets/js/recuperarPassword.js') ? filemtime('assets/js/recuperarPassword.js') : time(); ?>"></script>
 </body>
 </html>

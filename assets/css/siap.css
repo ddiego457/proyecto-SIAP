@@ -262,6 +262,15 @@ textarea.field-input {
   font-weight: 600;
   line-height: 1.4;
 }
+/* Pista de formato bajo un campo (reglas de contraseña, etc.) */
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
 
 /* ─── BUTTONS (Solid Refined) ───────────────────────────────── */
 .btn {
@@ -743,6 +752,35 @@ textarea.field-input {
   color: var(--text-dark);
 }
 .alert-info .alert-banner-title strong { color: var(--blue-hover); }
+.alert-success {
+  background: #ecfdf5;
+  border-left: 1px solid #10b981;
+  color: #065f46;
+}
+.alert-success .alert-banner-title strong { color: #047857; }
+.alert-success .alert-banner-badge,
+.alert-success .alert-banner-badge span { color: #047857; }
+.alert-danger {
+  background: #fef2f2;
+  border-left: 1px solid #ef4444;
+  color: #991b1b;
+}
+.alert-danger .alert-banner-title strong { color: #b91c1c; }
+.alert-danger .alert-banner-badge,
+.alert-danger .alert-banner-badge span { color: #b91c1c; }
+
+/* Estado de envío del requerimiento (aviso y tabla de supervisión) */
+.estado-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.estado-enviado      { background: #d1fae5; color: #065f46; }
+.estado-borrador     { background: var(--blue-light); color: var(--blue-hover); }
+.estado-sin_registro { background: var(--warning-bg); color: var(--warning); }
 .alert-banner-left { display: flex; flex-direction: column; gap: 3px; }
 .alert-banner-title { font-size: 14px; font-weight: 700; }
 .alert-banner-sub { font-size: 13.5px; opacity: .80; }
@@ -1144,6 +1182,23 @@ table.siap-table {
 .fw-700 { font-weight: 700; }
 
 /* ─── DATATABLES OVERRIDE ─────────────────────────────────────*/
+/* Indicador de orden (flechas ▲▼) SIEMPRE a la derecha del encabezado.
+   DataTables 2 detecta el tipo de cada columna al cargar los datos y añade
+   automáticamente las clases dt-type-numeric (num/num-fmt/html-num*),
+   dt-type-date o dt-right/dt-head-right a los <th>; su CSS aplica
+   flex-direction: row-reverse a .dt-column-header en esos casos, lo que
+   deja las flechas a la IZQUIERDA del título (columnas numéricas y de
+   fecha), mientras las columnas de texto se quedan a la DERECHA.
+   Se fuerza row para que todas las columnas muestren el indicador en el
+   mismo lado. El [class] adicional eleva la especificidad a (0,3,5), por
+   encima de la máxima de DataTables (0,3,4), ya que siap.css se carga
+   ANTES que datatables.min.css (head.php) y por orden perdería. */
+table.dataTable thead > tr > th[class] div.dt-column-header,
+table.dataTable thead > tr > td[class] div.dt-column-header,
+table.dataTable tfoot > tr > th[class] div.dt-column-footer,
+table.dataTable tfoot > tr > td[class] div.dt-column-footer {
+  flex-direction: row;
+}
 .dataTables_wrapper { font-family: var(--font-body); }
 .dataTables_filter input {
   padding: 7px 12px;
@@ -2572,4 +2627,85 @@ input[type="submit"]:disabled {
     color: rgba(255, 255, 255, .55);
     font-size: 12px;
     line-height: 1.5;
+}
+
+/* ============================================================
+   ACCESO A MÓDULOS POR ROL (modal de roles)
+   ============================================================ */
+
+.modulos-todos {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 13px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: var(--blue-light);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    margin: 0;
+}
+
+.modulos-todos input {
+    accent-color: var(--blue);
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.modulos-checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 8px;
+}
+
+.modulo-check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    font-size: 13px;
+    color: var(--text-dark);
+    cursor: pointer;
+    margin: 0;
+}
+
+.modulo-check:hover {
+    border-color: var(--blue);
+    background: var(--blue-light);
+}
+
+.modulo-check input {
+    accent-color: var(--blue);
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.modulo-check input:disabled,
+.modulos-todos input:disabled {
+    cursor: not-allowed;
+}
+
+.modulo-check:has(input:disabled) {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* Sidebar: rol sin módulos asignados */
+
+.sidebar-vacio {
+    margin: 0;
+    padding: 4px 14px 12px;
+    color: rgba(255, 255, 255, .45);
+    font-size: 12px;
+    line-height: 1.55;
 }

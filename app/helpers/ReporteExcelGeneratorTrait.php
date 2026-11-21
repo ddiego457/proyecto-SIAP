@@ -38,10 +38,11 @@ trait ReporteExcelGeneratorTrait
         exit;
     }
 
-    public function exportReqIndividualExcel(int $idDep, bool $incluirNoEnviados = false): void
+    public function exportReqIndividualExcel(int $idDep, bool $incluirNoEnviados = false, ?int $anio = null): void
     {
-        $data = $this->executeGetReqReport($idDep, $incluirNoEnviados);
-        $context = $this->getReqReportContext($idDep, $incluirNoEnviados);
+        $anio ??= (int)$this->getActiveFiscalYear();
+        $data = $this->executeGetReqReport($idDep, $incluirNoEnviados, $anio);
+        $context = $this->getReqReportContext($idDep, $incluirNoEnviados, $anio);
         $context['estado'] = $incluirNoEnviados ? 'No enviados' : 'Enviados';
         $this->executeGetXlxsReqReport(
             $data,
@@ -52,11 +53,12 @@ trait ReporteExcelGeneratorTrait
         );
     }
 
-    public function exportReqGlobalExcel(string $modo = 'consolidado'): void
+    public function exportReqGlobalExcel(string $modo = 'consolidado', ?int $anio = null): void
     {
-        $data = $this->executeGetReqReport();
+        $anio ??= (int)$this->getActiveFiscalYear();
+        $data = $this->executeGetReqReport('', false, $anio);
         if ($modo === 'consolidado') {
-            $year = $this->getActiveFiscalYear();
+            $year = (string)$anio;
             $this->executeGetXlxsReqReport(
                 $data,
                 'TOTAL_Todas_las_Dependencias.xlsx',
@@ -67,12 +69,16 @@ trait ReporteExcelGeneratorTrait
             );
             return;
         }
-        $this->executeGetXlsxGlobalResumen($data, $modo);
+        $this->executeGetXlsxGlobalResumen($data, $modo, (string)$anio);
     }
 
-    public function exportProductosExcel(array $idPartidas = []): void
-    {
-        $data = $this->executeGetProReport($idPartidas);
+    public function exportProductosExcel(
+        array $idPartidas = [],
+        array $unidades = [],
+        ?float $precioMin = null,
+        ?float $precioMax = null
+    ): void {
+        $data = $this->executeGetProReport($idPartidas, $unidades, $precioMin, $precioMax);
         $this->executeGetXlsxProReport($data, $idPartidas);
     }
 
@@ -85,7 +91,7 @@ trait ReporteExcelGeneratorTrait
         $this->executeGetXlsxDependenciasResponsable($data, $filtro);
     }
 
-    private function executeGetXlsxGlobalResumen(array $data, string $modo): void
+    private function executeGetXlsxGlobalResumen(array $data, string $modo, string $anio): void
     {
         $rows = $this->getGlobalReportRows($data, $modo);
         $spreadsheet = new Spreadsheet();
@@ -97,7 +103,7 @@ trait ReporteExcelGeneratorTrait
         $columnCount = $modo === 'cantidades' ? 5 : 4;
         $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnCount);
         $sheet->mergeCells('A1:' . $lastColumn . '1');
-        $sheet->setCellValue('A1', $title . ' - Año ' . $this->getActiveFiscalYear());
+        $sheet->setCellValue('A1', $title . ' - Año ' . $anio);
         $sheet->getStyle('A1:' . $lastColumn . '1')->getFont()->setBold(true)->setSize(14);
 
         $headers = $modo === 'cantidades'
@@ -129,7 +135,7 @@ trait ReporteExcelGeneratorTrait
 
         $this->downloadReportExcel(
             $spreadsheet,
-            'POA_Global_' . $modo . '_' . $this->getActiveFiscalYear() . '.xlsx',
+            'POA_Global_' . $modo . '_' . $anio . '.xlsx',
             false
         );
     }
@@ -154,7 +160,8 @@ trait ReporteExcelGeneratorTrait
             if (!empty($datos)) {
                 foreach ($datos as $fila) {
                     $partidaFormateada = str_replace('.', ',', (string)$fila['codigo']);
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion'], 'UNIDAD');
+                    [$descripcion, $uMedidaParseada] = $this->parseProductDescription((string)$fila['Descripcion'], 'UNIDAD');
+                    $uMedida = $this->resolveUnidadFila($fila, $uMedidaParseada);
 
                     if (strlen($partidaFormateada) === 3 && is_numeric($partidaFormateada)) {
                         $partidaFormateada = substr($partidaFormateada, 0, 1) . ',' . substr($partidaFormateada, 1);
@@ -265,7 +272,8 @@ trait ReporteExcelGeneratorTrait
                 foreach ($datos as $fila) {
                     $partidaFormateada = $this->formatPartidaSheetName((string)$fila['codigo']);
 
-                    [$descripcion, $uMedida] = $this->parseProductDescription((string)$fila['Descripcion'], 'UNIDAD');
+                    [$descripcion, $uMedidaParseada] = $this->parseProductDescription((string)$fila['Descripcion'], 'UNIDAD');
+                    $uMedida = $this->resolveUnidadFila($fila, $uMedidaParseada);
 
                     if (isset($filasHojas[$partidaFormateada]) && $documento->sheetNameExists($partidaFormateada)) {
                         $hoja = $documento->getSheetByName($partidaFormateada);

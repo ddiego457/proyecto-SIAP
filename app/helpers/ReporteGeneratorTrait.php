@@ -26,7 +26,8 @@ trait ReporteGeneratorTrait
                 if ((float)$row['cantidad_Total'] <= 0) {
                     continue;
                 }
-                [$descripcion, $unidad] = $this->parseProductDescription((string)$row['Descripcion']);
+                [$descripcion, $unidadParseada] = $this->parseProductDescription((string)$row['Descripcion']);
+                $unidad = $this->resolveUnidadFila($row, $unidadParseada);
                 $rows[] = [
                     'codigo' => $row['codigo'],
                     'partida' => $row['partida'],
@@ -57,6 +58,17 @@ trait ReporteGeneratorTrait
         }
 
         throw new \InvalidArgumentException('Modo de consolidado no válido.');
+    }
+
+    /**
+     * Unidad de medida de una fila de reporte: prefiere la columna explícita
+     * `unidad` (catálogo unidades_medida) y usa la parseada de nom_pres como
+     * respaldo para filas antiguas sin referencia en el catálogo.
+     */
+    private function resolveUnidadFila(array $fila, string $unidadParseada): string
+    {
+        $unidad = trim((string)($fila['unidad'] ?? ''));
+        return $unidad !== '' ? $unidad : $unidadParseada;
     }
 
     private function parseProductDescription(string $value, string $defaultUnit = 'UND'): array

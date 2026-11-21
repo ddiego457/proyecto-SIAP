@@ -1,6 +1,10 @@
 /vendor/
 # Secreto HMAC de recuperación de contraseña (se autogenera en cada instalación)
 /app/config/reset_secret.php
+# Variables de entorno (credenciales SMTP): nunca se versionan
+/.env
+# Contador de intentos fallidos de login (se genera en tiempo de ejecución)
+/storage/
 # Archivos subidos por los usuarios: no se versionan
 /assets/uploads/**/*.xlsx
 /assets/uploads/**/*.xls

@@ -37,9 +37,51 @@ if ($type === 'get_dependencias') {
         echo json_encode(['success' => false, 'message' => 'Escriba al menos 2 caracteres para buscar dependencias.']);
         exit;
     }
+    $anioRaw = isset($_GET['anio']) && is_scalar($_GET['anio']) ? trim((string)$_GET['anio']) : '';
+    $errorValidacion = $model->validar('anio_reporte', $anioRaw);
+    if ($errorValidacion === null
+        && !in_array((int)$anioRaw, array_map('intval', array_column($model->getAniosParaReporte(), 'anio')), true)) {
+        $errorValidacion = 'El año seleccionado no existe.';
+    }
+    if ($errorValidacion !== null) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => $errorValidacion]);
+        exit;
+    }
     try {
-        $deps = $model->buscarDependenciasParaReporte($estadoRegistroRaw === 'registrado' ? 1 : 0, $nombre);
+        $deps = $model->buscarDependenciasParaReporte(
+            $estadoRegistroRaw === 'registrado' ? 1 : 0,
+            $nombre,
+            (int)$anioRaw
+        );
         echo json_encode(['success' => true, 'data' => $deps]);
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($type === 'get_anios') {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        echo json_encode(['success' => true, 'data' => $model->getAniosParaReporte()]);
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($type === 'get_unidades') {
+    header('Content-Type: application/json; charset=utf-8');
+    if (!$this->esAdmin()) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tiene permisos para consultar unidades de medida de reportes.']);
+        exit;
+    }
+    try {
+        echo json_encode(['success' => true, 'data' => $model->getUnidadesParaReporte()]);
     } catch (\Throwable $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -95,6 +137,23 @@ if ($type === 'export') {
                     echo json_encode(['success' => false, 'message' => $errorValidacion]);
                     exit;
                 }
+                $unidadesRaw = isset($_POST['unidades']) ? $_POST['unidades'] : 'todas';
+                $rangoPrecios = [
+                    'precio_min' => isset($_POST['precio_min']) && is_scalar($_POST['precio_min'])
+                        ? trim((string)$_POST['precio_min']) : '',
+                    'precio_max' => isset($_POST['precio_max']) && is_scalar($_POST['precio_max'])
+                        ? trim((string)$_POST['precio_max']) : '',
+                ];
+                $errorValidacion = $model->validar('unidades_reporte', $unidadesRaw);
+                if ($errorValidacion === null) {
+                    $errorValidacion = $model->validar('rango_precios_reporte', $rangoPrecios);
+                }
+                if ($errorValidacion !== null) {
+                    http_response_code(422);
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                    exit;
+                }
                 $partidasDisponibles = array_map('intval', array_column($model->getPartidasParaReporte(), 'id_partida'));
                 $idPartidas = $idPartidasRaw === 'todas' ? [] : array_values(array_unique(array_map('intval', $idPartidasRaw)));
                 if ($idPartidas && array_diff($idPartidas, $partidasDisponibles)) {
@@ -103,10 +162,27 @@ if ($type === 'export') {
                     echo json_encode(['success' => false, 'message' => 'La selección contiene una partida no disponible.']);
                     exit;
                 }
+                $unidades = $unidadesRaw === 'todas'
+                    ? []
+                    : array_values(array_unique(array_map('trim', $unidadesRaw)));
+                if ($unidades) {
+                    $unidadesDisponibles = array_map(
+                        'strtoupper',
+                        array_map('trim', array_column($model->getUnidadesParaReporte(), 'unidad'))
+                    );
+                    if (array_diff(array_map('strtoupper', $unidades), $unidadesDisponibles)) {
+                        http_response_code(422);
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'La selección contiene una unidad de medida no disponible.']);
+                        exit;
+                    }
+                }
+                $precioMin = $rangoPrecios['precio_min'] === '' ? null : (float)$rangoPrecios['precio_min'];
+                $precioMax = $rangoPrecios['precio_max'] === '' ? null : (float)$rangoPrecios['precio_max'];
                 if ($format === 'excel') {
-                    $model->exportProductosExcel($idPartidas);
+                    $model->exportProductosExcel($idPartidas, $unidades, $precioMin, $precioMax);
                 } else {
-                    $model->exportProductosPDF($idPartidas);
+                    $model->exportProductosPDF($idPartidas, $unidades, $precioMin, $precioMax);
                 }
                 break;
 
@@ -139,6 +215,19 @@ if ($type === 'export') {
                     echo json_encode(['success' => false, 'message' => $errorValidacion]);
                     exit;
                 }
+                $anioRaw = isset($_POST['anio']) && is_scalar($_POST['anio']) ? trim((string)$_POST['anio']) : '';
+                $errorValidacion = $model->validar('anio_reporte', $anioRaw);
+                if ($errorValidacion === null
+                    && !in_array((int)$anioRaw, array_map('intval', array_column($model->getAniosParaReporte(), 'anio')), true)) {
+                    $errorValidacion = 'El año seleccionado no existe.';
+                }
+                if ($errorValidacion !== null) {
+                    http_response_code(422);
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                    exit;
+                }
+                $anio = (int)$anioRaw;
                 $idDepRaw = $this->esAdmin()
                     ? (isset($_POST['id_dep']) && is_scalar($_POST['id_dep'])
                         ? trim((string)$_POST['id_dep'])
@@ -158,7 +247,7 @@ if ($type === 'export') {
                 }
                 $idDep = (int)$idDepRaw;
                 $incluirNoRegistrados = $estadoRegistroRaw === 'sin_registrar';
-                if (!$model->hasReqReportData($idDep, $incluirNoRegistrados)) {
+                if (!$model->hasReqReportData($idDep, $incluirNoRegistrados, $anio)) {
                     http_response_code(422);
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode([
@@ -172,9 +261,9 @@ if ($type === 'export') {
                     exit;
                 }
                 if ($format === 'excel') {
-                    $model->exportReqIndividualExcel($idDep, $incluirNoRegistrados);
+                    $model->exportReqIndividualExcel($idDep, $incluirNoRegistrados, $anio);
                 } else {
-                    $model->exportReqIndividualPDF($idDep, $incluirNoRegistrados);
+                    $model->exportReqIndividualPDF($idDep, $incluirNoRegistrados, $anio);
                 }
                 break;
 
@@ -189,10 +278,23 @@ if ($type === 'export') {
                     echo json_encode(['success' => false, 'message' => $errorValidacion]);
                     exit;
                 }
+                $anioRaw = isset($_POST['anio']) && is_scalar($_POST['anio']) ? trim((string)$_POST['anio']) : '';
+                $errorValidacion = $model->validar('anio_reporte', $anioRaw);
+                if ($errorValidacion === null
+                    && !in_array((int)$anioRaw, array_map('intval', array_column($model->getAniosParaReporte(), 'anio')), true)) {
+                    $errorValidacion = 'El año seleccionado no existe.';
+                }
+                if ($errorValidacion !== null) {
+                    http_response_code(422);
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => $errorValidacion]);
+                    exit;
+                }
+                $anio = (int)$anioRaw;
                 if ($format === 'excel') {
-                    $model->exportReqGlobalExcel($modoGlobal);
+                    $model->exportReqGlobalExcel($modoGlobal, $anio);
                 } else {
-                    $model->exportReqGlobalPDF($modoGlobal);
+                    $model->exportReqGlobalPDF($modoGlobal, $anio);
                 }
                 break;
 

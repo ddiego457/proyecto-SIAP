@@ -1,8 +1,31 @@
 <?php
 // Detectar modulo activo desde la URL
 $urlActual = isset($_GET['url']) ? $_GET['url'] : '';
-// Administrador y Coordinador ven todos los módulos (ver SessionTrait::esAdmin)
-$esAdmin = $this->esAdmin();
+
+// Iconos por módulo (mismas claves que SessionTrait::$catalogoModulos)
+$iconosModulos = [
+    'dependencia'        => '&#127970;',
+    'responsable'        => '&#128100;',
+    'proveedor'          => '&#128230;',
+    'tasaBCV'            => '&#128178;',
+    'requerimiento'      => '&#128203;',
+    'productosServicios' => '&#128230;',
+    'periodo'            => '&#128197;',
+    'reporte'            => '&#128202;',
+];
+
+// Solo se muestran los módulos permitidos para el rol actual
+// (misma regla que usa SessionTrait::requireModule)
+$modulosVisibles = [];
+foreach ($this->getCatalogoModulos() as $claveModulo => $etiquetaModulo) {
+    if ($this->puedeAccederModulo($claveModulo)) {
+        $modulosVisibles[$claveModulo] = $etiquetaModulo;
+    }
+}
+
+// Si solo ve Requerimientos/Informes se mantiene el título de "Mi Área" (comportamiento original)
+$esSoloAreaPersonal = !empty($modulosVisibles)
+    && !array_diff_key($modulosVisibles, ['requerimiento' => true, 'reporte' => true]);
 
 if (!function_exists('sidebarLink')) {
     function sidebarLink($url, $icon, $label, $urlActual) {
@@ -24,20 +47,16 @@ if (!function_exists('sidebarLink')) {
     </div>
 
     <nav class="sidebar-nav">
-        <?php if ($esAdmin): ?>
+        <?php if (empty($modulosVisibles)): ?>
             <div class="sidebar-section-title">M&oacute;dulos</div>
-            <?php sidebarLink('dependencia',         '&#127970;', 'Dependencias',               $urlActual); ?>
-            <?php sidebarLink('responsable',        '&#128100;', 'Responsables',               $urlActual); ?>
-            <?php sidebarLink('proveedor',           '&#128230;', 'Proveedores',                $urlActual); ?>
-            <?php sidebarLink('tasaBCV',             '&#128178;', 'Tasa BCV',                    $urlActual); ?>
-            <?php sidebarLink('requerimiento',       '&#128203;', 'Requerimientos',              $urlActual); ?>
-            <?php sidebarLink('productosServicios', '&#128230;', 'Productos y Servicios',       $urlActual); ?>
-            <?php sidebarLink('periodo',             '&#128197;', 'Periodo',                    $urlActual); ?>
-            <?php sidebarLink('reporte',             '&#128202;', 'Informes',                   $urlActual); ?>
+            <p class="sidebar-vacio">Sin m&oacute;dulos asignados a su rol.<br>Contacte al coordinador del sistema.</p>
         <?php else: ?>
-            <div class="sidebar-section-title">Mi &Aacute;rea</div>
-            <?php sidebarLink('requerimiento',       '&#128203;', 'Mi Requerimiento',           $urlActual); ?>
-            <?php sidebarLink('reporte',             '&#128202;', 'Informes',                   $urlActual); ?>
+            <div class="sidebar-section-title"><?php echo $esSoloAreaPersonal ? 'Mi &Aacute;rea' : 'M&oacute;dulos'; ?></div>
+            <?php foreach ($modulosVisibles as $claveModulo => $etiquetaModulo):
+                $etiquetaLink = ($esSoloAreaPersonal && $claveModulo === 'requerimiento') ? 'Mi Requerimiento' : $etiquetaModulo;
+                $iconoLink = isset($iconosModulos[$claveModulo]) ? $iconosModulos[$claveModulo] : '&#9679;';
+                sidebarLink($claveModulo, $iconoLink, $etiquetaLink, $urlActual);
+            endforeach; ?>
         <?php endif; ?>
     </nav>
 </aside>

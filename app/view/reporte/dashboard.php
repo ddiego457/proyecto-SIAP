@@ -21,7 +21,28 @@ include_once 'app/view/layout/head.php';
     </div>
 </div>
 
+<div id="exportModal" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="modal-panel export-modal-panel">
+        <div class="modal-header">
+            <h3 id="exportModalTitle">Descargar informe</h3>
+            <button type="button" id="btnCloseExportModal" class="modal-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body" id="exportModalBody"></div>
+        <div class="modal-footer">
+            <button type="button" id="btnCancelExport" class="btn btn-secondary">Cancelar</button>
+            <button type="button" id="btnConfirmExport" class="btn btn-success">Descargar</button>
+        </div>
+    </div>
+</div>
+
 <style>
+.export-modal-panel {
+    max-width: 560px;
+}
+#exportModalBody .field-group:last-child {
+    margin-bottom: 0 !important;
+}
+
 .report-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
@@ -37,7 +58,7 @@ include_once 'app/view/layout/head.php';
     padding: 22px;
     background: var(--white);
     box-shadow: var(--shadow-sm);
-    min-height: 190px;
+    min-height: 150px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -190,6 +211,23 @@ include_once 'app/view/layout/head.php';
 }
 .partidas-selection-count {
     min-height: 1em;
+}
+.price-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.report-note {
+    display: block;
+    min-height: 1em;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: .78rem;
+    line-height: 1.4;
+}
+.report-note:not(:empty) {
+    color: #b45309;
+    font-weight: 600;
 }
 .dependency-search {
     position: relative;

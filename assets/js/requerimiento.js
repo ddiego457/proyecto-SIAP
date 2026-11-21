@@ -119,6 +119,7 @@ $(document).ready(function() {
                 { data: 'dependencia' },
                 { data: 'partida' },
                 { data: 'producto' },
+                { data: 'unidad' },
                 { data: 'Ene', render: function(data, type, row) { return loadData(data, row, 1); }},
                 { data: 'Feb', render: function(data, type, row) { return loadData(data, row, 2); }},
                 { data: 'Mar', render: function(data, type, row) { return loadData(data, row, 3); }},
@@ -138,7 +139,7 @@ $(document).ready(function() {
                 
             ],
             
-            order: [[16, 'desc']],
+            order: [[17, 'desc']],
             autowidth: false,
             responsive: true,
             pageLength: 25,
@@ -154,13 +155,13 @@ $(document).ready(function() {
                 };
         
                 // Índices de columna (0-indexed): 
-                // 15 = precio_unit_usd (visible: esAdmin)
-                // 16 = Total_Cantidad (siempre visible)
-                // 17 = total_usd (visible: esAdmin)
-                // 18 = total_bs (visible: esAdmin)
-                const colCant = 16;
-                const colUsd = 17; 
-                const colBs = 18;
+                // 16 = precio_unit_usd (visible: esAdmin)
+                // 17 = Total_Cantidad (siempre visible)
+                // 18 = total_usd (visible: esAdmin)
+                // 19 = total_bs (visible: esAdmin)
+                const colCant = 17;
+                const colUsd = 18; 
+                const colBs = 19;
         
                 // Sumamos el Total de Cantidad (siempre visible)
                 const totalCant = api.column(colCant).data().reduce(function (a, b) {
@@ -240,8 +241,8 @@ $(document).ready(function() {
             const isChecked = $(this).prop('checked');
             
             if (isChecked) {
-                // Ocultar columnas de meses (índices 3-14) en la tabla principal
-                for (let i = 3; i <= 14; i++) {
+                // Ocultar columnas de meses (índices 4-15) en la tabla principal
+                for (let i = 4; i <= 15; i++) {
                     tabla.column(i).visible(false);
                 }
                 // Ocultar botón modificar de la vista principal
@@ -255,7 +256,7 @@ $(document).ready(function() {
                 $('#btn-modificar-modal').hide().prop('disabled', true);
             } else {
                 // Mostrar columnas de meses
-                for (let i = 3; i <= 14; i++) {
+                for (let i = 4; i <= 15; i++) {
                     tabla.column(i).visible(true);
                 }
                 // Mostrar botón modificar de la vista principal
@@ -525,6 +526,8 @@ $(document).ready(function() {
                         alert(respuesta.message || "Requerimiento eliminado correctamente.");
                         // Recargamos la tabla para reflejar los cambios (el requerimiento ya no aparecerá)
                         tabla.ajax.reload(null, false);
+                        // El requerimiento ya no existe: el banner vuelve a "Sin registro"
+                        refrescarEstadosEnvio();
                     } else {
                         alert("Error: " + respuesta.message);
                     }
@@ -621,7 +624,7 @@ $(document).ready(function() {
             if ($.fn.DataTable.isDataTable('#tablaMain')) {
                 $('#tablaMain').DataTable().destroy();
             }
-            // destroy() reinserta las filas previas (con inputs y 19 columnas);
+            // destroy() reinserta las filas previas (con inputs y 20 columnas);
             // se limpian para evitar el warning "Incorrect column count" y el desalineado.
             $('#tablaMain tbody').empty();
             $('#tablaMain thead').html(cabeceraPartidasHTML());
@@ -752,6 +755,8 @@ $(document).ready(function() {
                         alert("Estado actualizado exitosamente.");
                         // Recargamos la tabla para que se reflejen los cambios visuales
                         $('#tablaMain').DataTable().ajax.reload(null, false);
+                        // El banner "si ya se ha enviado" cambió a Enviado
+                        refrescarEstadosEnvio();
                     } else {
                         alert("Error: " + respuesta.message);
                     }
@@ -762,6 +767,131 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+
+    // =========================================================================
+    // 1b. ESTADO DE ENVÍO (banner del usuario + cuadro admin con botón "Ver")
+    // =========================================================================
+
+    // Escapado de texto para insertar datos del servidor en el DOM con seguridad.
+    function escapar(valor) {
+        return String(valor == null ? '' : valor)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Catálogo de estados: espejo de $claseEstadoEnvio/$iconoEstadoEnvio/$tituloEstadoEnvio
+    var CLASES_ESTADO = {
+        enviado:      'alert-success',
+        borrador:     'alert-info',
+        sin_registro: 'alert-warning'
+    };
+    var ICONOS_ESTADO = {
+        enviado:      '&#9989;',
+        borrador:     '&#128196;',
+        sin_registro: '&#9888;&#65039;'
+    };
+    var TITULOS_ESTADO = {
+        enviado:      'Requerimiento enviado',
+        borrador:     'Requerimiento pendiente de envío',
+        sin_registro: 'Sin registro de requerimiento'
+    };
+
+    // HTML del banner que ve el usuario (misma estructura que el render de PHP).
+    function htmlBannerEstadoEnvio(fila) {
+        if (!fila) return '';
+        var est = fila.estado || 'sin_registro';
+        var clase = CLASES_ESTADO[est] || 'alert-warning';
+        // Sin registro con período cerrado es lo más grave: se resalta en rojo
+        if (est === 'sin_registro' && typeof periodoActivo !== 'undefined' && !periodoActivo) {
+            clase = 'alert-danger';
+        }
+        var titulo = TITULOS_ESTADO[est] || 'Estado del requerimiento';
+        return '<div class="alert-banner ' + clase + '">' +
+            '<div class="alert-banner-left">' +
+                '<div class="alert-banner-title">' + (ICONOS_ESTADO[est] || '') +
+                    ' <strong>' + escapar(titulo) + '</strong></div>' +
+                '<div class="alert-banner-sub">' + escapar(fila.motivo) + '</div>' +
+            '</div>' +
+            '<div class="alert-banner-badge"><span>' + escapar(fila.etiqueta) + '</span></div>' +
+        '</div>';
+    }
+
+    // Fila del cuadro de supervisión (una por dependencia).
+    function htmlFilaEstadoEnvio(fila) {
+        if (!fila) return '';
+        var est = fila.estado || 'sin_registro';
+        return '<tr>' +
+            '<td>' + escapar(fila.nom_dep) + '</td>' +
+            '<td><span class="estado-badge estado-' + escapar(est) + '">' +
+                escapar(fila.etiqueta) + '</span></td>' +
+            '<td>' + escapar(fila.motivo) + '</td>' +
+        '</tr>';
+    }
+
+    // Petición al endpoint: admin/coordinador reciben todas las dependencias;
+    // el usuario normal, solo el estado de la suya.
+    function obtenerEstadosEnvio() {
+        return $.ajax({
+            url: '?url=requerimiento&type=get_estados',
+            type: 'GET',
+            dataType: 'json'
+        });
+    }
+
+    // Repinta el banner del usuario. Se invoca desde los success de JS después
+    // de enviar o registrar un requerimiento, para que el aviso quede al día.
+    function refrescarEstadosEnvio() {
+        var $wrap = $('#estadoEnvioWrap');
+        if (!$wrap.length) return; // el admin no tiene banner de estado
+        obtenerEstadosEnvio().done(function(respuesta) {
+            if (!respuesta || !respuesta.success || !Array.isArray(respuesta.data) || !respuesta.data.length) {
+                return;
+            }
+            $wrap.html(htmlBannerEstadoEnvio(respuesta.data[0]));
+        }).fail(function() {
+            console.error('No se pudo refrescar el estado de envío.');
+        });
+    }
+
+    // Cuadro de dependencias: el contenido se carga y despliega con "Ver".
+    $('#btnVerEstados').on('click', function() {
+        var $btn = $(this);
+        var $cuerpo = $('#cuerpoEstadosEnvio');
+
+        if ($cuerpo.is(':visible')) {
+            $cuerpo.hide();
+            $btn.attr('aria-expanded', 'false').text('Ver');
+            return;
+        }
+
+        $btn.prop('disabled', true).text('Cargando...');
+        obtenerEstadosEnvio().done(function(respuesta) {
+            if (!respuesta || !respuesta.success || !Array.isArray(respuesta.data)) {
+                alert('No se pudo cargar el estado de envío por dependencia.');
+                return;
+            }
+            var filas = respuesta.data;
+            var html = '';
+            if (!filas.length) {
+                html = '<tr><td colspan="3">No hay dependencias activas registradas.</td></tr>';
+            } else {
+                for (var i = 0; i < filas.length; i++) {
+                    html += htmlFilaEstadoEnvio(filas[i]);
+                }
+            }
+            $('#tablaEstadosEnvio tbody').html(html);
+            $cuerpo.show();
+            $btn.attr('aria-expanded', 'true').text('Ocultar');
+        }).fail(function() {
+            alert('Ocurrió un error al consultar el estado de envío.');
+            $btn.text('Ver');
+        }).always(function() {
+            $btn.prop('disabled', false);
+        });
     });
 
     // =========================================================================
@@ -785,6 +915,7 @@ $(document).ready(function() {
             },
             columns: [
                 { data: 'nom_pres' },
+                { data: 'unidad' },
                 { data: "ene", render: function(data, type, row) { return crearInput(row.id_pres, 1, data); }},
                 { data: "feb", render: function(data, type, row) { return crearInput(row.id_pres, 2, data); }},
                 { data: "mar", render: function(data, type, row) { return crearInput(row.id_pres, 3, data); }},
@@ -845,7 +976,10 @@ $(document).ready(function() {
                 success: function(respuesta) {
                     if(respuesta.status === 'success') {
                         idReq = respuesta.id_req;
-                        
+                        // Se registró/actualizó el requerimiento: el banner del
+                        // usuario pasa de "Sin registro" a "Borrador".
+                        refrescarEstadosEnvio();
+
                         if(respuesta.siguiente_partida === 'FINAL') {
                             // 1) Alerta de éxito y, al aceptarla, 2) cierre de la modal
                             alert("Todas las partidas han sido guardadas en borrador de manera exitosa.");

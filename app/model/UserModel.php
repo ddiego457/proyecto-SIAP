@@ -32,7 +32,7 @@ class UserModel extends ConnectDB {
             return 0;
         }
 
-        if ($this->validar('password', $password) !== null) {
+        if ($this->validar('password_login', $password) !== null) {
             return 0;
         }
 

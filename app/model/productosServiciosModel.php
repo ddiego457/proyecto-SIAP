@@ -42,9 +42,13 @@ class productosServiciosModel extends ConnectDB
     
     private function executeGetAll(?int $partidaId = null): array
     {
-        $sql = "SELECT pro.id_pres, pro.id_partida, pro.id_proveedor, p.cod_partida, p.descripcion AS partida_descripcion,
-                       pr.razon_social AS proveedor, pro.nom_pres, pro.precio, pro.estado
+        $sql = "SELECT pro.id_pres, pro.id_partida, pro.id_proveedor, pro.id_unidad, p.cod_partida, p.descripcion AS partida_descripcion,
+                       pr.razon_social AS proveedor,
+                       SUBSTRING_INDEX(pro.nom_pres, '|', 1) AS nom_pres,
+                       COALESCE(um.unidad, 'UND') AS unidad,
+                       pro.precio, pro.estado
                 FROM presupuesto pro
+                LEFT JOIN unidades_medida um ON um.id_unidad = pro.id_unidad
                 JOIN partidas p ON pro.id_partida = p.id_partida
                 JOIN proveedores pr ON pro.id_proveedor = pr.id_proveedor
                 ";
@@ -81,12 +85,12 @@ class productosServiciosModel extends ConnectDB
         return (bool)$stmt->fetchColumn();
     }
 
-    public function add(int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
+    public function add(int $idPartida, int $idProveedor, int $idUnidad, string $nomItem, float $precio): bool
     {
-        return $this->executeAdd($idPartida, $idProveedor, $nomItem, $precio);
+        return $this->executeAdd($idPartida, $idProveedor, $idUnidad, $nomItem, $precio);
     }
 
-    private function executeAdd(int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
+    private function executeAdd(int $idPartida, int $idProveedor, int $idUnidad, string $nomItem, float $precio): bool
     {
         try {
             // Evitar duplicados por combinación única
@@ -95,10 +99,10 @@ class productosServiciosModel extends ConnectDB
             }
 
             $stmt = $this->conex->prepare(
-                "INSERT INTO presupuesto (id_partida, id_proveedor, nom_pres, precio, estado)
-                 VALUES (?, ?, ?, ?, 1)"
+                "INSERT INTO presupuesto (id_partida, id_proveedor, id_unidad, nom_pres, precio, estado)
+                 VALUES (?, ?, ?, ?, ?, 1)"
             );
-            return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio]);
+            return $stmt->execute([$idPartida, $idProveedor, $idUnidad, $nomItem, $precio]);
         } catch (\PDOException $e) {
             // Se deja el detalle real en el log para poder diagnosticar;
             // al usuario solo se le muestra un mensaje genérico.
@@ -107,20 +111,20 @@ class productosServiciosModel extends ConnectDB
         }
     }
 
-    public function update(int $idItem, int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
+    public function update(int $idItem, int $idPartida, int $idProveedor, int $idUnidad, string $nomItem, float $precio): bool
     {
-        return $this->executeUpdate($idItem, $idPartida, $idProveedor, $nomItem, $precio);
+        return $this->executeUpdate($idItem, $idPartida, $idProveedor, $idUnidad, $nomItem, $precio);
     }
 
-    private function executeUpdate(int $idItem, int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
+    private function executeUpdate(int $idItem, int $idPartida, int $idProveedor, int $idUnidad, string $nomItem, float $precio): bool
     {
         try {
             $stmt = $this->conex->prepare(
                 "UPDATE presupuesto
-                 SET id_partida = ?, id_proveedor = ?, nom_pres = ?, precio = ?
+                 SET id_partida = ?, id_proveedor = ?, id_unidad = ?, nom_pres = ?, precio = ?
                  WHERE id_pres = ?"
             );
-            return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio, $idItem]);
+            return $stmt->execute([$idPartida, $idProveedor, $idUnidad, $nomItem, $precio, $idItem]);
         } catch (\PDOException $e) {
             return false;
         }
@@ -278,6 +282,108 @@ class productosServiciosModel extends ConnectDB
         try {
             $stmt = $this->conex->prepare("UPDATE partidas SET estado = 1 WHERE id_partida = ?");
             return $stmt->execute([$idPartida]);
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    // ─── Unidades de medida ───────────────────────────────────────
+    // Unidades activas para los selectores de producto (registro/edición)
+    public function getUnidadesMedida(): array
+    {
+        return $this->executeGetUnidadesMedida(true);
+    }
+
+    // Listado completo para el mantenimiento (incluye las inhabilitadas)
+    public function getAllUnidadesMedida(): array
+    {
+        return $this->executeGetUnidadesMedida(false);
+    }
+
+    private function executeGetUnidadesMedida(bool $soloActivas): array
+    {
+        $sql = "SELECT id_unidad, unidad, estado
+                FROM unidades_medida"
+             . ($soloActivas ? " WHERE estado = 1" : "")
+             . " ORDER BY unidad";
+        $stmt = $this->conex->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    // Verifica si la unidad ya existe (evita duplicados en el catálogo)
+    public function existsUnidadMedida(string $unidad, ?int $excludeId = null): bool
+    {
+        $query = "SELECT 1 FROM unidades_medida WHERE LOWER(TRIM(unidad)) = LOWER(TRIM(?))";
+        $params = [trim($unidad)];
+
+        if ($excludeId !== null) {
+            $query .= " AND id_unidad <> ?";
+            $params[] = $excludeId;
+        }
+
+        $stmt = $this->conex->prepare($query . " LIMIT 1");
+        $stmt->execute($params);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    // Valida que la unidad exista por id (aunque esté inhabilitada, para no
+    // perder la referencia de un producto que ya la usa)
+    public function existsUnidadMedidaById(int $idUnidad): bool
+    {
+        $stmt = $this->conex->prepare("SELECT 1 FROM unidades_medida WHERE id_unidad = ? LIMIT 1");
+        $stmt->execute([$idUnidad]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    public function addUnidadMedida(string $unidad): bool
+    {
+        $unidad = mb_strtoupper(trim($unidad), 'UTF-8');
+        if ($unidad === '' || $this->existsUnidadMedida($unidad)) {
+            return false;
+        }
+        try {
+            $stmt = $this->conex->prepare("INSERT INTO unidades_medida (unidad, estado) VALUES (?, 1)");
+            return $stmt->execute([$unidad]);
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    public function updateUnidadMedida(int $idUnidad, string $unidad, int $estado): bool
+    {
+        $unidad = mb_strtoupper(trim($unidad), 'UTF-8');
+        if ($idUnidad <= 0 || $unidad === '' || $this->existsUnidadMedida($unidad, $idUnidad)) {
+            return false;
+        }
+        try {
+            $stmt = $this->conex->prepare(
+                "UPDATE unidades_medida
+                 SET unidad = ?, estado = ?
+                 WHERE id_unidad = ?"
+            );
+            return $stmt->execute([$unidad, $estado === 1 ? 1 : 0, $idUnidad]);
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    // Eliminar lógicamente una unidad (estado = 0)
+    public function deleteUnidadMedida(int $idUnidad): bool
+    {
+        return $this->executeEstadoUnidadMedida($idUnidad, 0);
+    }
+
+    public function activateUnidadMedida(int $idUnidad): bool
+    {
+        return $this->executeEstadoUnidadMedida($idUnidad, 1);
+    }
+
+    private function executeEstadoUnidadMedida(int $idUnidad, int $estado): bool
+    {
+        try {
+            $stmt = $this->conex->prepare("UPDATE unidades_medida SET estado = ? WHERE id_unidad = ?");
+            return $stmt->execute([$estado === 1 ? 1 : 0, $idUnidad]);
         } catch (\PDOException $e) {
             return false;
         }
@@ -464,13 +570,56 @@ class productosServiciosModel extends ConnectDB
         return $claves;
     }
 
-    private function executeInsertarProducto(int $idPartida, int $idProveedor, string $nomItem, float $precio): bool
+    private function executeInsertarProducto(int $idPartida, int $idProveedor, int $idUnidad, string $nomItem, float $precio): bool
     {
         $stmt = $this->conex->prepare(
-            "INSERT INTO presupuesto (id_partida, id_proveedor, nom_pres, precio, estado)
-             VALUES (?, ?, ?, ?, 1)"
+            "INSERT INTO presupuesto (id_partida, id_proveedor, id_unidad, nom_pres, precio, estado)
+             VALUES (?, ?, ?, ?, ?, 1)"
         );
-        return $stmt->execute([$idPartida, $idProveedor, $nomItem, $precio]);
+        return $stmt->execute([$idPartida, $idProveedor, $idUnidad, $nomItem, $precio]);
+    }
+
+    /**
+     * Mapa de unidades de medida activas: unidad normalizada (mayúsculas) => id_unidad.
+     */
+    private function executeObtenerMapaUnidades(): array
+    {
+        $stmt = $this->conex->query("SELECT id_unidad, UPPER(TRIM(unidad)) AS clave FROM unidades_medida");
+        $mapa = [];
+        foreach ($stmt->fetchAll() as $fila) {
+            $mapa[$fila['clave']] = (int)$fila['id_unidad'];
+        }
+        return $mapa;
+    }
+
+    /**
+     * Devuelve el id_unidad de una unidad del Excel; si aún no existe en el
+     * catálogo la registra automáticamente (dentro de la transacción).
+     * Unidad vacía => 'UND' (igual que el cálculo de los reportes).
+     */
+    private function executeObtenerIdUnidad(string $unidad, array &$mapa): int
+    {
+        $unidad = mb_strtoupper(trim($unidad), 'UTF-8');
+        if ($unidad === '') {
+            $unidad = 'UND';
+        }
+        if (isset($mapa[$unidad])) {
+            return $mapa[$unidad];
+        }
+
+        try {
+            $stmt = $this->conex->prepare("INSERT INTO unidades_medida (unidad, estado) VALUES (?, 1)");
+            $stmt->execute([$unidad]);
+            $id = (int)$this->conex->lastInsertId();
+        } catch (\PDOException $e) {
+            // Otro proceso la registró al mismo tiempo: se recupera el id existente.
+            $stmt = $this->conex->prepare("SELECT id_unidad FROM unidades_medida WHERE unidad = ? LIMIT 1");
+            $stmt->execute([$unidad]);
+            $id = (int)$stmt->fetchColumn();
+        }
+
+        $mapa[$unidad] = $id;
+        return $id;
     }
 
     /**
@@ -617,6 +766,7 @@ class productosServiciosModel extends ConnectDB
         $documento = $lector->load($rutaArchivo);
 
         $mapaPartidas = $this->executeObtenerMapaPartidas();
+        $mapaUnidades = $this->executeObtenerMapaUnidades();
         $clavesExistentes = $this->executeObtenerClavesExistentes($idProveedor);
 
         $resumen = [
@@ -705,7 +855,10 @@ class productosServiciosModel extends ConnectDB
                         continue;
                     }
 
-                    $this->executeInsertarProducto($idPartida, $idProveedor, $nombre, $precio);
+                    // Unidad de medida en el catálogo (se crea si es nueva)
+                    $idUnidad = $this->executeObtenerIdUnidad($unidad, $mapaUnidades);
+
+                    $this->executeInsertarProducto($idPartida, $idProveedor, $idUnidad, $nombre, $precio);
 
                     // Registrar en claves para detectar duplicados dentro del mismo archivo
                     $clavesExistentes[$clave] = true;

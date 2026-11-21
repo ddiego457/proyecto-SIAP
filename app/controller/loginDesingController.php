@@ -3,6 +3,8 @@
 
 use EquipoSiap\Siap\model\UserModel;
 use EquipoSiap\Siap\helpers\MailHelper;
+use EquipoSiap\Siap\helpers\IntentosLoginHelper;
+use EquipoSiap\Siap\helpers\EnvHelper;
 
 // CIERRE DE SESIÓN: ?url=inicio&type=logout
 if (isset($_GET['type']) && $_GET['type'] == 'logout') {
@@ -39,17 +41,19 @@ if (isset($_GET['type']) && $_GET['type'] == 'recuperar') {
                     $basePath = implode('/', array_map('rawurlencode', explode('/', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'))));
                     $resetUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . $basePath . '/?url=inicio&type=reset&token=' . $token;
 
-                    $body = '<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:auto;border:1px solid #ddd;border-radius:8px;overflow:hidden;">'
-                        . '<div style="background:#1f6f54;color:#fff;padding:16px;text-align:center;"><h2 style="margin:0;font-size:20px;">SIAP — Recuperación de contraseña</h2></div>'
-                        . '<div style="padding:20px;color:#333;line-height:1.5;">'
-                        . '<p>Hola <strong>' . htmlspecialchars($user['nom_resp']) . ':</strong></p>'
-                        . '<p>Recibimos una solicitud para restablecer la contraseña de tu cuenta. Haz clic en el siguiente botón (válido por <strong>30 minutos</strong>):</p>'
-                        . '<p style="text-align:center;margin:24px 0;"><a href="' . htmlspecialchars($resetUrl) . '" style="background:#1f6f54;color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:bold;">Restablecer contraseña</a></p>'
-                        . '<p style="color:#777;font-size:13px;">Si no solicitaste este cambio, ignora este correo. Si el botón no funciona, copia y pega este enlace en tu navegador:<br>'
-                        . '<span style="word-break:break-all;">' . htmlspecialchars($resetUrl) . '</span></p>'
-                        . '</div></div>';
+                    // Plantilla y asunto desde /.env (EnvHelper)
+                    $asunto = EnvHelper::get('MAIL_SUBJECT_RECUPERACION', 'Recuperación de contraseña — SIAP');
+                    $plantilla = EnvHelper::get('MAIL_TEMPLATE_RECUPERACION', 'recuperacion');
 
-                    if (MailHelper::send($user['email'], 'Recuperación de contraseña — SIAP', $body)) {
+                    $body = MailHelper::plantilla($plantilla, [
+                        'nombre'   => $user['nom_resp'],
+                        'resetUrl' => $resetUrl,
+                    ]);
+
+                    if ($body === '') {
+                        // Sin plantilla no se envía nada: se informa al usuario
+                        $error = "No se pudo preparar el correo de recuperación. Contacte al administrador.";
+                    } else if (MailHelper::send($user['email'], $asunto, $body)) {
                         $success = "Se envió un correo de recuperación a: " . $user['email'] . ". Siga el enlace para cambiar su contraseña.";
                     } else {
                         // Sin token que borrar: no se guardó nada en la BD
@@ -111,8 +115,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $nombre =  isset($_POST['usuario']) ? $_POST['usuario'] : '';
         $contra = isset($_POST['contrasena']) ?$_POST['contrasena'] : '';
 
+        // Mensaje único: no revela si el usuario existe ni cuál campo falló.
+        $errorLogin = "Usuario o contraseña incorrectos.";
+
         if (empty($nombre) || empty($contra)) {
-            $error = "usuario o contraseña incorrectos";
+            $error = $errorLogin;
+            include 'app/view/loginDesign.php';
+            die();
+        }
+
+        // Bloqueo temporal por intentos fallidos (storage/login_attempts.json)
+        $claveIntento = IntentosLoginHelper::clave($nombre);
+        $segundosBloqueo = IntentosLoginHelper::bloqueado($claveIntento);
+        if ($segundosBloqueo > 0) {
+            $error = IntentosLoginHelper::mensajeBloqueo($segundosBloqueo);
             include 'app/view/loginDesign.php';
             die();
         }
@@ -120,6 +136,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $loginResult =  $userModel->getLoginSistema($nombre,$contra);
 
         if (isset($loginResult['status']) && $loginResult['status'] == 1) {
+            IntentosLoginHelper::limpiar($claveIntento);
             $this->setSession([
                 'rol'            => $loginResult['data'][0]['rol'],
                 'id_dep'         => $loginResult['data'][0]['id_dep'],
@@ -133,14 +150,17 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             die();
         }
 
-        if (isset($loginResult['status']) && $loginResult['status'] == 2) {
-            $error = "Contraseña incorrecta para el usuario: " . $loginResult['user'];
-        } else if ($loginResult == 0) {
-            $error = "Usuario no encontrado o error en los datos.";
-        } else if ($loginResult == 3) {
-            $error = "Usuario inactivo o no encontrado.";
-        } else {
-            $error = "usuario o contraseña incorrectos";
+        // Login fallido (usuario inexistente, inactivo o contraseña inválida):
+        // se cuenta el intento y se responde SIEMPRE el mismo mensaje.
+        $restantes = IntentosLoginHelper::registrarFallo($claveIntento);
+        $intentosRestantes = IntentosLoginHelper::MAX_INTENTOS - $restantes;
+        $error = $errorLogin;
+        if ($restantes >= IntentosLoginHelper::MAX_INTENTOS) {
+            $error = IntentosLoginHelper::mensajeBloqueo(IntentosLoginHelper::BLOQUEO_SEGUNDOS);
+        } else if ($intentosRestantes === 1) {
+            $error .= " Le queda 1 intento antes de bloquear el acceso temporalmente.";
+        } else if ($intentosRestantes > 1) {
+            $error .= " Le quedan " . $intentosRestantes . " intentos antes de bloquear el acceso temporalmente.";
         }
 }
 include 'app/view/loginDesign.php';

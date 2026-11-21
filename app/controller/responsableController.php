@@ -14,7 +14,7 @@
         }
     }
 
-    $accionesGestionRoles = ['getAllRoles', 'registerRol', 'updateRol', 'deleteRol', 'activateRol'];
+    $accionesGestionRoles = ['getAllRoles', 'registerRol', 'updateRol', 'deleteRol', 'activateRol', 'getModulosRol', 'saveModulosRol'];
     foreach ($accionesGestionRoles as $accionGestionRoles) {
         if (isset($_POST[$accionGestionRoles]) && !$this->puedeGestionarRoles()) {
             http_response_code(403);
@@ -242,7 +242,20 @@
 
             // ─── Roles: alta, edición y eliminación lógica ─────────────
             if (isset($_POST['getAllRoles'])) {
-                sendJson($object->getAllRoles());
+                $listadoRoles = $object->getAllRoles();
+                // Se enriquece con el acceso a módulos personalizado (ver SessionTrait)
+                if (is_array($listadoRoles)) {
+                    foreach ($listadoRoles as $indice => $filaRol) {
+                        if (!isset($filaRol['descripcion'])) {
+                            continue;
+                        }
+                        $modulosRol = $this->modulosPermitidos($filaRol['descripcion']);
+                        $listadoRoles[$indice]['acceso_total']  = $this->esAccesoTotalRol($filaRol['descripcion']) ? 1 : 0;
+                        $listadoRoles[$indice]['modulos']       = $modulosRol;
+                        $listadoRoles[$indice]['total_modulos'] = count($modulosRol);
+                    }
+                }
+                sendJson($listadoRoles);
             }
 
             if (isset($_POST['registerRol'])) {
@@ -326,6 +339,70 @@
 
                 $res = $object->activateRol($idRol);
                 sendJson(['success' => (bool)$res, 'message' => $res ? 'Rol activado' : 'Error al activar el rol.']);
+            }
+
+            // ─── Acceso a módulos por rol (personalización) ────────────
+            if (isset($_POST['getModulosRol'])) {
+                $idRol = isset($_POST['idRol']) ? (int)$_POST['idRol'] : 0;
+
+                if ($idRol <= 0) {
+                    sendJson(['success' => false, 'message' => 'Rol no válido.']);
+                }
+
+                $rol = $object->getRolById($idRol);
+                if (!$rol) {
+                    sendJson(['success' => false, 'message' => 'El rol no existe.']);
+                }
+
+                sendJson([
+                    'success'     => true,
+                    'id_rol'      => $idRol,
+                    'descripcion' => $rol['descripcion'],
+                    'protegido'   => $object->isProtectedRole($idRol) ? 1 : 0,
+                    'accesoTotal' => $this->esAccesoTotalRol($rol['descripcion']),
+                    'modulos'     => $this->modulosPermitidos($rol['descripcion']),
+                    'catalogo'    => $this->getCatalogoModulos(),
+                ]);
+            }
+
+            if (isset($_POST['saveModulosRol'])) {
+                $idRol = isset($_POST['idRol']) ? (int)$_POST['idRol'] : 0;
+
+                if ($idRol <= 0) {
+                    sendJson(['success' => false, 'message' => 'Rol no válido.']);
+                }
+
+                $rol = $object->getRolById($idRol);
+                if (!$rol) {
+                    sendJson(['success' => false, 'message' => 'El rol no existe.']);
+                }
+
+                if ($object->isProtectedRole($idRol)) {
+                    sendJson([
+                        'success' => false,
+                        'message' => 'El rol ' . $rol['descripcion'] . ' es un rol protegido del sistema: siempre tiene acceso total a todos los módulos.'
+                    ]);
+                }
+
+                $accesoTotal = isset($_POST['accesoTotal']) && $_POST['accesoTotal'] === '1';
+                $modulos = (isset($_POST['modulos']) && is_array($_POST['modulos']))
+                    ? array_values(array_map('strval', $_POST['modulos']))
+                    : [];
+
+                $resultado = $this->guardarModulosRol($rol['descripcion'], $accesoTotal ? '*' : $modulos);
+                if (!$resultado) {
+                    sendJson([
+                        'success' => false,
+                        'message' => 'No se pudo guardar la configuración de módulos. Verifique que exista y sea escribible el archivo app/config/roles_modulos.json.'
+                    ]);
+                }
+
+                sendJson([
+                    'success'     => true,
+                    'message'     => ($accesoTotal ? 'Acceso total a módulos actualizado' : 'Acceso a módulos actualizado') . ' para el rol ' . $rol['descripcion'] . '.',
+                    'accesoTotal' => $this->esAccesoTotalRol($rol['descripcion']),
+                    'modulos'     => $this->modulosPermitidos($rol['descripcion']),
+                ]);
             }
 
             include 'app/view/responsable/responsableUserView.php';

@@ -7,6 +7,24 @@ $perAct = $perAct ?? false;
 $timeLeft = $timeLeft ?? '';
 $dias = $dias ?? 0;
 $dependencias = $dependencias ?? [];
+$estadoEnvio = isset($estadoEnvio) ? $estadoEnvio : null;
+
+// Clase de banner y etiqueta por estado de envío
+$claseEstadoEnvio = [
+    'enviado'      => 'alert-success',
+    'borrador'     => 'alert-info',
+    'sin_registro' => 'alert-warning',
+];
+$iconoEstadoEnvio = [
+    'enviado'      => '&#9989;',
+    'borrador'     => '&#128196;',
+    'sin_registro' => '&#9888;&#65039;',
+];
+$tituloEstadoEnvio = [
+    'enviado'      => 'Requerimiento enviado',
+    'borrador'     => 'Requerimiento pendiente de envío',
+    'sin_registro' => 'Sin registro de requerimiento',
+];
 
 include_once 'app/view/layout/head.php';
 ?>
@@ -47,6 +65,30 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
         <div class="alert-banner-badge">  <?php echo $dias > 0 ? $dias : '0' ?> <span>días</span></div>
     </div>
 
+    <?php if (!empty($estadoEnvio)): ?>
+        <?php
+            $est = $estadoEnvio['estado'];
+            $claseEst = $claseEstadoEnvio[$est] ?? 'alert-warning';
+            // Sin registro con período cerrado es lo más grave: se resalta en rojo
+            if ($est === 'sin_registro' && !$perAct) {
+                $claseEst = 'alert-danger';
+            }
+        ?>
+        <!-- Contenedor con id: el JS lo repinta tras enviar/registrar -->
+        <div id="estadoEnvioWrap">
+            <div class="alert-banner <?php echo htmlspecialchars($claseEst); ?>">
+                <div class="alert-banner-left">
+                    <div class="alert-banner-title">
+                        <?php echo $iconoEstadoEnvio[$est] ?? ''; ?>
+                        <strong><?php echo htmlspecialchars($tituloEstadoEnvio[$est] ?? 'Estado del requerimiento'); ?></strong>
+                    </div>
+                    <div class="alert-banner-sub"><?php echo htmlspecialchars($estadoEnvio['motivo']); ?></div>
+                </div>
+                <div class="alert-banner-badge"><span><?php echo htmlspecialchars($estadoEnvio['etiqueta']); ?></span></div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <div class="card">
         <!-- La clase card-header-with-search solo va en la cabecera con
              buscador (administrador): agrupa botones + buscador contra el
@@ -57,7 +99,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
             <!-- Acciones principales: todos los botones en una sola fila.
                  Van ANTES del buscador para que ninguno quede a su derecha. -->
             <div class="card-header-actions">
-                <?php if(!$this->esAdmin() && !empty($prevReq) && !empty($perAct)){?>
+                <?php if(!$this->esAdmin() && $prevReq && !empty($perAct)){?>
                 <button type="button" id="btnNuevoRegistro" class="btn btn-success btn-sm">Registrar</button>
                 <?php }?>
                 <button type="button" id="btn-modificar" class="btn btn-success btn-sm" style="display: none;">
@@ -115,6 +157,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                             <th>Dependencias</th>
                             <th>Partida</th>
                             <th>Producto</th>
+                            <th>Unidad</th>
                             <th>Ene</th>
                             <th>Feb</th>
                             <th>Mar</th>
@@ -136,10 +179,10 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                         <tbody>
                         </tbody>
                         <!-- si es admin, entomces cargara el footer, que contiene los totales de los precios -->
-                        <!-- colspan posiciona el th en la posicion 16 -->
+                        <!-- colspan posiciona el th en la posicion 17 -->
                             <tfoot>
                                 <tr>
-                                    <th colspan="15" style="text-align:right">Gran Total:</th>
+                                    <th colspan="16" style="text-align:right">Gran Total:</th>
                                     <th></th> <!-- Total USD -->
                                     <th></th> <!-- Total BS -->
                                     <th></th> <!-- Total BS -->
@@ -150,6 +193,33 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                 </div>
             </div>
         </div>
+
+        <?php if ($this->esAdmin()): ?>
+        <!-- Cuadro de supervisión: su contenido se carga y despliega con "Ver" -->
+        <div class="card" id="cardEstadosEnvio" style="margin-top: 20px;">
+            <div class="card-header">
+                <span class="card-title">Estado de envío por dependencia</span>
+                <div class="card-header-actions">
+                    <button type="button" id="btnVerEstados" class="btn btn-blue btn-sm"
+                            aria-expanded="false" aria-controls="cuerpoEstadosEnvio">Ver</button>
+                </div>
+            </div>
+            <div class="card-body" id="cuerpoEstadosEnvio" style="display:none;">
+                <div class="table-wrap">
+                    <table class="siap-table" id="tablaEstadosEnvio">
+                        <thead>
+                            <tr>
+                                <th>Dependencia</th>
+                                <th>Estado</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 <?php include_once 'app/view/layout/foot.php'; ?>
@@ -225,6 +295,7 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
                         <thead class="table-dark">
                             <tr>
                                 <th>Producto</th>
+                                <th>Unidad</th>
                                 <th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th>
                                 <th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th>
                             </tr>
@@ -250,4 +321,6 @@ if (isset($timeLeft) && is_array($timeLeft) && $timeLeft[2] === false) {
 <script>
     const esAdmin = <?php echo $this->esAdmin() ? 'true' : 'false'; ?>;
     let idReq = <?php echo json_encode($_SESSION['id_req'] ?? 0); ?>;
+    // Periodo activo: si es falso, "sin_registro" se resalta en rojo (igual que en PHP)
+    const periodoActivo = <?php echo json_encode((bool)$perAct); ?>;
 </script>

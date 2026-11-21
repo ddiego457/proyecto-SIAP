@@ -9,7 +9,10 @@ const regexEmail = /^(?=.{1,150}$)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}
 
 const regexNombre = /^[A-Za-záéíóúüÁÉÍÓÚÜñÑ\s.'-]{3,100}$/;
 
-const regexContrasenia = /^[A-Za-z0-9_.-]{4,}$/;
+// Contraseña (alta/cambio): mín. 8 caracteres SIN espacios, al menos un
+// número y al menos un carácter especial. Coincide con
+// ValidationTrait::$expPassword.
+const regexContrasenia = /^(?=.*\d)(?=.*[^\p{L}\p{N}])\S{8,100}$/u;
 
 const regexTelf = /^\+?[0-9][0-9\s-]{6,18}$/;
 
@@ -42,6 +45,10 @@ const regexDescripcionProveedor = /^(?=[\s\S]*[A-Za-záéíóúüÁÉÍÓÚÜñ�
 const regexNombreProducto = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.,\-()/"%|]{2,150}$/;
 
 const regexCodigoPartida = /^(?=.{1,10}$)[0-9]+(?:\.[0-9]+)?$/;
+
+// Unidad de medida del catálogo: letras, números, espacios y . , - ( ) /,
+// entre 2 y 40 caracteres. Coincide con ValidationTrait::$expUnidadMedida.
+const regexUnidadMedida = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.,\-()/]{2,40}$/;
 
 const regexTasa = /^(?!0+(?:\.0+)?$)\d{1,10}(?:\.\d{1,2})?$/;
 

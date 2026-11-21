@@ -43,6 +43,22 @@ if (isset($_GET['type'])) {
         header('Location: ?url=requerimiento&type=main');
         exit;
     }
+    elseif ($_GET['type'] == 'get_estados') {
+        // Listado de estados de envío por dependencia: lo consume el botón
+        // "Ver" del cuadro de supervisión y el refresco del banner del usuario
+        // (carga diferida, sin recargar la página).
+        header('Content-Type: application/json; charset=utf-8');
+        $esAdmin = $this->esAdmin();
+        $filas = $esAdmin
+            ? $object->getEstadosEnvioDependencias()
+            : [$object->getEstadoEnvioDependencia($idDep)];
+        echo json_encode([
+            'success' => true,
+            'esAdmin' => $esAdmin,
+            'data'    => $filas,
+        ]);
+        exit;
+    }
     elseif ($_GET['type'] == 'main') {
         $time = $object->obtenerEstadoPeriodo();
         // Validar que obtenerEstadoPeriodo retornó un array antes de acceder a sus índices
@@ -133,6 +149,13 @@ if (isset($_GET['type'])) {
         }
         if ($object->existeRequerimientoPrevio($idDep)) {
             $prevReqError = true;
+        }
+
+        // Estado de envío/registro del usuario (banner superior). El listado
+        // por dependencia del admin se carga bajo demanda con type=get_estados.
+        $estadoEnvio = null;
+        if (!$this->esAdmin()) {
+            $estadoEnvio = $object->getEstadoEnvioDependencia($idDep);
         }
 
         include 'app/view/requerimiento/requerimientoUserView.php';

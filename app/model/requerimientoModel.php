@@ -61,11 +61,14 @@ class requerimientoModel extends ConnectDB {
             return [];
         }
 
-        $query = "SELECT pro.id_pres, pro.nom_pres, 
+        $query = "SELECT pro.id_pres,
+                SUBSTRING_INDEX(pro.nom_pres, '|', 1) AS nom_pres,
+                COALESCE(um.unidad, 'UND') AS unidad,
                 0 as ene, 0 as feb, 0 as mar, 0 as abr, 0 as may, 0 as jun,
                 0 as jul, 0 as ago, 0 as sep, 0 as oct, 0 as nov, 0 as dic
                 FROM presupuesto pro
                 JOIN partidas p ON pro.id_partida = p.id_partida
+                LEFT JOIN unidades_medida um ON um.id_unidad = pro.id_unidad
                 WHERE p.cod_partida = ? AND pro.estado = 1";
         $stmt = $this->conex->prepare($query);
         $stmt->bindValue(1, $partida, \PDO::PARAM_STR);
@@ -269,8 +272,113 @@ class requerimientoModel extends ConnectDB {
     }
 
     // =========================================================================
+    // ESTADO DE ENVÍO / REGISTRO (aviso al usuario y supervisión)
+    // =========================================================================
+
+    // Estado de envío del requerimiento de UNA dependencia en el año fiscal
+    // vigente. Devuelve ['id_dep', 'nom_dep', 'estado', 'etiqueta', 'motivo'].
+    //   estado: 'enviado' | 'borrador' | 'sin_registro'
+    public function getEstadoEnvioDependencia($idDep) {
+        $filas = $this->executeGetEstadosEnvio((int)$idDep);
+
+        if (!$filas) {
+            return [
+                'id_dep'  => (int)$idDep,
+                'nom_dep' => '',
+                'estado'  => 'sin_registro',
+                'etiqueta'=> 'Sin registro',
+                'motivo'  => 'No se encontró una dependencia activa asociada a su usuario.',
+            ];
+        }
+
+        return $filas[0];
+    }
+
+    // Estado de envío de TODAS las dependencias activas (supervisión admin/coordinador)
+    public function getEstadosEnvioDependencias() {
+        return $this->executeGetEstadosEnvio(null);
+    }
+
+    // =========================================================================
     // MÉTODOS PRIVADOS (solo BD y helpers)
     // =========================================================================
+
+    // Consulta base del estado de envío. Con $idDep devuelve solo esa
+    // dependencia; con null devuelve todas las activas.
+    private function executeGetEstadosEnvio($idDep = null) {
+        // Un solo año fiscal activo: si no lo hay, la subconsulta devuelve
+        // NULL y no se une ningún requerimiento (todo queda 'sin_registro').
+        $sql = "SELECT d.id_dep, d.nom_dep,
+                       MAX(CASE WHEN r.estado_registro = 1 THEN 1 ELSE 0 END) AS enviado,
+                       MAX(CASE WHEN r.id_req IS NOT NULL THEN 1 ELSE 0 END)   AS registrado
+                FROM dependencias d
+                LEFT JOIN requerimiento r
+                       ON r.id_dep = d.id_dep
+                      AND r.estado = 1
+                      AND r.id_aniof = (SELECT id_aniof FROM anio_fiscal WHERE activo = 1 LIMIT 1)
+                WHERE d.estado = 1";
+
+        $params = [];
+        if ($idDep !== null) {
+            $sql .= " AND d.id_dep = ?";
+            $params[] = $idDep;
+        }
+
+        $sql .= " GROUP BY d.id_dep, d.nom_dep ORDER BY d.nom_dep";
+
+        $stmt = $this->conex->prepare($sql);
+        $stmt->execute($params);
+        $filas = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $periodo = $this->obtenerEstadoPeriodo();
+        $periodoActivo = is_array($periodo) ? (bool)$periodo[2] : false;
+        $fechaFin = is_array($periodo) ? (string)$periodo[1] : '';
+
+        $etiquetas = [
+            'enviado'      => 'Enviado',
+            'borrador'     => 'Pendiente de envío',
+            'sin_registro' => 'Sin registro',
+        ];
+
+        foreach ($filas as $i => $fila) {
+            $registrado = (int)$fila['registrado'] > 0;
+            $enviado    = (int)$fila['enviado'] > 0;
+
+            if ($enviado) {
+                $estado = 'enviado';
+            } elseif ($registrado) {
+                $estado = 'borrador';
+            } else {
+                $estado = 'sin_registro';
+            }
+
+            $filas[$i]['estado']   = $estado;
+            $filas[$i]['etiqueta'] = $etiquetas[$estado];
+            $filas[$i]['motivo']   = $this->buildMotivoEstadoEnvio($estado, $periodoActivo, $fechaFin);
+        }
+
+        return $filas;
+    }
+
+    // Texto explicativo: por qué la dependencia está en ese estado
+    private function buildMotivoEstadoEnvio($estado, $periodoActivo, $fechaFin) {
+        switch ($estado) {
+            case 'enviado':
+                return 'El requerimiento fue enviado correctamente (registrado definitivo).';
+
+            case 'borrador':
+                return $periodoActivo
+                    ? 'El requerimiento está guardado como borrador; falta enviarlo con "Registrar Definitivo".'
+                    : 'El requerimiento quedó como borrador y el período de registro está cerrado.';
+
+            default: // sin_registro
+                if (!$periodoActivo) {
+                    return 'No se creó ningún requerimiento y el período de registro está cerrado.';
+                }
+                return 'Aún no se ha creado el requerimiento para el año fiscal activo.'
+                     . ($fechaFin !== '' ? ' Período abierto hasta el ' . $fechaFin . '.' : '');
+        }
+    }
 
     // ¿Tiene la dependencia en sesión un borrador sin registrar?
     private function obtenerBorradorRequerimiento() {
@@ -298,7 +406,8 @@ class requerimientoModel extends ConnectDB {
             COALESCE(req_data.nom_dep, 'Sin solicitar') AS dependencia,
             p.cod_partida AS partida,
             p.descripcion AS partida_nombre,
-            pro.nom_pres AS producto,
+            SUBSTRING_INDEX(pro.nom_pres, '|', 1) AS producto,
+            COALESCE(um.unidad, 'UND') AS unidad,
             pro.id_pres as id_pres,
             COALESCE(req_data.Ene, 0) AS Ene, COALESCE(req_data.Feb, 0) AS Feb,
             COALESCE(req_data.Mar, 0) AS Mar, COALESCE(req_data.Abr, 0) AS Abr,
@@ -312,6 +421,7 @@ class requerimientoModel extends ConnectDB {
             (COALESCE(req_data.Total_Cantidad, 0) * pro.precio * COALESCE(tasa_vigente.tasa, 0)) AS total_bs
         FROM presupuesto pro
         JOIN partidas p ON pro.id_partida = p.id_partida
+        LEFT JOIN unidades_medida um ON um.id_unidad = pro.id_unidad
         CROSS JOIN (SELECT tasa_bcv_usd AS tasa FROM tasa_bcv WHERE estado = 1 LIMIT 1) AS tasa_vigente
         " . $joinType . " (
             SELECT 
