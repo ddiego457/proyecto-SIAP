@@ -39,7 +39,6 @@
                     return $sec;
                 }
             }
-
             // Primera uso: generar y guardar el secreto
             $sec = 'reset_' . bin2hex(random_bytes(32));
             $contenido = "<?php\n"
@@ -67,7 +66,9 @@
         // Huella corta del hash bcrypt almacenado (16 hex)
         public static function huella(string $passwordHash): string
         {
+            //explicame esta linea en el siguiente comentario
             return substr(hash('sha256', $passwordHash), 0, 16);
+            // Esta línea toma el hash bcrypt almacenado de la contraseña del usuario, lo pasa por la función hash() con el algoritmo 'sha256' para generar un hash SHA-256 del hash bcrypt. Luego, utiliza substr() para obtener los primeros 16 caracteres de ese hash SHA-256, creando así una "huella" corta que se puede usar para verificar si la contraseña ha cambiado sin exponer el hash completo.
         }
 
         // ─── Firmar: genera el token para el enlace ───────────────

@@ -34,7 +34,7 @@ const regexPrecios = /^(?!0+(?:\.0+)?$)\d{1,9}(?:\.\d{1,2})?$/;
 
 const regexDescripcionRol = /^[A-Za-z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-_\/()]{1,70}$/;
 
-const regexNombreDependencia = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.\-&()]{3,100}$/;
+const regexNombreDependencia = /^(?!\d)[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.\-&()]{3,100}$/;
 
 const regexNombreProveedor = /^[A-Za-z0-9áéíóúüÁÉÍÓÚÜñÑ\s.\-&()]{3,100}$/;
 

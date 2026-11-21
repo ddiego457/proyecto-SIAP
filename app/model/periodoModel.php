@@ -10,7 +10,7 @@ class periodoModel extends ConnectDB
     private $conex;
 
     public function __construct() {
-        parent::__construct();
+        parent::__construct(); 
         $this->conex = $this->getConnection();
     }
 

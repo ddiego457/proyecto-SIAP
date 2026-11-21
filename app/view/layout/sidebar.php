@@ -36,7 +36,7 @@ if (!function_exists('sidebarLink')) {
     }
 }
 ?>
-<aside class="sidebar">
+<aside id="sidebarPanel" class="sidebar" data-open="false">
     <div class="sidebar-brand">
         <div class="sidebar-brand-logo">
             <img src="assets/img/SIAPlogo.png" alt="SIAP" >

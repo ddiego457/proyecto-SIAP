@@ -45,8 +45,9 @@ include_once 'app/view/layout/head.php';
 
 .report-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
     gap: 28px;
+    display: grid;
 }
 .report-grid-single {
     grid-template-columns: minmax(0, min(100%, 760px));
@@ -72,9 +73,17 @@ include_once 'app/view/layout/head.php';
     font-size: 0.95rem;
     margin-bottom: 16px;
 }
+.report-card-actions {
+    margin-top: auto;
+}
+.report-card-actions .btn {
+    flex: 1;
+    justify-content: center;
+}
 .btn-full {
     width: 100%;
     justify-content: center;
+    
 }
 .spinner {
     display: inline-block;
