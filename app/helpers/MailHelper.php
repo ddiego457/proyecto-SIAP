@@ -29,9 +29,24 @@ class MailHelper {
         return (string) ob_get_clean();
     }
 
+    /**
+     * Devuelve la configuración de correo de app/config/mail.php
+     * (credenciales SMTP, asunto y plantilla de recuperación).
+     * Se carga una sola vez por petición.
+     */
+    public static function config(): array {
+        static $config = null;
+
+        if ($config === null) {
+            $config = require dirname(__DIR__) . '/config/mail.php';
+        }
+
+        return $config;
+    }
+
     // Envía un correo HTML. Devuelve true si se envió, false si falló (el error queda en error_log).
     public static function send(string $to, string $subject, string $htmlBody): bool {
-        $config = require dirname(__DIR__) . '/config/mail.php';
+        $config = self::config();
 
         $mail = new PHPMailer(true);
 

@@ -1,19 +1,17 @@
 <?php
 
-use EquipoSiap\Siap\helpers\EnvHelper;
-
 /**
  * Configuración SMTP para el envío de correos (recuperación de contraseña).
  *
- * Los valores NO están en este archivo: se leen de /.env en la raíz del
- * proyecto (ver .env.example). El /.env no se versiona y está bloqueado por
- * el .htaccess de la raíz, así que las credenciales no quedan en el repositorio
- * ni son servidas por Apache.
+ * Este archivo concentra TODA la configuración de correo del sistema: datos
+ * SMTP (host, puerto, cifrado, usuario, contraseña, remitente) y los ajustes
+ * del correo de recuperación (asunto y plantilla).
  *
- * MailHelper::send() lo carga desde app/helpers/MailHelper.php.
+ * MailHelper::send() y loginDesingController lo cargan desde aquí.
+ * NO se usa el archivo /.env para el correo.
  *
- * Valores por defecto: Gmail (smtp.gmail.com) puerto 587 con STARTTLS.
- * SMTP_PASSWORD debe ser una "contraseña de aplicación" de 16 dígitos generada en
+ * Valores actuales: Gmail (smtp.gmail.com) puerto 587 con STARTTLS.
+ * 'password' es una "contraseña de aplicación" de 16 dígitos generada en
  * https://myaccount.google.com/apppasswords (Gmail rechaza la contraseña normal
  * de la cuenta con el error 535-5.7.8). Se guarda sin espacios.
  */
@@ -23,11 +21,18 @@ use EquipoSiap\Siap\helpers\EnvHelper;
 // al enviar un correo, la clase MailHelper carga este archivo de configuración para obtener los detalles del servidor SMTP, como el host, puerto, tipo de cifrado, nombre de usuario y contraseña. Luego utiliza estos datos para configurar PHPMailer y enviar correos electrónicos a través del servidor SMTP especificado.
 
 return [
-    'host'       => EnvHelper::get('SMTP_HOST', 'smtp.gmail.com'),
-    'port'       => (int) EnvHelper::get('SMTP_PORT', '587'),
-    'encryption' => EnvHelper::get('SMTP_ENCRYPTION', 'tls'),
-    'username'   => EnvHelper::get('SMTP_USERNAME', ''),
-    'password'   => EnvHelper::get('SMTP_PASSWORD', ''),
-    'fromEmail'  => EnvHelper::get('SMTP_FROM_EMAIL', ''),
-    'fromName'   => EnvHelper::get('SMTP_FROM_NAME', 'Administrador SIAP'),
+    // ── Servidor SMTP ────────────────────────────────────────────
+    'host'       => 'smtp.gmail.com',
+    'port'       => 587,
+    'encryption' => 'tls',
+    'username'   => 'siapweb123@gmail.com',
+    'password'   => 'fzrnkllkbpxasqcb',
+    'fromEmail'  => 'siapweb123@gmail.com',
+    'fromName'   => 'Administrador SIAP',
+
+    // ── Recuperación de contraseña ───────────────────────────────
+    // Asunto del correo
+    'subjectRecuperacion'  => 'Recuperación de contraseña — SIAP',
+    // Plantilla usada (archivo app/template/mail/<valor>.php)
+    'templateRecuperacion' => 'recuperacion',
 ];

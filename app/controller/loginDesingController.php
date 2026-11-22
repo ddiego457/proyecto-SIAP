@@ -4,7 +4,6 @@
 use EquipoSiap\Siap\model\UserModel;
 use EquipoSiap\Siap\helpers\MailHelper;
 use EquipoSiap\Siap\helpers\IntentosLoginHelper;
-use EquipoSiap\Siap\helpers\EnvHelper;
 
 // CIERRE DE SESIÓN: ?url=inicio&type=logout
 if (isset($_GET['type']) && $_GET['type'] == 'logout') {
@@ -41,9 +40,10 @@ if (isset($_GET['type']) && $_GET['type'] == 'recuperar') {
                     $basePath = implode('/', array_map('rawurlencode', explode('/', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'))));
                     $resetUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . $basePath . '/?url=inicio&type=reset&token=' . $token;
 
-                    // Plantilla y asunto desde /.env (EnvHelper)
-                    $asunto = EnvHelper::get('MAIL_SUBJECT_RECUPERACION', 'Recuperación de contraseña — SIAP');
-                    $plantilla = EnvHelper::get('MAIL_TEMPLATE_RECUPERACION', 'recuperacion');
+                    // Plantilla y asunto desde app/config/mail.php
+                    $mailConfig = MailHelper::config();
+                    $asunto = $mailConfig['subjectRecuperacion'] ?? 'Recuperación de contraseña — SIAP';
+                    $plantilla = $mailConfig['templateRecuperacion'] ?? 'recuperacion';
 
                     $body = MailHelper::plantilla($plantilla, [
                         'nombre'   => $user['nom_resp'],
