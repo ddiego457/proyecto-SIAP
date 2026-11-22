@@ -1,0 +1,19 @@
+{
+    "name": "equipo-siap/siap",
+    "description": "Sistema Integrado de Anteproyecto Presupuestario",
+    "autoload": {
+        "psr-4": {
+            "EquipoSiap\\Siap\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Diego Flores"
+        }
+    ],
+    "require": {
+        "mpdf/mpdf": "^8.3",
+        "phpoffice/phpspreadsheet": "^5.9",
+        "phpmailer/phpmailer": "^7.1"
+    }
+}
