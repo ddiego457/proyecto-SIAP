@@ -77,14 +77,13 @@ $(document).ready(function() {
                 if (d.rol === ROL_SUPERADMIN) {
                     return '<span class="badge badge-gray">protegido</span>';
                 }
+                if (Number(d.id_responsable) === idResponsablePropio) {
+                    // No se permite modificar ni inhabilitar la cuenta propia.
+                    return '<span class="badge badge-gray" title="No puede modificar su propia cuenta">Mi cuenta</span>';
+                }
                 let actions = `<button value="${d.id_responsable}" class="btn btn-sm btn-edit btn-modificar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>`;
                 if (Number(d.estado) === 1) {
-                    if (Number(d.id_responsable) === idResponsablePropio) {
-                        // Un usuario no puede inhabilitarse a sí mismo
-                        actions += ` <button class="btn btn-warning btn-sm btn-inactivar" disabled aria-label="Inhabilitar" title="No puede inhabilitar su propia cuenta"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
-                    } else {
-                        actions += ` <button value="${d.id_responsable}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
-                    }
+                    actions += ` <button value="${d.id_responsable}" class="btn btn-warning btn-sm btn-inactivar" aria-label="Inhabilitar" title="Inhabilitar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>`;
                 } else {
                     actions += ` <button value="${d.id_responsable}" class="btn btn-success btn-sm btn-toggle-estado" data-new-state="1" aria-label="Activar" title="Activar"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></button>`;
                 }
@@ -213,6 +212,10 @@ $(document).ready(function() {
 
     $(document).on('click', '.btn-modificar', function() {
         const data = tabla.row($(this).closest('tr')).data();
+        if (Number(data.id_responsable) === idResponsablePropio) {
+            alert('No puede modificar los datos de su propia cuenta.');
+            return;
+        }
         $('#edit_idItem').val(data.id_responsable);
         $('#edit_nom_rep').val(data.nom_resp);
         $('#edit_email').val(data.email || '');
@@ -269,6 +272,11 @@ $(document).ready(function() {
 
     $('#formEditar').on('submit', function(e) {
         e.preventDefault();
+        if (Number($('#edit_idItem').val()) === idResponsablePropio) {
+            alert('No puede modificar los datos de su propia cuenta.');
+            $('#modalEditar').hide();
+            return;
+        }
         const $btn = $(this).find('button[type="submit"]');
         if ($btn.prop('disabled')) return;
         const textoOriginal = $btn.text();

@@ -30,9 +30,8 @@ trait ValidationTrait
     // Responsable (incluye UserModel)
     public $expNomRep = '/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\'\-]{3,100}$/';
     public $expEmail = '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/';
-    // Contraseña (alta/cambio): mín. 8 caracteres SIN espacios, al menos un
-    // número y al menos un carácter especial (no letra ni número Unicode).
-    public $expPassword = '/^(?=.*\d)(?=.*[^\p{L}\p{N}])\S{8,100}$/u';
+    // Contraseña (alta/cambio): mín. 8 caracteres (letras, números, con o sin caracteres especiales, sin espacios).
+    public $expPassword = '/^\S{8,100}$/u';
     // Contraseña (solo LOGIN): se comprueba con password_verify();
     // aquí solo se descarta lo claramente inválido para no consultar la BD.
     public $expPasswordLogin = '/^.{1,100}$/u';
@@ -447,7 +446,7 @@ trait ValidationTrait
             return 'La contraseña no puede estar vacía.';
         }
         if (!preg_match($this->expPassword, (string)$password)) {
-            return 'La contraseña debe tener al menos 8 caracteres e incluir al menos un número y un carácter especial (sin espacios).';
+            return 'La contraseña debe tener al menos 8 caracteres (letras, números, con o sin caracteres especiales, sin espacios).';
         }
         return null;
     }

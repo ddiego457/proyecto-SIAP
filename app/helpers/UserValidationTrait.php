@@ -7,9 +7,8 @@ trait UserValidationTrait {
 
     // Usuario: letras (con acentos), números, espacios y _ . -
     public $expUsuario = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ_\.\-\s]{2,100}$/';
-    // Contraseña: mín. 8 caracteres SIN espacios, al menos un número y un
-    // carácter especial. Regla espejo de ValidationTrait::$expPassword.
-    public $expPassword = '/^(?=.*\d)(?=.*[^\p{L}\p{N}])\S{8,100}$/u';
+    // Contraseña: mín. 8 caracteres (letras, números, con o sin caracteres especiales, sin espacios). Regla espejo de ValidationTrait::$expPassword.
+    public $expPassword = '/^\S{8,100}$/u';
 
     public function validarUsuario($usuario): ?string
     {
@@ -29,7 +28,7 @@ trait UserValidationTrait {
             return 'La contraseña no puede estar vacía.';
         }
         if (!preg_match($this->expPassword, (string)$password)) {
-            return 'La contraseña debe tener al menos 8 caracteres e incluir al menos un número y un carácter especial (sin espacios).';
+            return 'La contraseña debe tener al menos 8 caracteres (letras, números, con o sin caracteres especiales, sin espacios).';
         }
         return null;
     }

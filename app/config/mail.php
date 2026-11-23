@@ -27,7 +27,7 @@ return [
     'port'       => (int) EnvHelper::get('SMTP_PORT', '587'),
     'encryption' => EnvHelper::get('SMTP_ENCRYPTION', 'tls'),
     'username'   => EnvHelper::get('SMTP_USERNAME', ''),
-    'password'   => EnvHelper::get('SMTP_PASSWORD', ''),
-    'fromEmail'  => EnvHelper::get('SMTP_FROM_EMAIL', ''),
-    'fromName'   => EnvHelper::get('SMTP_FROM_NAME', 'Administrador SIAP'),
+    'password'   => str_replace(' ', '', EnvHelper::get('SMTP_PASSWORD', '')),
+    'fromEmail'  => EnvHelper::get('SMTP_FROM_EMAIL', '') ?: EnvHelper::get('SMTP_USERNAME', ''),
+    'fromName'   => EnvHelper::get('SMTP_FROM_NAME', 'Administrador SIAP')
 ];

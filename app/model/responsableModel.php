@@ -398,6 +398,10 @@ class responsableModel extends ConnectDB
 
     private function executeUpdate(int $id, ?string $nomRep, ?string $password, ?int $idRol, ?string $email = null)
     {
+        if (isset($_SESSION['id_responsable']) && (int)$_SESSION['id_responsable'] === $id) {
+            return false;
+        }
+
         if ($this->validarRestriccionesAdministradorResponsable($idRol, $password, $id) !== null) {
             return false;
         }
@@ -446,6 +450,10 @@ class responsableModel extends ConnectDB
 
     private function executeActivate(int $idResponsable): bool
     {
+        if (isset($_SESSION['id_responsable']) && (int)$_SESSION['id_responsable'] === $idResponsable) {
+            return false;
+        }
+
         try {
             $stmt = $this->conex->prepare("UPDATE responsables SET estado = 1 WHERE id_responsable = ?");
             return $stmt->execute([$idResponsable]);
@@ -499,6 +507,10 @@ class responsableModel extends ConnectDB
 
     private function executeAssignToDependencia(int $idResponsable, int $idDep, string $fechaInicio)
     {
+        if (isset($_SESSION['id_responsable']) && (int)$_SESSION['id_responsable'] === $idResponsable) {
+            return false;
+        }
+
         try {
             $this->conex->beginTransaction();
 

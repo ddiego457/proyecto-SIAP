@@ -37,7 +37,7 @@ trait ReportePdfGeneratorTrait
             'margin_left' => 8,
             'margin_right' => 8,
             'margin_top' => 30,
-            'margin_bottom' => 28,
+            'margin_bottom' => 32,
             'margin_header' => 5,
             'margin_footer' => 4,
         ]);
@@ -53,11 +53,20 @@ trait ReportePdfGeneratorTrait
             . '</td><td width="20%" align="right" valign="middle">' . $siapLogo . '</td></tr></table>'
         );
         $mpdf->SetHTMLFooter(
-            '<table width="100%" cellpadding="0" cellspacing="0" style="font-family:sans-serif;">'
-            . '<tr><td height="16mm" align="right" valign="bottom"><table width="60mm" cellpadding="0" cellspacing="0" style="font-size:7pt;text-align:center;">'
-            . '<tr><td style="border-bottom:1px solid #000;height:11mm;">&nbsp;</td></tr>'
-            . '<tr><td>Firma y sello</td></tr></table></td></tr></table>'
-            . '<table width="100%" style="font-size:7pt;font-family:sans-serif;border-top:1px solid #ccc;">'
+            '<table width="100%" cellpadding="0" cellspacing="0" style="font-family:sans-serif;font-size:7pt;">'
+            . '<tr>'
+            . '<td width="33%" height="18mm" align="left" valign="bottom"><table width="90%" cellpadding="0" cellspacing="0" style="text-align:center;">'
+            . '<tr><td style="border-bottom:1px solid #000;height:8mm;">&nbsp;</td></tr>'
+            . '<tr><td>Elaborado por:</td></tr></table></td>'
+            . '<td width="34%" height="18mm" align="center" valign="bottom"><table width="90%" cellpadding="0" cellspacing="0" style="text-align:center;">'
+            . '<tr><td style="border-bottom:1px solid #000;height:8mm;">&nbsp;</td></tr>'
+            . '<tr><td>Presentado por:</td></tr></table></td>'
+            . '<td width="33%" height="18mm" align="right" valign="bottom"><table width="90%" cellpadding="0" cellspacing="0" style="text-align:center;">'
+            . '<tr><td style="border-bottom:1px solid #000;height:8mm;">&nbsp;</td></tr>'
+            . '<tr><td>Aprobado por:</td></tr>'
+            . '<tr><td>Fecha: ____/____/________</td></tr></table></td>'
+            . '</tr></table>'
+            . '<table width="100%" style="font-size:7pt;font-family:sans-serif;border-top:1px solid #ccc;padding-top:2px;">'
             . '<tr><td width="33%">Fecha de emisi&oacute;n: ' . date('d/m/Y h:i A') . '</td>'
             . '<td width="33%" align="center">P&aacute;gina {PAGENO} de {nbpg}</td>'
             . '<td width="33%" align="right">Sistema SIAP</td></tr></table>'

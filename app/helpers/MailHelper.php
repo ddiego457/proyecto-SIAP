@@ -33,6 +33,11 @@ class MailHelper {
     public static function send(string $to, string $subject, string $htmlBody): bool {
         $config = require dirname(__DIR__) . '/config/mail.php';
 
+        if (empty($config['username']) || empty($config['password']) || empty($config['fromEmail'])) {
+            error_log("MailHelper error: Credenciales SMTP incompletas en el archivo .env (SMTP_USERNAME, SMTP_PASSWORD o SMTP_FROM_EMAIL vacíos)");
+            return false;
+        }
+
         $mail = new PHPMailer(true);
 
         try {

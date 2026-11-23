@@ -136,7 +136,7 @@
     const mensajes = {
         email: 'Ingrese un correo electrónico válido (ej. usuario@dominio.com).',
         nombre: 'El nombre solo puede contener letras, espacios, puntos, guiones y apóstrofes, entre 3 y 100 caracteres.',
-        contrasenia: 'La contraseña debe tener al menos 8 caracteres e incluir al menos un número y un carácter especial (sin espacios).',
+        contrasenia: 'La contraseña debe tener al menos 8 caracteres (letras, números, con o sin caracteres especiales, sin espacios).',
         telefono: 'Formato de teléfono inválido. Solo se permiten dígitos, "+" al inicio y "-". Ej: +58-212-5551234',
         nomPresupuesto: 'Formato esperado: nombre|unidad|',
         cantidad: 'La cantidad debe ser un número de 4 dígitos.',

@@ -187,23 +187,15 @@
             const description = !isAdmin && report.code === 'req_individual'
                 ? 'Requerimiento creado para su dependencia'
                 : report.description;
-            const exportButtons = report.code === 'req_individual'
-                ? `
-                    <button type="button" class="btn btn-success btn-full" data-report-open data-report-code="${report.code}" data-report-format="excel" id="btnExpIndExcel">
-                        <span>&#128190;</span> Exportar Excel
+            const exportButtons = `
+                <div class="report-card-actions flex gap-10">
+                    <button type="button" class="btn btn-success" data-report-open data-report-code="${report.code}" data-report-format="excel">
+                        <span>&#128190;</span> Excel
                     </button>
-                    <button type="button" class="btn btn-primary btn-full" data-report-open data-report-code="${report.code}" data-report-format="pdf" style="margin-top:8px;" id="btnExpIndPdf">
-                        <span>&#128221;</span> Exportar PDF
-                    </button>`
-                : `
-                    <div class="flex gap-10">
-                        <button type="button" class="btn btn-success" data-report-open data-report-code="${report.code}" data-report-format="excel" style="flex:1;">
-                            <span>&#128190;</span> Excel
-                        </button>
-                        <button type="button" class="btn btn-primary" data-report-open data-report-code="${report.code}" data-report-format="pdf" style="flex:1;">
-                            <span>&#128221;</span> PDF
-                        </button>
-                    </div>`;
+                    <button type="button" class="btn btn-primary" data-report-open data-report-code="${report.code}" data-report-format="pdf">
+                        <span>&#128221;</span> PDF
+                    </button>
+                </div>`;
 
             return `
                 <div class="report-card">

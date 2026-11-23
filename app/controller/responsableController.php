@@ -105,6 +105,10 @@
 
             if (isset($_POST['updateItem'])) {
                 $id = (int)$_POST['idItem'];
+                $idPropio = isset($_SESSION['id_responsable']) ? (int)$_SESSION['id_responsable'] : 0;
+                if ($idPropio > 0 && $id === $idPropio) {
+                    sendJson(['success' => false, 'message' => 'No puede modificar los datos de su propia cuenta.']);
+                }
                 $nom = (string)($_POST['nom_rep'] ?? '');
                 $pass = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : null;
                 $idRol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : null;
@@ -143,6 +147,10 @@
             if (isset($_POST['toggleEstado'])) {
                 $id = (int)$_POST['idItem'];
                 $newEstado = isset($_POST['newState']) ? (int)$_POST['newState'] : null;
+                $idPropio = isset($_SESSION['id_responsable']) ? (int)$_SESSION['id_responsable'] : 0;
+                if ($idPropio > 0 && $id === $idPropio) {
+                    sendJson(['success' => false, 'message' => 'No puede modificar el estado de su propia cuenta.']);
+                }
                 $result = false;
                 if ($newEstado !== 1) {
                     header('Content-Type: application/json; charset=utf-8');
@@ -178,6 +186,11 @@
                 $idResponsable = isset($_POST['id_responsable']) ? (int)$_POST['id_responsable'] : 0;
                 $idDep = isset($_POST['id_dep']) ? (int)$_POST['id_dep'] : 0;
                 $fechaInicio = isset($_POST['fecha_inicio']) ? trim((string)$_POST['fecha_inicio']) : date('Y-m-d');
+
+                $idPropio = isset($_SESSION['id_responsable']) ? (int)$_SESSION['id_responsable'] : 0;
+                if ($idPropio > 0 && $idResponsable === $idPropio) {
+                    sendJson(['success' => false, 'message' => 'No puede modificar los datos de su propia cuenta.']);
+                }
 
                 if ($idResponsable <= 0 || $idDep <= 0) {
                     header('Content-Type: application/json; charset=utf-8');

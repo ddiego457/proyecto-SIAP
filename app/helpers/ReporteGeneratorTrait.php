@@ -6,7 +6,7 @@ trait ReporteGeneratorTrait
 {
     private function buildIndividualReportTitle(array $context): string
     {
-        return 'Requerimiento ' . $context['estado'] . ' - ' . $context['dependencia'];
+        return 'Requerimiento ' . $context['estado'] . ' - Dependencia: ' . $context['dependencia'];
     }
 
     private function buildIndividualReportFilename(array $context): string

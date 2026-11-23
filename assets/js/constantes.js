@@ -12,7 +12,7 @@ const regexNombre = /^[A-Za-záéíóúüÁÉÍÓÚÜñÑ\s.'-]{3,100}$/;
 // Contraseña (alta/cambio): mín. 8 caracteres SIN espacios, al menos un
 // número y al menos un carácter especial. Coincide con
 // ValidationTrait::$expPassword.
-const regexContrasenia = /^(?=.*\d)(?=.*[^\p{L}\p{N}])\S{8,100}$/u;
+const regexContrasenia = /^\S{8,100}$/u;
 
 const regexTelf = /^\+?[0-9][0-9\s-]{6,18}$/;
 
